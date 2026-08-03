@@ -31,6 +31,34 @@
 
 ---
 
+## 新增一種魚的造型特徵（`shape` / `special`）
+
+要讓一條魚**看起來**跟別人不一樣，優先順序是固定的：**輪廓 ＞ 特徵物 ＞ 花紋 ＞ 配色**。只換配色是無效的（[11 §18](11-invariants-and-gotchas.md#18-五王同型換配色不等於換造型)）。
+
+### 加一種 `shape`
+
+1. `js/pixel.js › SHAPES` 加一筆，欄位定義見 [06 §體型輪廓表](06-pixel-engine.md#體型輪廓表--shapes)。
+2. **先動 `gamma`**（最寬處位置，`t_widest = 0.5^(1/gamma)`）與 `tailH` / `fork`，這三個決定了輪廓能不能跟既有體型區分開。
+3. 用 ASCII 遮罩並排比對，比看畫面快也不會被 `fishCache` 騙：
+   ```js
+   // 只留 alpha >= 200，濾掉 glow 的半透明光暈（否則輪廓會虛胖 2px）
+   const cv = FG.px.sprite(FG.fishById('魚id')), d = cv.getContext('2d').getImageData(0,0,96,56).data;
+   let s=''; for (let y=0;y<56;y++){ for (let x=0;x<96;x++) s += d[(y*96+x)*4+3]>=200 ? '#' : '.'; s+='\n'; }
+   console.log(s);
+   ```
+
+### 加一種 `special`
+
+1. `js/pixel.js › buildFish()` 的 special 區塊（`scar` 那一段之後）加一段 `if (sp.indexOf('新key') >= 0) { ... }`。
+2. **每一次寫入都要分別檢查 `x` 和 `y` 邊界**——那一段是直接寫 `col[]`，沒有 `put()` 的保護（[11 §5](11-invariants-and-gotchas.md#5-canvas-平面索引忘記檢查-x-邊界)）。
+3. 顏色從 `f.colors` 讀，一律給預設值：`const c = C.新色 || '#xxxxxx';`
+4. 三條經驗：細節**畫在身體像素上不要外凸**、弧線**取樣要密到步距 < 1px**、點狀特徵**要有形狀且數量要少**。理由見 [06 §特殊特徵](06-pixel-engine.md#特殊特徵--special)。
+5. 若特徵會往**身體輪廓外**延伸（鬍鬚、燈籠竿），確認畫布邊緣夠不夠；不夠就要納入 `headRoom`（[11 §19](11-invariants-and-gotchas.md#19-吻端沒留空間鬍鬚會被切光)）。
+
+📝 **要更新**：[06 像素引擎](06-pixel-engine.md)（輪廓表／special 表加一列）、[07 資料規格](07-data-schema.md)（`shape` / `special` 的可用值與 `colors` 欄位）、[12 名詞表](12-glossary.md)（可用值清單）。
+
+---
+
 ## 新增一個釣點
 
 1. `js/data.js` 的 `FG.LOCATIONS` 加一筆，欄位見 [07 §釣點](07-data-schema.md#釣點--fglocations)。

@@ -108,9 +108,9 @@ window.FG = window.FG || {};
       desc: '從霧裡浮出來的半透明身影。' },
 
     /* --- 魚王 --- */
-    { id: 'ml_king_onde', name: '霧語巨鯰「翁德」', rarity: 'king', shape: 'wide', scale: 1.3, pattern: 'speck', value: 52000, minLen: 150, maxLen: 260,
+    { id: 'ml_king_onde', name: '霧語巨鯰「翁德」', rarity: 'king', shape: 'catfish', scale: 1.3, pattern: 'speck', value: 52000, minLen: 150, maxLen: 260,
       special: ['glow', 'whisker', 'scar'], cyOffset: 1,
-      colors: { body: '#5f6b73', back: '#2f383f', belly: '#c2ccd2', fin: '#454f57', pattern: '#8d9aa2', glow: '#8fe6ff' },
+      colors: { body: '#5f6b73', back: '#2f383f', belly: '#c2ccd2', fin: '#454f57', pattern: '#8d9aa2', glow: '#8fe6ff', scar: '#f0dcc4' },
       legend: '沒有人知道翁德在晨霧湖底待了多久。牠背上那道疤，是四十年前一位老釣手留下的——那天老人只帶回一根斷竿，說：「牠在水裡對我說話。」湖邊從此立了塊碑，寫著「不要回答牠」。',
       desc: '晨霧湖之王。體長可及兩人身高。' }
   ];
@@ -204,8 +204,8 @@ window.FG = window.FG || {};
       desc: '峽灣的黃昏引路者。' },
 
     /* --- 魚王 --- */
-    { id: 'fj_king_helio', name: '落日巨鮪「赫利歐」', rarity: 'king', shape: 'wide', scale: 1.34, pattern: 'band2', value: 96000, minLen: 200, maxLen: 340,
-      special: ['glow', 'scar'],
+    { id: 'fj_king_helio', name: '落日巨鮪「赫利歐」', rarity: 'king', shape: 'tuna', scale: 1.34, pattern: 'band2', value: 96000, minLen: 200, maxLen: 340,
+      special: ['glow', 'finlet'],
       colors: { body: '#3d6b93', back: '#1b3450', belly: '#f0c66a', fin: '#2b5077', pattern: '#ffb347', glow: '#ffc861' },
       legend: '赫利歐每天只在太陽貼上海平面的那七分鐘出現。牠沿著霞光的邊界游，像在追那條逐漸熄滅的線。峽灣的老船長說，牠追了幾百年，一次都沒追上。',
       desc: '落霞峽灣之王。追逐夕陽的巨獸。' }
@@ -299,9 +299,9 @@ window.FG = window.FG || {};
       desc: '祭典前夜穿過鳥居的白色隊伍。' },
 
     /* --- 魚王 --- */
-    { id: 'sk_king_yahiro', name: '淵之主「八尋」', rarity: 'king', shape: 'wide', scale: 1.32, pattern: 'scale', value: 135000, minLen: 180, maxLen: 300,
-      special: ['glow', 'whisker', 'scar'], cyOffset: 1,
-      colors: { body: '#c8402f', back: '#7a2018', belly: '#f6dca8', fin: '#a02e22', pattern: '#ffd76a', glow: '#ff9a5f' },
+    { id: 'sk_king_yahiro', name: '淵之主「八尋」', rarity: 'king', shape: 'dragon', scale: 1.32, pattern: 'scale', value: 135000, minLen: 180, maxLen: 300,
+      special: ['glow', 'whisker', 'horn', 'mane'], cyOffset: 1,
+      colors: { body: '#c8402f', back: '#7a2018', belly: '#f6dca8', fin: '#a02e22', pattern: '#ffd76a', glow: '#ff9a5f', hornColor: '#ffe9a8', mane: '#ffcf6b' },
       legend: '八尋是長度單位，大概十四公尺——當然沒有人真的量過。神社的緣起寫著：這片潟湖本來是海，八尋來的那天，海退開了，留下這座湖給牠住。鳥居是後來蓋的，蓋在牠進出的那條水路上，用意不是迎神，是攔。',
       desc: '宵櫻神域之主。鳥居攔的就是牠。' }
   ];
@@ -395,9 +395,9 @@ window.FG = window.FG || {};
       desc: '冰縫底下經過的白色長影。' },
 
     /* --- 魚王 --- */
-    { id: 'fr_king_kold', name: '霜牙巨狗魚「寇爾德」', rarity: 'king', shape: 'wide', scale: 1.32, pattern: 'band2', value: 196000, minLen: 180, maxLen: 320,
-      special: ['glow', 'spike', 'scar'], cyOffset: 1,
-      colors: { body: '#5e7a86', back: '#2b3f4a', belly: '#d8e8ee', fin: '#415a66', pattern: '#a8d4e4', glow: '#a8e8ff' },
+    { id: 'fr_king_kold', name: '霜牙巨狗魚「寇爾德」', rarity: 'king', shape: 'pike', scale: 1.32, pattern: 'spot', value: 196000, minLen: 180, maxLen: 320,
+      special: ['glow', 'jaw', 'frost'], cyOffset: 1,
+      colors: { body: '#5e7a86', back: '#2b3f4a', belly: '#d8e8ee', fin: '#415a66', pattern: '#a8d4e4', glow: '#a8e8ff', tooth: '#f4fbff', frost: '#eaf7ff' },
       legend: '破冰洞開得再小，寇爾德也找得到。牠不是從水裡上來的——先是冰面下傳來像腳步一樣的悶響，然後整塊冰從中間裂開。有人說牠在冰下經營一整片獵場，湖裡消失的每一條魚都在那裡排隊。',
       desc: '幽藍冰湖之王。冰層底下的那個聲音。' }
   ];
@@ -496,9 +496,9 @@ window.FG = window.FG || {};
       desc: '沒有人看過牠的兩端。' },
 
     /* --- 魚王 --- */
-    { id: 'ab_king_nyx', name: '深淵之顎「尼克斯」', rarity: 'king', shape: 'wide', scale: 1.34, pattern: 'net', value: 617000, minLen: 400, maxLen: 700,
-      special: ['glow', 'spike', 'scar'], cyOffset: 1,
-      colors: { body: '#1a2030', back: '#080b12', belly: '#3c4860', fin: '#121826', pattern: '#4f6a8c', glow: '#9f6fff' },
+    { id: 'ab_king_nyx', name: '深淵之顎「尼克斯」', rarity: 'king', shape: 'abyss', scale: 1.34, pattern: 'net', value: 617000, minLen: 400, maxLen: 700,
+      special: ['glow', 'jaw', 'lantern'], cyOffset: 1,
+      colors: { body: '#1a2030', back: '#080b12', belly: '#3c4860', fin: '#121826', pattern: '#4f6a8c', glow: '#9f6fff', tooth: '#e8e2d0', lantern: '#c9a6ff' },
       legend: '探測船的聲納在海溝底部收到過一次回音。依照回波時間換算，那個東西的長度是七公尺——問題是聲納打的是海底，回音卻從半途折回來。第二次施測時，那個位置什麼都沒有了。船長在報告上只寫了一行：牠移動了。',
       desc: '深淵海溝之王。聲納唯一一次撒謊的原因。' }
   ];

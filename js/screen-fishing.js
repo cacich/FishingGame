@@ -178,6 +178,9 @@ window.FG = window.FG || {};
       const chk = this.canCast();
 
       if (!chk.ok) {
+        // 自動模式沒餌時先試著補貨，補到了就照原本流程拋下去。
+        // 少了這一步，「按開始自動的瞬間剛好沒餌」會直接停止，自動補貨設定形同無效。
+        if (fromAuto && chk.why === 'bait' && this.autoRestockBait()) { this.cast(true); return; }
         if (fromAuto) { this.stopAuto(chk.msg); return; }
         FG.sfx.fail();
         if (chk.why === 'bait') {
@@ -422,9 +425,21 @@ window.FG = window.FG || {};
         { v: 1, t: '正常' }, { v: 2, t: '2 倍' }, { v: 4, t: '極速' }
       ], cfg.speed, function (v) { cfg.speed = v; }));
 
+      // 餌料：說明文字要即時反映庫存，否則「沒餌就按開始」的玩家不知道自己會被立刻停下來
+      const baitNote = note('');
+      function refreshBaitNote() {
+        const b = st.bait(), n = st.baitCount();
+        baitNote.innerHTML = '目前 <b>' + FG.esc(b.name) + ' ×' + n + '</b>。' +
+          (cfg.autoBuyBait
+            ? '用完（或現在就沒有）會自動買一包 ' + FG.fmt(b.price * b.pack) +
+              ' 籌碼；買不起這款時會改用買得起的較便宜餌料，加成會跟著下降。'
+            : (n <= 0 ? '<span style="color:#ff9a5f">現在沒有餌，會立刻停止。</span>' : '用完就停止自動。'));
+      }
       box.appendChild(seg('餌料用完時', [
         { v: true, t: '自動補貨' }, { v: false, t: '停止自動' }
-      ], cfg.autoBuyBait, function (v) { cfg.autoBuyBait = v; }));
+      ], cfg.autoBuyBait, function (v) { cfg.autoBuyBait = v; refreshBaitNote(); }));
+      refreshBaitNote();
+      box.appendChild(baitNote);
 
       FG.ui.modal({
         title: '自動釣魚設定',
@@ -488,6 +503,35 @@ window.FG = window.FG || {};
       if (this.phase === 'idle') this.cast(true);
     },
 
+    // 自動模式的餌料補貨。回傳 true 表示「現在有餌，可以拋竿」。
+    // 由 cast()（開場那一竿）與 resolveAuto()（每局結算）共用，兩邊都走同一套判斷。
+    //
+    // 兩個刻意的設計：
+    // 1. 多留一筆 castCost() 的餘裕——只夠買餌卻拋不了竿的話，買了也沒意義。
+    // 2. 目前這款餌買不起時，退而求其次挑「買得起的最貴一款」。否則玩家一換到高級餌
+    //    （魚王秘餌一包 4,500）手頭又不寬裕，自動模式就會開場即停，根本用不了。
+    //    降級會改變加成，所以一定要用 toast 講清楚換成哪一款。
+    autoRestockBait: function () {
+      const st = FG.state, a = this.auto;
+      if (st.baitCount() > 0) return true;
+      if (!a || !a.autoBuyBait) return false;
+
+      const cur = st.bait(), cast = st.castCost();
+      const afford = function (b) { return st.canPay(b.price * b.pack + cast); };
+      let pick = afford(cur) ? cur : null;
+      if (!pick) {
+        const cands = FG.BAITS.filter(afford).sort(function (x, y) { return y.price - x.price; });
+        pick = cands.length ? cands[0] : null;
+      }
+      if (!pick || st.buyBait(pick, 1) !== 'ok') return false;
+
+      a.cost += pick.price * pick.pack;      // 補貨費用要計入本次結算的支出
+      a.baitBought++;
+      FG.ui.toast('自動補貨：' + pick.name + ' ×' + pick.pack +
+        (pick.id === cur.id ? '' : '（' + cur.name + '買不起，改用這款）'), 'good', 1500);
+      return true;
+    },
+
     stopAuto: function (reason) {
       const a = this.auto;
       if (!a) return;
@@ -548,17 +592,7 @@ window.FG = window.FG || {};
         return;
       }
       // 餌料用完 → 自動補貨或停止
-      if (st.baitCount() <= 0) {
-        const bait = st.bait();
-        if (a.autoBuyBait && st.canPay(bait.price * bait.pack + st.castCost())) {
-          st.buyBait(bait, 1);
-          a.cost += bait.price * bait.pack;
-          a.baitBought++;
-          FG.ui.toast('自動補貨：' + bait.name + ' ×' + bait.pack, 'good', 1200);
-        } else {
-          this.stopAuto('餌料用完'); return;
-        }
-      }
+      if (!this.autoRestockBait()) { this.stopAuto('餌料用完'); return; }
       if (!st.canPay(st.castCost())) { this.stopAuto('籌碼不足'); return; }
 
       this.nextCastAt = now + 320 / a.speed;

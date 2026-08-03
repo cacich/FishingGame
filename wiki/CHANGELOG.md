@@ -16,6 +16,58 @@
 
 ---
 
+## 2026-08-03 · 五位魚王各自重新設計造型；修正沒餌時自動模式開場即停
+
+### 一 · 五位魚王一王一型
+
+**改了什麼**：
+
+`pixel.js › SHAPES` 新增五種**魚王專屬輪廓**，一王一型不共用：
+
+| 魚王 | shape | pattern | special | 一眼認出的特徵 |
+|---|---|---|---|---|
+| 霧語巨鯰「翁德」 | `catfish` | `speck` | `glow` `whisker` `scar` | 寬扁大頭＋鬍鬚＋圓尾，背上一道疤 |
+| 落日巨鮪「赫利歐」 | `tuna` | `band2` | `glow` **`finlet`** | 鎌狀高背鰭＋深叉月牙尾 |
+| 淵之主「八尋」 | `dragon` | `scale` | `glow` `whisker` `horn` **`mane`** | 帶狀長身＋頭角＋背上飄動的鬃 |
+| 霜牙巨狗魚「寇爾德」 | `pike` | `spot` | `glow` **`jaw`** **`frost`** | 後半肥、背鰭極後＋獠牙＋體表霜晶 |
+| 深淵之顎「尼克斯」 | `abyss` | `net` | `glow` **`jaw`** **`lantern`** | 巨頭小尾＋獠牙＋頭頂發光燈籠 |
+
+`buildFish()` 新增五種 special：`jaw`（拉長的咬合線＋交錯獠牙）、`lantern`（頭頂弧形竿＋菱形發光燈籠）、`finlet`（尾柄離鰭）、`mane`（背鰭上緣往尾部斜的飄動纖毛）、`frost`（十字形霜晶）。對應新增 `colors.tooth` / `lantern` / `mane` / `frost` / `scar`。
+
+順手改掉三個既有問題：`scar` 從「貫穿全身的 13px 亮線」縮成背上 6～9px 的癒合舊傷（加了縫合痕）；`horn` 基部改成 2px 寬，才不會跟 `mane` 的細絲混在一起；`spike` 從魚王身上移除（跟 `mane`、`jaw` 打架）。
+
+**為什麼**：初版五王全都是 `shape: 'wide'` + `glow` + `scar`，**只有配色和花紋不同**。在 96×56 的精靈框裡輪廓的辨識權重遠高於配色，所以五條並排看起來就是同一條魚換色。更糟的是那道傷疤——它原本寫在翁德的傳說裡（「牠背上那道疤，是四十年前一位老釣手留下的」），是角色設定；複製到另外四位身上之後就從故事退化成「魚王的貼圖」。現在 `scar` 只留給翁德，五王共用的只剩 `glow`（＝「這是魚王」的統一訊號）。
+
+**設計心得**：拉開輪廓差異最有效的旋鈕是 `gamma`（最寬處位置，`t_widest = 0.5^(1/gamma)`）。`pike` 用 0.78 把最寬處推到中線偏尾＝「頭尖身後肥」，`abyss` 用 1.70 推到偏頭＝「大頭拖細身」。同一組配色下，這個差異比換整套顏色都大。
+
+### 二 · 有鬍鬚的魚要在吻端前面留白 · `headRoom`
+
+**改了什麼**：`buildFish()` 在 `special` 含 `whisker` 時預留吻端前方 12px（連 `sc` 的夾住規則一起算），並改成「空間夠就置中、不夠就把留白讓給吻端前方」。
+
+**為什麼**：`sc` 的夾住規則會讓 `scale ≥ 1.2` 的魚吻端落在 x≈91，而鬍鬚要往前伸 11px。`whisker` 的繪製碼有 `room` 保護會自己截斷，所以**不報錯、只是靜默消失**——兩位有鬍鬚的魚王的鬍鬚一直都只畫得出 3px，等於看不見。代價是有鬍鬚的魚整體小約 12%。
+
+### 三 · 修正：餌料不足時無法正常使用自動模式
+
+**改了什麼**：補貨邏輯抽成 `screen-fishing.js › autoRestockBait()`，由**開場那一竿**（`cast()` 的 `!chk.ok` 分支）與**每局結算**（`resolveAuto()`）共用。另外在買不起目前這款餌時，會退而求其次挑「買得起的最貴一款」並用 toast 說明。設定畫面的「餌料用完時」加了即時庫存提示。
+
+**為什麼**：補貨判斷原本只寫在 `resolveAuto()`，也就是第一局結算之後才跑。玩家在餌料歸零的狀態下按「開始自動」，`startAuto()` → `cast(true)` → `canCast()` 回 `why: 'bait'` → 直接 `stopAuto('餌料用完')`，彈窗顯示「執行局數 0」。**「自動補貨」這個設定在最需要它的情況下完全無效。**
+
+降級那一段是另一半問題：`bait_king` 一包 4,500 籌碼，玩家一換到高級餌、手頭又不寬裕，自動模式同樣開場即停。降級會讓 `rareMul` / `kingMul` 下降，所以 toast 一定要明講換成哪一款。連最便宜的 `bait_bread` 都買不起才真的停止。
+
+**一般化的教訓**：自動模式有**兩個**進入拋竿的入口（`startAuto()` 的第一竿、`frame()` 排程的後續竿），前者不經過 `resolveAuto()`。任何「每局都要檢查」的條件都要確認開場那一竿也檢查得到。
+
+**動到的檔案**：`js/pixel.js › SHAPES` `buildFish()`（`headRoom`、`scar` `horn` 調整、新增 `jaw` `lantern` `finlet` `mane` `frost`）、`js/data.js`（五位魚王的 `shape` / `pattern` / `special` / `colors`）、`js/screen-fishing.js › cast()` `autoRestockBait()` `resolveAuto()` `autoModal()`
+
+**已更新的 wiki**：[04 釣魚循環](04-fishing-loop.md)、[05 自動模式](05-auto-mode.md)、[06 像素引擎](06-pixel-engine.md)、[07 資料規格](07-data-schema.md)、[09 操作手冊](09-recipes.md)、[11 地雷](11-invariants-and-gotchas.md)（新增 §18 §19 §20）、[12 名詞表](12-glossary.md)
+
+**注意事項**：
+- **沒有動任何機率／價格／`value`／期望值**，[10 平衡調參](10-balance-tuning.md) 的基準表不需要重跑。`pike` 的 pattern 從 `band2` 換成 `spot` 純屬視覺。
+- `sw.js › VERSION` **刻意不加一**：沒有新增／刪除／改名任何前端資產，程式碼類走 network-first，照 [13 §VERSION 什麼時候要加一](13-pwa-and-deploy.md#version-什麼時候要加一) 的規則不需要動。
+- 餌料降級會把 `data.bait` 留在降級後的那一款（跟 `useBait()` 用完自動換餌的既有行為一致）。玩家在裝備列看得到餌名變了。
+- 驗證方式：用 `getImageData` 的 ASCII 遮罩並排比對五王輪廓（腳本見 [09 §新增一種魚的造型特徵](09-recipes.md#新增一種魚的造型特徵shape--special)）。**要用 `alpha >= 200` 過濾，否則 `glow` 的半透明光暈會讓輪廓虛胖 2px。**
+
+---
+
 ## 2026-08-03 · 地形系統、第五個釣點「宵櫻神域」、自動模式收藏門檻細分
 
 三件事一起做，因為都是同一個回報：**讓長時間玩不會膩**。

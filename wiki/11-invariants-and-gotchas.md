@@ -50,7 +50,7 @@ FG.screenHome.frame.toString().includes('你剛加的關鍵字')
 if (x < 0 || x >= W || y < 0 || y >= H) continue;
 ```
 
-`buildFish()` 裡的 `put()` 有做，但**後製階段（whisker / horn / scar / spike）是直接寫 `col[]`**，要自己檢查。這是加新 `special` 時最容易犯的錯。
+`buildFish()` 裡的 `put()` 有做，但**後製階段的 special（whisker / horn / scar / spike / jaw / lantern / finlet / mane / frost）是直接寫 `col[]`**，要自己檢查。這是加新 `special` 時最容易犯的錯。
 
 ### 6. 自動模式重複寫入圖鑑
 
@@ -147,6 +147,36 @@ if (x < 0 || x >= W || y < 0 || y >= H) continue;
 
 **對策**：加地形的第 3 步就是補那個 `switch`，見 [06 §新增一種地形](06-pixel-engine.md#新增一種地形)。
 
+### 18. 五王同型：換配色不等於換造型
+
+**症狀**：五位魚王擺在一起完全認不出是不同的魚，只覺得「同一條魚換了顏色」。
+
+**原因**：初版五王全都是 `shape: 'wide'` + `special: ['glow', ..., 'scar']`，只有 `colors` 和 `pattern` 不同。**在 96×56 的精靈框裡，輪廓的辨識權重遠高於配色**——身體比例與尾鰭形狀一樣，就是同一條魚。而且第一位魚王的傷疤是寫在傳說裡的角色設定，複製到另外四位身上之後，那道疤從「故事」退化成「魚王的貼圖」。
+
+**對策**：
+1. **一王一個 `shape`**（`catfish` / `tuna` / `dragon` / `pike` / `abyss`），不共用。
+2. **拉開輪廓的第一順位是 `gamma`**，其次是 `tailH` / `fork`，配色放最後。差異對照見 [06 §拉開輪廓差異最有效的旋鈕是 gamma](06-pixel-engine.md#拉開輪廓差異最有效的旋鈕是-gamma)。
+3. **敘事性的 special 不要複製。** `scar` 只給有那段故事的魚。共用的只留 `glow`（＝「這是魚王」的統一訊號）。
+
+**驗證方法**：`px.sprite(f)` 的 `getImageData` 掃出「透明／非透明」的 ASCII 遮罩，把幾條魚並排看輪廓。改魚造型時這比看畫面快得多，也不會被 `fishCache`（§3）騙。注意 `glow` 的半透明光暈會讓遮罩虛胖 2px，判斷輪廓時要用 `alpha >= 200` 過濾掉。
+
+### 19. 吻端沒留空間，鬍鬚會被切光
+
+**症狀**：`special: ['whisker']` 的魚看不到鬍鬚，只有吻端前一小截。
+
+**原因**：`sc` 的夾住規則（`0.98 / (bodyLen + tailLen)`）會讓 `scale ≥ 1.2` 的魚吻端落在 x≈91，而鬍鬚要往前伸約 11px。`whisker` 的繪製碼有 `room = W - 2 - mx` 的保護會自己截斷（這是 §5 那個坑留下的防護），所以**不會畫錯位，只會靜默消失**——比報錯更難發現。
+
+**對策**：`buildFish()` 開頭的 `headRoom` 會在有 `whisker` 時預留 12px，代價是魚整體小約 12%。細節見 [06 §吻端留白](06-pixel-engine.md#吻端留白--headroom)。**新增「會往身體外延伸」的 special（鬍鬚、燈籠竿、長鰭條）時，先確認它要的空間是不是也需要納入 `headRoom`。**
+
+### 20. 自動模式的補貨只寫在結算裡 → 開場即停
+
+**症狀**：餌料歸零時按「開始自動」，明明勾了「自動補貨」，卻立刻彈出「停止原因：餌料用完　執行局數 0」。
+
+**原因**：補貨判斷原本只寫在 `resolveAuto()`，也就是**第一局結算之後**才跑。開場的 `startAuto()` → `cast(true)` 走的是 `canCast()` 失敗分支，那裡只有 `stopAuto(chk.msg)`。
+
+**對策**：把補貨抽成 `autoRestockBait()`，**啟動路徑與結算路徑共用**。細節見 [05 §餌料補貨](05-auto-mode.md#餌料補貨--autorestockbait)。
+
+**一般化的教訓**：自動模式有**兩個**進入拋竿的入口（`startAuto()` 的第一竿、`frame()` 排程的後續竿），前者不經過 `resolveAuto()`。**任何「每局都要檢查」的條件，都要確認開場那一竿也檢查得到。**
 
 ---
 

@@ -48,12 +48,12 @@
 
 | 欄位 | 可用值 |
 |---|---|
-| `shape` | `normal` `long` `round` `flat` `wide` `ray` |
+| `shape` | 一般：`normal` `long` `round` `flat` `wide` `ray`／魚王專屬：`catfish` `tuna` `dragon` `pike` `abyss` |
 | `pattern` | `none` `stripe` `band` `band2` `spot` `speck` `net` `scale` |
-| `special[]` | `glow` `spike` `whisker` `scar` `horn` |
+| `special[]` | `glow` `spike` `whisker` `scar` `horn` `jaw` `lantern` `finlet` `mane` `frost` |
 | `junkArt` | `boot` `can` `weed` `bottle` `ice` `bone` `ema` |
 | `scene.terrain` | `forest` `cliff` `shrine` `ice` `night` |
-| `colors` | `body`(必填) `back` `belly` `fin` `pattern` `glow` `hornColor` `eyeWhite` `pupil` |
+| `colors` | `body`(必填) `back` `belly` `fin` `pattern` `glow` `hornColor` `scar` `tooth` `frost` `lantern` `mane` `eyeWhite` `pupil` |
 
 ## 狀態機階段
 

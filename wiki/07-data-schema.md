@@ -95,14 +95,16 @@
   id:      'ml_bass',      // 唯一！同時是圖鑑 key 與精靈快取 key
   name:    '黑鱸',
   rarity:  'good',         // junk|common|good|rare|epic|legend|king
-  shape:   'normal',       // normal|long|round|flat|wide|ray
+  shape:   'normal',       // normal|long|round|flat|wide|ray|catfish|tuna|dragon|pike|abyss
   scale:   0.9,            // 在精靈框中的佔比，魚王建議 1.25～1.35
   pattern: 'band',         // none|stripe|band|band2|spot|speck|net|scale
-  special: ['glow'],       // 選用：glow|spike|whisker|scar|horn
+  special: ['glow'],       // 選用：glow|spike|whisker|scar|horn|jaw|lantern|finlet|mane|frost
   cyOffset: 1,             // 選用：垂直微調（像素）
   value:   330,            // 基礎估價（實際售價依體長平方縮放）
   minLen:  25, maxLen: 50, // 體長範圍（cm）
-  colors:  { body, back, belly, fin, pattern, glow, hornColor, eyeWhite, pupil },
+  colors:  { body, back, belly, fin, pattern, glow, hornColor,
+             scar, tooth, frost, lantern, mane,      // 各 special 的專屬色，省略有預設值
+             eyeWhite, pupil },
   desc:    '一句描述',
   legend:  '長篇傳說文字'    // 選用。有的話結果卡與圖鑑會用琥珀色框強調
 }
@@ -125,6 +127,22 @@
 | epic | 2～3 | 3% 權重。再多會讓單一種類的出現間隔長到沒有記憶點 |
 | legend | 2 | 0.8% 權重。兩條剛好構成「還差一條」的收集張力 |
 | king | 1 | **每個釣點固定一位**，是該釣點的招牌 |
+
+### 五位魚王必須長得不一樣
+
+魚王是招牌，玩家一輩子看不到幾次，所以**每一位都用專屬的 `shape` 與專屬的 `special` 組合**，不共用：
+
+| 魚王 | 釣點 | shape | pattern | special | 一眼認出的特徵 |
+|---|---|---|---|---|---|
+| 霧語巨鯰「翁德」 | 晨霧湖 | `catfish` | `speck` | `glow` `whisker` `scar` | 寬扁大頭＋鬍鬚＋圓尾，背上一道疤 |
+| 落日巨鮪「赫利歐」 | 落霞峽灣 | `tuna` | `band2` | `glow` `finlet` | 鎌狀高背鰭＋深叉月牙尾 |
+| 淵之主「八尋」 | 宵櫻神域 | `dragon` | `scale` | `glow` `whisker` `horn` `mane` | 帶狀長身＋頭角＋背上飄動的鬃 |
+| 霜牙巨狗魚「寇爾德」 | 幽藍冰湖 | `pike` | `spot` | `glow` `jaw` `frost` | 後半肥、背鰭極後＋獠牙＋體表霜晶 |
+| 深淵之顎「尼克斯」 | 深淵海溝 | `abyss` | `net` | `glow` `jaw` `lantern` | 巨頭小尾＋獠牙＋頭頂發光燈籠 |
+
+**`scar` 只給翁德。** 牠的傳說明寫「背上那道疤」，是角色設定；其他四位沒有這段故事，加了只會讓五條魚看起來像同一張貼圖換色。這是實際踩過的坑——初版五王全是 `shape: 'wide'` + `glow` + `scar`，只有配色不同，並排在圖鑑裡完全認不出是不同的魚。詳見 [11 §五王同型](11-invariants-and-gotchas.md)。
+
+`glow` 是**唯一五王共用的 special**，它是「這條是魚王」的統一訊號，刻意保留。
 
 **關鍵：階級內是等機率抽的（[03 §rollCatch](03-economy.md#抽一次漁獲--rollcatchloc)），所以往同一階級加魚不會改變該階級的總機率，只會稀釋單一魚種的出現率。** 高階級放太多種，玩家會覺得「傳說魚都湊不齊」；低階級放太少，又會重複到膩。上面的配額就是照這個取捨定的。
 

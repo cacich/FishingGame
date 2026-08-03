@@ -159,7 +159,17 @@ window.FG = window.FG || {};
     round:  { bodyLen: .40, bodyH: .62, gamma: 1.20, e: .42, tailLen: .16, tailH: .58, fork: .40, dorsal: .28, dorsalAt: [.28, .60], anal: .22, analAt: [.22, .46] },
     flat:   { bodyLen: .42, bodyH: .70, gamma: 1.24, e: .44, tailLen: .15, tailH: .70, fork: .48, dorsal: .40, dorsalAt: [.22, .62], anal: .32, analAt: [.18, .48] },
     wide:   { bodyLen: .56, bodyH: .52, gamma: 1.10, e: .48, tailLen: .18, tailH: .86, fork: .45, dorsal: .30, dorsalAt: [.28, .58], anal: .20, analAt: [.20, .44] },
-    ray:    { bodyLen: .46, bodyH: .80, gamma: 1.00, e: .30, tailLen: .36, tailH: .03, fork: .00, dorsal: .04, dorsalAt: [.34, .50], anal: .04, analAt: [.34, .50] }
+    ray:    { bodyLen: .46, bodyH: .80, gamma: 1.00, e: .30, tailLen: .36, tailH: .03, fork: .00, dorsal: .04, dorsalAt: [.34, .50], anal: .04, analAt: [.34, .50] },
+
+    // ── 以下五種是為魚王設計的專屬輪廓 ──
+    // 五位魚王原本全是 shape:'wide' + glow + scar，只有配色不同，並排時完全認不出是不同的魚。
+    // 體型是這個解析度下最強的辨識線索（比花紋、比配色都強），所以一王一型，不共用。
+    // gamma < 1 把最寬處推向尾部、> 1 推向頭部，是拉開輪廓差異最有效的旋鈕。
+    catfish: { bodyLen: .62, bodyH: .44, gamma: 1.42, e: .34, tailLen: .18, tailH: .50, fork: .02, dorsal: .18, dorsalAt: [.50, .68], anal: .32, analAt: [.06, .42] },
+    tuna:    { bodyLen: .52, bodyH: .50, gamma: 1.08, e: .52, tailLen: .22, tailH: 1.05, fork: .72, dorsal: .54, dorsalAt: [.36, .52], anal: .30, analAt: [.20, .34] },
+    dragon:  { bodyLen: .66, bodyH: .32, gamma: 1.18, e: .56, tailLen: .18, tailH: .95, fork: .22, dorsal: .52, dorsalAt: [.16, .82], anal: .30, analAt: [.12, .50] },
+    pike:    { bodyLen: .66, bodyH: .34, gamma: 0.78, e: .60, tailLen: .16, tailH: .72, fork: .34, dorsal: .38, dorsalAt: [.08, .26], anal: .28, analAt: [.06, .22] },
+    abyss:   { bodyLen: .60, bodyH: .52, gamma: 1.70, e: .40, tailLen: .22, tailH: .48, fork: .12, dorsal: .24, dorsalAt: [.16, .50], anal: .22, analAt: [.10, .36] }
   };
 
   const SPR_W = 96, SPR_H = 56, MARGIN = 4;
@@ -173,13 +183,20 @@ window.FG = window.FG || {};
     const rng = FG.seeded(hashStr(f.id));
 
     const usableW = W - MARGIN * 2;
-    // 避免體型倍率把魚撐出畫面
-    const sc = Math.min(f.scale || 1, 0.98 / (S.bodyLen + S.tailLen));
+    const sp = f.special || [];
+
+    // 鬍鬚要往吻端前方伸出約 11px。不預留這段空間的話，魚王級的 scale 會把吻端推到 x≈91，
+    // 鬍鬚只剩 3px 可畫＝等於完全看不見（原本有鬍鬚的魚王全中這個坑）。
+    const headRoom = sp.indexOf('whisker') >= 0 ? 12 : 0;
+    // 避免體型倍率把魚撐出畫面；有鬍鬚時連同前方留白一起算進去
+    const sc = Math.min(f.scale || 1, (0.98 - headRoom / usableW) / (S.bodyLen + S.tailLen));
     const halfMax = (H / 2 - MARGIN) * S.bodyH * sc;
     const bodyW = Math.max(6, Math.round(usableW * S.bodyLen * sc));
     const tailW = Math.max(3, Math.round(usableW * S.tailLen * sc));
     const total = bodyW + tailW;
-    const xStart = Math.round(MARGIN + (usableW - total) / 2);
+    // 有多餘空間時置中；空間不夠時優先把留白讓給吻端前方（否則鬍鬚會被切掉）
+    const slack = usableW - total;
+    const xStart = Math.round(MARGIN + Math.max(0, Math.min(slack / 2, slack - headRoom)));
     const x0 = xStart + tailW;          // 身體起點（尾側）
     const x1 = x0 + bodyW;              // 身體終點（頭部）
     const cy = H / 2 + (f.cyOffset || 0);
@@ -352,14 +369,26 @@ window.FG = window.FG || {};
       }
     }
 
-    const sp = f.special || [];
-
     // --- 傷疤 ---
+    // 只有霧語巨鯰「翁德」用這個：牠的傳說明寫「背上那道疤」，是角色設定的一部分。
+    // 別因為「魚王看起來比較猛」就到處加，五王同疤就會變成看不出差別的貼圖。
     if (sp.indexOf('scar') >= 0) {
+      const scarC = C.scar || '#efd9c0';
       const sx = Math.round(x0 + bodyW * 0.52);
-      for (let k = 0; k < 9; k++) {
-        const i = Math.round(cy - 6 + k) * W + (sx + Math.round(k * 0.5));
-        if (col[i]) col[i] = '#efd9c0';
+      const half = profile(0.52);
+      const top = Math.round(cy - half * 0.9);
+      // 長度夾在 6～9：疤要在「背上」，拉太長會貫穿整條魚，看起來像被切成兩半
+      const len = FG.clamp(Math.round(half * 0.8), 6, 9);
+      for (let k = 0; k < len; k++) {
+        const x = sx + Math.round(k * 0.6), y = top + k;
+        const i = y * W + x;
+        if (col[i]) col[i] = scarC;
+        // 每三格往兩側岔出一格，讀起來才是「癒合的舊傷」而不是一道亮線
+        if (k % 3 === 1) {
+          const a = y * W + (x - 2), b = y * W + (x + 2);
+          if (col[a]) col[a] = FG.mix(col[a], scarC, 0.7);
+          if (col[b]) col[b] = FG.mix(col[b], scarC, 0.7);
+        }
       }
     }
     // --- 背棘 ---
@@ -388,12 +417,114 @@ window.FG = window.FG || {};
       }
     }
     // --- 頭角 ---
+    // 基部兩格寬、尖端一格寬。原本整根都是 1px，跟 mane 的細絲擺在一起會分不出哪根是角。
     if (sp.indexOf('horn') >= 0) {
-      const hx = Math.round(x0 + bodyW * 0.82);
-      for (let k = 0; k < 5; k++) {
-        const x = hx + k, y = Math.round(cy - profile(0.82) - k);
+      const hc = C.hornColor || '#f2e2a8';
+      const hx = Math.round(x0 + bodyW * 0.84);
+      for (let k = 0; k < 6; k++) {
+        const x = hx + Math.round(k * 0.8), y = Math.round(cy - profile(0.84) - k);
+        for (let d = 0; d < (k < 3 ? 2 : 1); d++) {
+          const xx = x - d;
+          if (xx < 0 || xx >= W || y < 0 || y >= H) continue;
+          col[y * W + xx] = hc;
+        }
+      }
+    }
+    // --- 巨顎與外露獠牙 ---
+    // 原本的「嘴」只有吻端 4px 的一道暗痕，在掠食型魚王身上完全撐不起「顎」的印象。
+    // 這裡把咬合線拉長到體長的兩成，再交錯插上亮色牙齒——牙齒畫在身體像素上（不外凸），
+    // 因為 1px 的外凸尖刺在 4 倍放大後會被讀成雜點。
+    if (sp.indexOf('jaw') >= 0) {
+      const tooth = C.tooth || '#f8f4e6';
+      const jawLen = Math.max(8, Math.round(bodyW * 0.20));
+      const my = Math.round(cy + profile(0.92) * 0.34);
+      for (let k = 0; k <= jawLen; k++) {
+        const i = my * W + (x1 - k);
+        if (col[i]) col[i] = FG.shade(outline, 0.12);
+      }
+      for (let k = 2; k < jawLen; k += 3) {
+        const x = x1 - k;
+        for (let d = 1; d <= 2; d++) {
+          const up = (my - d) * W + x, dn = (my + d) * W + x;
+          if (col[up]) col[up] = tooth;                       // 上排牙往下咬
+          if (k % 6 === 2 && col[dn]) col[dn] = tooth;        // 下排牙較稀疏，避免糊成一條白帶
+        }
+      }
+    }
+    // --- 頭頂發光燈籠（鮟鱇式誘餌）---
+    // 從頭頂往前上方畫一段弧，末端才是燈籠。弧線一定要「往上」長：
+    // 從高處往下垂的細線在這個尺寸會被讀成雨絲（同地形系統踩過的坑）。
+    if (sp.indexOf('lantern') >= 0) {
+      const bulb = C.lantern || C.glow || '#9f6fff';
+      const stalk = FG.shade(back, 0.08);
+      const sx = Math.round(x0 + bodyW * 0.80);
+      const sy = Math.round(cy - profile(0.80)) - 1;
+      let bx = sx, by = sy;
+      // 取樣要夠密（24 段）：步距超過 1px 會讓竿子斷成虛線，看起來像三顆浮在頭上的點
+      for (let k = 0; k <= 24; k++) {
+        const u = k / 24;
+        bx = Math.round(sx + u * bodyW * 0.16);
+        by = Math.round(sy - Math.sin(u * 1.9) * halfMax * 0.52);
+        if (bx < 0 || bx >= W || by < 0 || by >= H) continue;
+        const i = by * W + bx;
+        if (!col[i]) col[i] = stalk;
+      }
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if (Math.abs(dx) + Math.abs(dy) > 1) continue;       // 菱形，方形會像顆螺絲
+        const x = bx + dx, y = by + dy;
         if (x < 0 || x >= W || y < 0 || y >= H) continue;
-        col[y * W + x] = C.hornColor || '#f2e2a8';
+        col[y * W + x] = bulb;
+      }
+    }
+    // --- 尾柄離鰭（鮪魚科的識別特徵）---
+    if (sp.indexOf('finlet') >= 0) {
+      const fc = FG.shade(patC, 0.15);
+      for (let k = 0; k < 4; k++) {
+        const t = 0.04 + k * 0.04;
+        const x = Math.round(x0 + bodyW * t);
+        const half = profile(t);
+        for (let d = 1; d <= 2; d++) {
+          const up = (Math.round(cy - half) - d) * W + x;
+          const dn = (Math.round(cy + half) + d) * W + x;
+          if (up >= 0 && !col[up]) col[up] = fc;
+          if (dn < W * H && !col[dn]) col[dn] = fc;
+        }
+      }
+    }
+    // --- 鬃（龍型的飄動纖毛）---
+    // 長在背鰭上緣，短且往頭部方向斜，才有「在水裡飄」的動感。
+    if (sp.indexOf('mane') >= 0) {
+      const mc = C.mane || FG.shade(finC, 0.3);
+      const dor = halfMax * S.dorsal;
+      for (let k = 0; k < 8; k++) {
+        const t = 0.20 + k * 0.075;
+        const x = Math.round(x0 + bodyW * t);
+        const base = Math.round(cy - profile(t) - dor * Math.pow(Math.sin(Math.PI * FG.clamp((t - S.dorsalAt[0]) / (S.dorsalAt[1] - S.dorsalAt[0]), 0, 1)), .55));
+        const len = 3 + (k % 3);
+        for (let j = 0; j < len; j++) {
+          // 往尾部（左）斜：魚是朝右游的，纖毛要往後飄才有動感，往前斜會變成一排天線
+          const xx = x - Math.round(j * 0.7), yy = base - 1 - j;
+          if (xx < 0 || xx >= W || yy < 0) continue;
+          const i = yy * W + xx;
+          if (!col[i]) col[i] = mc;
+        }
+      }
+    }
+    // --- 霜晶（結冰體表）---
+    // 十字形而不是單點：單點會跟 pattern:'speck' 的細碎雜訊混在一起看不出來。
+    if (sp.indexOf('frost') >= 0) {
+      const fr = C.frost || '#eaf7ff';
+      // 只放 6 顆：跟 pattern 的斑點疊在一起時，再多就變成一團看不出結構的雜訊
+      for (let k = 0; k < 6; k++) {
+        const t = 0.14 + ((k * 7) % 9) * 0.075;
+        const half = profile(t);
+        const x = Math.round(x0 + bodyW * t);
+        const y = Math.round(cy - half * (0.2 + ((k * 3) % 5) * 0.13));
+        for (let d = -1; d <= 1; d++) {
+          const a = (y + d) * W + x, b = y * W + (x + d);
+          if (a >= 0 && a < W * H && col[a]) col[a] = fr;
+          if (b >= 0 && b < W * H && col[b]) col[b] = FG.mix(col[b], fr, 0.75);
+        }
       }
     }
 

@@ -1,6 +1,6 @@
 # 05 · 自動模式
 
-> 涵蓋：`js/screen-fishing.js › autoModal() / startAuto() / resolveAuto() / stopAuto() / autoSummary() / renderAutoLog() / renderAutoStats()`
+> 涵蓋：`js/screen-fishing.js › autoModal() / startAuto() / resolveAuto() / stopAuto() / autoRestockBait() / autoSummary() / renderAutoLog() / renderAutoStats()`
 > 相關：[04 釣魚循環](04-fishing-loop.md)、[02 存檔](02-state-and-save.md)
 
 連續拋竿並自動處理漁獲。設定會存進 `state.data.auto` 沿用。
@@ -103,24 +103,59 @@ if (this.auto && this.phase === 'idle' && now >= this.nextCastAt) this.cast(true
 | 達到 `total` 局 | `resolveAuto()` | `完成 N 局` |
 | 籌碼 < `stopChips` | `resolveAuto()` | `籌碼低於設定的 N` |
 | 魚缸滿且該收藏 | `resolveAuto()` | `魚缸已滿，這條「魚名」請手動處理` |
-| 餌料用完且未開自動補貨 | `resolveAuto()` | `餌料用完` |
+| 餌料用完且補不到（未開自動補貨，或連最便宜的餌都買不起） | `resolveAuto()` / `cast()`，皆經 `autoRestockBait()` | `餌料用完` |
 | 籌碼不足以拋竿 | `resolveAuto()` / `cast()` | `籌碼不足` |
 | 切換釣點 | `state.on('loc')` | `切換釣點` |
 | 手動按停止 | `#autoBtn` | `手動停止` |
 
 **新增停止條件的地方就是 `resolveAuto()` 步驟 7**，照現有格式插一段 `if (...) { this.stopAuto('原因'); return; }` 即可。記得同步更新這張表和設定畫面。
 
-### 自動補貨的判斷
+## 餌料補貨 · `autoRestockBait()`
+
+回傳 `true` 表示「現在有餌，可以拋竿」。**由兩個地方共用同一套判斷**：
+
+| 呼叫點 | 時機 |
+|---|---|
+| `cast(fromAuto)` 的 `!chk.ok` 分支 | 開場那一竿（按下「開始自動」的瞬間） |
+| `resolveAuto()` 步驟 7 | 每局結算後 |
 
 ```js
-if (a.autoBuyBait && st.canPay(bait.price * bait.pack + st.castCost())) {
-  st.buyBait(bait, 1);
-  a.cost += bait.price * bait.pack;   // 補貨費用要計入本次結算的支出
-  ...
+autoRestockBait: function () {
+  if (st.baitCount() > 0) return true;           // 還有餌，什麼都不用做
+  if (!a.autoBuyBait) return false;              // 玩家選「停止自動」
+  const afford = b => st.canPay(b.price * b.pack + st.castCost());
+  let pick = afford(cur) ? cur : FG.BAITS.filter(afford).sort(貴→便宜)[0];
+  if (!pick || st.buyBait(pick, 1) !== 'ok') return false;
+  a.cost += pick.price * pick.pack;              // 補貨費用要計入本次結算的支出
+  a.baitBought++;
+  ...toast...
+  return true;
 }
 ```
 
-刻意多留一筆 `castCost()` 的餘裕——只夠買餌但買完連一竿都拋不了的話，買了也沒意義。
+### 三個刻意的設計
+
+**1. 多留一筆 `castCost()` 的餘裕。** 只夠買餌但買完連一竿都拋不了的話，買了也沒意義。
+
+**2. 開場那一竿也要走補貨。** 這是修過的 bug：原本補貨只寫在 `resolveAuto()` 裡，也就是**第一局結算之後**才會判斷。玩家在餌料歸零的狀態下按「開始自動」，`startAuto()` → `cast(true)` → `canCast()` 回 `why: 'bait'` → 直接 `stopAuto('餌料用完')`，結算彈窗顯示「執行局數 0」。等於「自動補貨」這個設定在最需要它的情況下完全無效，自動模式根本開不起來。
+
+現在 `cast()` 的失敗分支多一層：
+
+```js
+if (fromAuto && chk.why === 'bait' && this.autoRestockBait()) { this.cast(true); return; }
+```
+
+遞迴只會發生一層——`autoRestockBait()` 回 `true` 就保證 `baitCount() > 0`，重進來不會再撞 `'bait'`。
+
+**3. 買不起目前這款時會降級。** 從「買得起的最貴一款」往下挑。**理由**：`bait_king` 一包 4,500 籌碼，玩家一換到高級餌、手頭又不寬裕，自動模式就會開場即停，體感上就是「這個功能壞了」。降級會讓 `rareMul` / `kingMul` 跟著下降，所以 toast 一定要講清楚換成哪一款（`自動補貨：活蝦 ×10（魚王秘餌買不起，改用這款）`）。
+
+連最便宜的 `bait_bread`（250 + 拋竿費）都買不起才回 `false` → 停止。
+
+> `buyBait()` 會把 `data.bait` 設成買的那一款，所以降級是**會留下來的**（跟 `useBait()` 用完自動換餌的既有行為一致）。玩家在裝備列會看到餌名變了。
+
+### 設定畫面的即時提示
+
+「餌料用完時」下方的說明文字會顯示目前庫存與該款的整包價格，選「停止自動」而庫存為 0 時**用橘字明講「現在沒有餌，會立刻停止」**。沒有這行提示，玩家會以為是程式壞掉而不是自己沒餌。
 
 ## UI 三件套
 
