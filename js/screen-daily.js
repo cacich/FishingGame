@@ -90,7 +90,7 @@ window.FG = window.FG || {};
 
       /* --- 釣點快速切換 --- */
       const p3 = FG.el('div', 'panel');
-      p3.appendChild(FG.el('div', 'panel-title', '釣點 <span class="sub">點擊前往或解鎖</span>'));
+      p3.appendChild(FG.el('div', 'panel-title', '釣點 <span class="sub">點擊自由切換</span>'));
       FG.LOCATIONS.forEach(function (loc) {
         const unlocked = st.isUnlocked(loc);
         const cur = st.data.loc === loc.id;

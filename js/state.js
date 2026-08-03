@@ -301,7 +301,12 @@ window.FG = window.FG || {};
     },
 
     /* ---------- 地點 ---------- */
-    isUnlocked: function (loc) { return this.data.unlocked.indexOf(loc.id) >= 0; },
+    // unlock.free 的釣點一律視為已解鎖，不寫進 data.unlocked——
+    // 這樣把某個釣點改成免費／改回收費都只要動 data.js，舊存檔也不用遷移
+    isUnlocked: function (loc) {
+      if (loc.unlock && loc.unlock.free) return true;
+      return this.data.unlocked.indexOf(loc.id) >= 0;
+    },
     unlockLoc: function (loc) {
       if (this.isUnlocked(loc)) return 'owned';
       if (loc.comingSoon) return 'soon';

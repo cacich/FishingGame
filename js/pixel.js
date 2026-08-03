@@ -511,6 +511,37 @@ window.FG = window.FG || {};
         '..XgllllgX..',
         '..XXXXXXXX..'
       ]
+    },
+    // 冰湖用：稜角分明的浮冰，光從左上進來所以左上最亮
+    ice: {
+      pal: { X: '#3f6d86', a: '#7fb4cc', b: '#b6dcec', c: '#e8f8ff' },
+      map: [
+        '....XXXX....',
+        '...XccccX...',
+        '..XcccbbbX..',
+        '.XccbbbbbaX.',
+        'XcbbbbbaaaX.',
+        'XbbbbbaaaaX.',
+        'XbbbaaaaaaX.',
+        '.XbaaaaaaX..',
+        '..XaaaaaX...',
+        '...XXXXX....'
+      ]
+    },
+    // 深淵用：辨識不出物種的魚骨。頭在左、脊椎往右、肋骨是垂直短線
+    bone: {
+      pal: { b: '#e6e0cc', o: '#2a2822' },
+      map: [
+        '...bbbb.........',
+        '..b....b........',
+        '.b..o...b.b.b...',
+        'b........b.b.b.b',
+        'b.......bbbbbbbb',
+        'b........b.b.b.b',
+        '.b......b.b.b...',
+        '..b....b........',
+        '...bbbb.........'
+      ]
     }
   };
 

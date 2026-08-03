@@ -98,7 +98,7 @@ window.FG = window.FG || {};
       card.appendChild(act);
       box.appendChild(card);
     });
-    const note = FG.el('div', 'tiny mute', '每個釣點有專屬魚種與魚王，拋竿成本與產出也不同。');
+    const note = FG.el('div', 'tiny mute', '四個釣點都可以自由切換，不需要解鎖。每個釣點有專屬魚種與魚王，拋竿成本與產出也不同。');
     note.style.lineHeight = '1.8';
     box.appendChild(note);
     FG.ui.modal({ title: '選擇釣點', body: box });

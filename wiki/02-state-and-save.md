@@ -141,7 +141,11 @@ FG.state.emit(evt, payload);
 `useBait()` 的隱藏行為：扣掉最後一份時會**自動切換到還有庫存的餌料**（掃 `FG.BAITS` 找第一個庫存 >0 的）。都沒庫存則維持原樣，由 `canCast()` 擋下。
 
 ### 釣點
-`isUnlocked(loc)` / `unlockLoc(loc)` / `setLoc(loc)`。`unlockLoc` 對 `comingSoon` 的地點回傳 `'soon'`。
+`isUnlocked(loc)` / `unlockLoc(loc)` / `setLoc(loc)`。
+
+`isUnlocked()` 有兩條路：**`loc.unlock.free` 為真就直接回 `true`**，否則才查 `data.unlocked[]`。這個順序讓「把釣點改成免費／改回收費」變成只要動 `data.js` 的一行，舊存檔不用遷移也不用升 `SAVE_VER`。
+
+**目前四個釣點全部是 `unlock: { free: true }`**，所以 `unlockLoc()` 與 `data.unlocked[]` 現在都跑不到（新存檔的 `unlocked` 仍然初始化成 `['mist_lake']`，只是沒人讀它）。`unlockLoc` 對 `comingSoon` 的地點回傳 `'soon'` 也一樣跑不到——兩者都保留給未來的收費／預告釣點（見 [11 §15](11-invariants-and-gotchas.md#15-comingsoon-與釣點解鎖目前都沒有釣點在用)）。
 
 ### 每日
 | 方法 | 說明 |

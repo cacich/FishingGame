@@ -44,6 +44,8 @@
 
 玩家付**籌碼**＋消耗一份**餌料**拋竿 → 系統立刻抽好結果（[03](03-economy.md)）→ 播 4 段演出（[04](04-fishing-loop.md)）→ 玩家選擇**賣掉換籌碼**或**收藏進家園魚缸**。籌碼再拿去買釣竿／餌料／裝備／家園擴建，這些又回頭拉高稀有魚與魚王的機率，形成循環。
 
+**四個釣點全部開放且免費切換**：晨霧湖 → 落霞峽灣 → 幽藍冰湖 → 深淵海溝，各 23～24 種魚（圖鑑分母 20～21）、各一位魚王。進程門檻由拋竿費（400 → 12,000）承擔，不收解鎖費。
+
 美術**沒有任何圖檔**，全部由 canvas 在低解析度上程序化生成再放大（[06](06-pixel-engine.md)）。
 狀態全部集中在 `FG.state.data`，存 localStorage（[02](02-state-and-save.md)）。
 全域只有一個命名空間 `window.FG`（[01](01-architecture.md)）。
@@ -55,8 +57,8 @@
 | `index.html` | 40 | 骨架＋script 載入順序 | [01](01-architecture.md) |
 | `styles.css` | 500 | 全部樣式 | [08](08-ui-and-screens.md) |
 | `js/util.js` | 160 | 亂數／色彩／格式化／DOM／存取／音效 | [01](01-architecture.md) |
-| `js/pixel.js` | 1050 | 像素美術引擎 | [06](06-pixel-engine.md) |
-| `js/data.js` | 330 | 所有資料表 | [07](07-data-schema.md) |
+| `js/pixel.js` | 1090 | 像素美術引擎 | [06](06-pixel-engine.md) |
+| `js/data.js` | 600 | 所有資料表 | [07](07-data-schema.md) |
 | `js/state.js` | 400 | 存檔／經濟／抽獎 | [02](02-state-and-save.md)、[03](03-economy.md) |
 | `js/ui.js` | 120 | Toast／彈窗 | [08](08-ui-and-screens.md) |
 | `js/screen-fishing.js` | 685 | 釣魚分頁＋自動模式 | [04](04-fishing-loop.md)、[05](05-auto-mode.md) |

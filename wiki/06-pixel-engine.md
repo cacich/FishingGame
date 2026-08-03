@@ -48,7 +48,7 @@ px.drawMap(ctx, HEART.map, HEART.pal, x, y, 1);
 | 常數 | 檔案 | 尺寸 | 用途 |
 |---|---|---|---|
 | `ICONS` | pixel.js | 12×12 / 10×10 | `fish` `calendar` `house` `bag` `book` `coin` — 底部導覽與頂部籌碼圖示 |
-| `JUNK_MAPS` | pixel.js | ~12×16 | `boot` `can` `weed` `bottle` — 雜物 |
+| `JUNK_MAPS` | pixel.js | ~10×16 | `boot` `can` `weed` `bottle` `ice` `bone` — 雜物 |
 | `ANGLER` | pixel.js | 11×14 | 船上的釣手 |
 | `CAPY` | pixel.js | 16×10 | 水豚（船上＋家園各一份） |
 | `HEART` | pixel.js | 7×6 | 水豚頭上的愛心 |
@@ -176,6 +176,21 @@ px.drawSprite(ctx, f, x, y, scale, flip)      // 畫到任意 ctx，以 (x,y) �
 ```
 
 雜物（有 `junkArt` 欄位）走 `buildJunk()`，把字元圖置中放進同樣 96×56 的畫布，這樣圖鑑和結果卡不用分兩種排版。
+
+### 雜物字元圖清單 · `JUNK_MAPS`
+
+| key | 尺寸 | 畫的是 | 目前用在 |
+|---|---|---|---|
+| `boot` | 16×12 | 破舊長靴 | 晨霧湖 |
+| `can` | 13×10 | 鐵罐 | 四個釣點都用（換名字不換圖） |
+| `weed` | 14×10 | 一叢水草／繩索 | 晨霧湖、峽灣、冰湖 |
+| `bottle` | 12×10 | 玻璃瓶／浮球 | 峽灣、深淵 |
+| `ice` | 12×10 | 浮冰碎塊 | 冰湖 |
+| `bone` | 16×9 | 辨識不出物種的魚骨 | 深淵 |
+
+`buildJunk()` 會自動算縮放（`min(96/w, 56/h) * 0.85` 取整），所以**字元圖畫多大都行**，只要長寬比不要太極端。`ice` 刻意讓左上最亮、右下最暗，在沒有光照系統的情況下用固定光源方向撐出立體感；`bone` 用「頭在左、脊椎往右、肋骨是垂直短線」的側視骨架，在 4 倍放大下才讀得出是骨頭而不是一團白點。
+
+新增一種雜物美術：在 `JUNK_MAPS` 加一筆（`pal` + `map`），然後在 `data.js` 的魚陣列裡用 `junkArt: '新key'`。**不用改 `buildJunk()`**。
 
 ---
 

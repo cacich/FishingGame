@@ -9,23 +9,25 @@
 
 ## 新增一種魚
 
-1. 打開 `js/data.js`，找到目標釣點的魚陣列（`MIST_LAKE_FISH` / `FJORD_FISH`）。
-2. 依稀有度插到對應區塊，欄位規格見 [07 §魚](07-data-schema.md#魚--locationfish)：
+1. 打開 `js/data.js`，找到目標釣點的魚陣列（`MIST_LAKE_FISH` / `FJORD_FISH` / `FROST_FISH` / `ABYSS_FISH`）。
+2. 依稀有度插到對應的 `/* --- 稀有度 --- */` 區塊，欄位規格見 [07 §魚](07-data-schema.md#魚--locationfish)：
    ```js
    { id: 'ml_newfish', name: '新魚', rarity: 'rare', shape: 'flat', scale: 1.0,
      pattern: 'spot', value: 1200, minLen: 30, maxLen: 65,
      colors: { body: '#xxxxxx' }, desc: '一句描述' }
    ```
-3. `id` 必須全域唯一，用釣點前綴（`ml_` / `fj_`）。
-4. 重新整理頁面，去圖鑑看剪影對不對；想直接看成品，在 console 跑：
+3. `id` 必須全域唯一，用釣點前綴（`ml_` / `fj_` / `fr_` / `ab_`）。
+4. **`value` 要貼近該階級現有魚的水準**（差距抓 ±10% 內）。理由見 [11 §14](11-invariants-and-gotchas.md#14-加魚不改機率但會改期望值)：加魚不改變階級機率，但會直接改變該階級的期望價值。想放一條特別值錢的，**升它一階**，不要在階級內做價差。
+5. 顏色照該釣點的調色規則走（[07 §各釣點的配色規則](07-data-schema.md#各釣點的配色規則)）。深淵海溝的魚幾乎都要帶 `special: ['glow']`，否則在極暗底色下整格是一團黑。
+6. 重新整理頁面，去圖鑑看剪影對不對；想直接看成品，在 console 跑：
    ```js
    document.body.appendChild(FG.px.spriteEl(FG.fishById('ml_newfish'), 4))
    ```
-5. 調 `shape` / `scale` / `pattern` / `colors` 到滿意。**每次改完都要重新整理**（精靈有快取）。
+7. 調 `shape` / `scale` / `pattern` / `colors` 到滿意。**每次改完都要重新整理**（精靈有快取）。
 
-**注意**：加魚會改變該釣點的稀有度分布——如果那個階級原本沒有魚，加進去等於憑空多出整個階級的權重（[03 §rarityTable](03-economy.md#稀有度權重表--raritytableloc)）。
+**注意**：如果那個階級原本沒有魚，加進去等於憑空多出整個階級的權重（[03 §rarityTable](03-economy.md#稀有度權重表--raritytableloc)）；如果那階原本就有魚，機率完全不變、只有期望值會動。
 
-📝 **要更新**：[07 資料規格](07-data-schema.md)（若引入新的 pattern/special）、若影響機率則更新 [10 平衡調參](10-balance-tuning.md) 的表。
+📝 **要更新**：[07 資料規格](07-data-schema.md)（若引入新的 pattern/special/junkArt，或改變了釣點的魚種數）、若影響期望值則重跑模擬更新 [10 平衡調參](10-balance-tuning.md) 的基準表。
 
 ---
 
@@ -38,11 +40,13 @@
    document.body.appendChild(FG.px.locThumb(FG.locById('new_spot'), 200, 130))
    ```
    **改完 scene 一定要重新整理**（背景有 `bgCache`）。
-4. 填魚。建議至少涵蓋 common / good / rare 三階，外加一位魚王。缺席的階級權重會消失。
-5. 設 `castCost` 與 `unlock.chips`。抓法：`castCost` 約為該釣點常見魚售價的 3～4 倍；`unlock.chips` 約為 `castCost × 100`。
-6. 拿掉 `comingSoon`，用 [10 §模擬腳本](10-balance-tuning.md#模擬腳本) 驗證倍率落在 1.2～2.3 之間。
+4. 填魚。**七個階級都要有**（junk 3 / common 6 / good 5 / rare 4 / epic 2～3 / legend 2 / king 1），配額理由見 [07 §一個釣點該放幾條魚](07-data-schema.md#一個釣點該放幾條魚)。缺席的階級權重會消失，費率表會跟其他釣點不一致。
+   - 扣掉雜物之後至少要有 **20 種**，圖鑑的收集進度條長度才跟其他釣點一致。
+   - 每個釣點至少配一件**專屬的雜物美術**（`pixel.js › JUNK_MAPS` 加一筆），其餘可以沿用既有的圖只換名字。
+5. 設 `castCost`，`unlock` 填 `{ free: true }`（現行四個釣點都免費，門檻靠拋竿費）。各階級 `value` 用 [10 §加新釣點的抓法](10-balance-tuning.md#加新釣點的抓法) 的係數表——**係數會隨 `castCost` 遞減，不要套用固定倍數**。
+6. 拿掉 `comingSoon`，用 [10 §模擬腳本](10-balance-tuning.md#模擬腳本) 驗證滿裝倍率落在 1.9～2.5 之間，並回頭更新基準表。
 
-📝 **要更新**：[07 資料規格](07-data-schema.md)、[10 平衡調參](10-balance-tuning.md)、[README](README.md) 的檔案總覽（若行數變化大）。
+📝 **要更新**：[07 資料規格](07-data-schema.md) 的釣點表、[10 平衡調參](10-balance-tuning.md) 的基準表、[12 名詞表](12-glossary.md) 的 id 前綴、[README](README.md) 的檔案總覽（若行數變化大）。
 
 ---
 

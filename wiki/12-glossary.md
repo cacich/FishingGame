@@ -51,7 +51,7 @@
 | `shape` | `normal` `long` `round` `flat` `wide` `ray` |
 | `pattern` | `none` `stripe` `band` `band2` `spot` `speck` `net` `scale` |
 | `special[]` | `glow` `spike` `whisker` `scar` `horn` |
-| `junkArt` | `boot` `can` `weed` `bottle` |
+| `junkArt` | `boot` `can` `weed` `bottle` `ice` `bone` |
 | `colors` | `body`(必填) `back` `belly` `fin` `pattern` `glow` `hornColor` `eyeWhite` `pupil` |
 
 ## 狀態機階段
@@ -92,6 +92,8 @@
 |---|---|
 | `ml_` | 晨霧湖的魚 |
 | `fj_` | 落霞峽灣的魚 |
+| `fr_` | 幽藍冰湖的魚 |
+| `ab_` | 深淵海溝的魚 |
 | `rod_` `bait_` `eq_` | 釣竿／餌料／裝備 |
 | `FG.screenXxx` | 分頁模組 |
 | `px.` | `FG.px` 像素引擎命名空間 |
