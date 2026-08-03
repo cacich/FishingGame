@@ -14,7 +14,7 @@
   // ── 來自設定 ──
   total:       50,        // 目標局數，0 = 無限
   speed:       2,         // 演出速度倍率 1 / 2 / 4
-  sellMode:    'rare',    // 'all' 全賣 | 'rare' 稀有以上收藏 | 'keep' 全部收藏
+  sellMode:    'rare',    // 收藏門檻，見下
   stopChips:   0,         // 籌碼低於此值停止，0 = 不限
   stopRarity:  'legend',  // 'none' | 'rare' | 'epic' | 'legend' | 'king'
   autoBuyBait: true,      // 餌料用完自動補貨
@@ -48,7 +48,7 @@ if (this.auto && this.phase === 'idle' && now >= this.nextCastAt) this.cast(true
 
 ```
 1. a.done++、更新 best、newCodex 計數
-2. 判斷 wantKeep（非雜物 且（sellMode==='keep' 或 sellMode==='rare' 且 order>=rare））
+2. 判斷 wantKeep（`!fish.junkArt && keepsThis(a.sellMode, R)`）
 3. ★ 若 wantKeep 且魚缸已滿：
       stopAuto('魚缸已滿…') → showResult() → return
       （不呼叫 recordCatch，交給 showResult 記錄，避免記兩次）
@@ -66,6 +66,34 @@ if (this.auto && this.phase === 'idle' && now >= this.nextCastAt) this.cast(true
 改成：**停止自動 + 跳出正常結果卡，把決定權交回玩家**。處理完關掉結果卡，底下的結算彈窗會露出來（利用 `FG.ui.modal` 的堆疊行為，見 [08 §彈窗堆疊](08-ui-and-screens.md#彈窗堆疊)）。
 
 設定畫面也會即時顯示「目前 3/3」提醒容量。
+
+## 收藏門檻 · `sellMode`
+
+`sellMode` 決定「哪些漁獲要放進魚缸、哪些直接賣掉」。判斷集中在 `screen-fishing.js › keepsThis(sellMode, R)`：
+
+| 值 | 選項標籤 | 會收藏 |
+|---|---|---|
+| `all` | 全賣 | （無） |
+| `good` | 優良 | good / rare / epic / legend / king |
+| `rare` | 稀有 | rare / epic / legend / king |
+| `epic` | 史詩 | epic / legend / king |
+| `legend` | 傳說 | legend / king |
+| `king` | 魚王 | 只有 king |
+| `keep` | 全收 | 全部（雜物除外） |
+
+**雜物永遠賣出**，由呼叫端的 `!fish.junkArt` 擋掉，不在 `keepsThis()` 裡處理。
+
+### 為什麼值是稀有度 key
+
+初版只有 `all` / `rare` / `keep` 三段。問題是**魚缸初始只有 3 格**，選「稀有以上收藏」跑不到十幾竿就滿了，然後就觸發「魚缸已滿」停止自動——等於自動模式根本跑不長。
+
+細分成七段之後，玩家可以照魚缸容量選門檻：3 格的新手選「傳說」或「魚王」就能跑完整場，24 格的後期玩家才選「稀有」。
+
+值刻意**直接沿用 `FG.RARITY` 的 key**（而不是另外編號），有兩個好處：
+- `keepsThis()` 只要一行 `R.order >= FG.RARITY[sellMode].order`，不需要對照表。
+- 舊存檔的 `'all'` / `'rare'` / `'keep'` **全都還是合法值**，不用遷移也不用升 `SAVE_VER`。
+
+> ⚠️ `keepsThis()` 對認不得的值回傳 `false`（＝賣掉）。這是安全的方向，但如果未來新增值忘了同步，症狀會是「該收藏的魚被賣掉」而不是報錯。**新增選項時務必同時改 `KEEP_OPTS`、`KEEP_DESC` 與這張表。**
 
 ## 停止條件
 
@@ -119,6 +147,8 @@ if (a.autoBuyBait && st.canPay(bait.price * bait.pack + st.castCost())) {
 內部有兩個小工具函式：
 - `seg(label, opts, cur, onPick)` — 產生分段選擇器（`.seg.seg-sm`），點擊時自己處理 `.on` 的切換。
 - `note(html)` — 灰色小字說明。
+
+「漁獲處理」那一列的說明文字（`KEEP_DESC`）會**跟著選擇即時更新**：`seg()` 的 `onPick` callback 裡呼叫 `refreshKeepNote()` 改寫同一個 `note` 元素的 `innerHTML`。因為 `note()` 是函式宣告（會提升），所以可以在定義之前就先呼叫。
 
 新增設定項目就多呼叫一次 `seg(...)`，記得：
 1. 加進 `startAuto()` 寫回 `state.data.auto` 的物件。

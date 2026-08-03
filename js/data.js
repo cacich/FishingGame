@@ -212,7 +212,102 @@ window.FG = window.FG || {};
   ];
 
   /* ============================================================
-     地點三：幽藍冰湖
+     地點三：宵櫻神域
+     汽水域（河海交會的神社潟湖），所以魚種刻意淡水鹹水混編。
+     配色走「朱紅 × 櫻粉 × 墨黑」的和風三色，稀有以上多用金與朱，
+     跟晨霧湖的自然灰藍拉開距離。
+     ============================================================ */
+  const SHRINE_FISH = [
+    /* --- 雜物 --- */
+    { id: 'sk_ema',  name: '舊繪馬',     rarity: 'junk', junkArt: 'ema',  value: 90, minLen: 12, maxLen: 20, unit: 'cm', desc: '墨跡被水泡開了，只看得出最後一個「願」字。' },
+    { id: 'sk_can',  name: '供品空罐',   rarity: 'junk', junkArt: 'can',  value: 70, minLen: 8,  maxLen: 15, unit: 'cm', desc: '有人把祭品連罐一起丟進了潟湖。' },
+    { id: 'sk_moss', name: '一束水藻',   rarity: 'junk', junkArt: 'weed', value: 60, minLen: 20, maxLen: 55, unit: 'cm', desc: '纏在鳥居柱腳上的那種，滑得抓不住。' },
+
+    /* --- 普通 --- */
+    { id: 'sk_ayu', name: '香魚', rarity: 'common', shape: 'long', scale: .74, pattern: 'none', value: 230, minLen: 12, maxLen: 30,
+      colors: { body: '#8fa88c', back: '#4e6a52', belly: '#f0f4ea', fin: '#6d8670' },
+      desc: '身上帶著西瓜般的清香，一年就結束一生。' },
+    { id: 'sk_oikawa', name: '追河', rarity: 'common', shape: 'normal', scale: .7, pattern: 'stripe', value: 225, minLen: 8, maxLen: 18,
+      colors: { body: '#7f92a8', back: '#44546a', belly: '#f2f5f8', fin: '#c85a7a', pattern: '#5f7fa8' },
+      desc: '繁殖期的雄魚會換上紅紫相間的婚姻色，是溪裡最花俏的一段日子。' },
+    { id: 'sk_funa', name: '真鮒', rarity: 'common', shape: 'round', scale: .74, pattern: 'scale', value: 240, minLen: 12, maxLen: 30,
+      colors: { body: '#9aa38a', back: '#5b6350', belly: '#e8ecd8', fin: '#77806a', pattern: '#7d8770' },
+      desc: '「釣魚始於鮒、終於鮒」——神社前的老人這樣教小孩。' },
+    { id: 'sk_haze', name: '真鰕虎', rarity: 'common', shape: 'long', scale: .68, pattern: 'spot', value: 215, minLen: 8, maxLen: 20,
+      colors: { body: '#a89478', back: '#5f5340', belly: '#ece2cc', fin: '#867059', pattern: '#4a3d2c' },
+      desc: '退潮後留在灘上的水窪裡，一戳就彈起來。' },
+    { id: 'sk_tanago', name: '虹鱊', rarity: 'common', shape: 'flat', scale: .64, pattern: 'band', value: 250, minLen: 5, maxLen: 12,
+      colors: { body: '#8fb0c4', back: '#4a6a80', belly: '#f4f0e2', fin: '#d88a9c', pattern: '#5fd0b8' },
+      desc: '把卵產進河蚌的鰓裡。小得像一枚會游的和菓子。' },
+    { id: 'sk_dojo', name: '泥鰍', rarity: 'common', shape: 'long', scale: .7, pattern: 'speck', value: 220, minLen: 10, maxLen: 22,
+      special: ['whisker'],
+      colors: { body: '#6e6350', back: '#3d3628', belly: '#c8bfa4', fin: '#57503f', pattern: '#918872' },
+      desc: '天氣要變的時候會浮上來換氣，比氣象預報準。' },
+
+    /* --- 優良 --- */
+    { id: 'sk_yamame', name: '山女鱒', rarity: 'good', shape: 'wide', scale: .84, pattern: 'band2', value: 760, minLen: 18, maxLen: 40,
+      colors: { body: '#7f8f9c', back: '#46545f', belly: '#f2f0e6', fin: '#63727e', pattern: '#3a4650' },
+      desc: '溪流的女王。側面那排橢圓斑叫「小判紋」。' },
+    { id: 'sk_iwana', name: '岩魚', rarity: 'good', shape: 'wide', scale: .86, pattern: 'spot', value: 780, minLen: 20, maxLen: 45,
+      colors: { body: '#6a6f5e', back: '#3a4034', belly: '#f0e4cc', fin: '#525848', pattern: '#f2e8d0' },
+      desc: '住在溪流最上游、瀑布也上得去的地方。山裡的人說牠會變成人。' },
+    { id: 'sk_kurodai', name: '黑鯛', rarity: 'good', shape: 'flat', scale: .88, pattern: 'stripe', value: 800, minLen: 22, maxLen: 50,
+      colors: { body: '#6b7078', back: '#33383f', belly: '#dfe3e6', fin: '#4c5259', pattern: '#282d33' },
+      desc: '極度謹慎，能認出釣線。汽水域的老油條。' },
+    { id: 'sk_suzuki', name: '鱸', rarity: 'good', shape: 'normal', scale: .92, pattern: 'speck', value: 820, minLen: 30, maxLen: 65,
+      colors: { body: '#93a6b2', back: '#4f6270', belly: '#f4f7f9', fin: '#73868f', pattern: '#3d4d58' },
+      desc: '一生會換三個名字，長到這個尺寸才配叫「鱸」。' },
+    { id: 'sk_unagi', name: '青鰻', rarity: 'good', shape: 'long', scale: .9, pattern: 'none', value: 745, minLen: 35, maxLen: 80,
+      colors: { body: '#4f5f4a', back: '#283224', belly: '#d4d8be', fin: '#3d4a39' },
+      desc: '沒有人在這條河裡看過牠產卵——牠們會一路游到幾千公里外的海溝去。' },
+
+    /* --- 稀有 --- */
+    { id: 'sk_nishikigoi', name: '三色錦鯉', rarity: 'rare', shape: 'normal', scale: 1.02, pattern: 'spot', value: 3150, minLen: 30, maxLen: 70,
+      special: ['whisker'],
+      colors: { body: '#f4f0ea', back: '#cfc6ba', belly: '#ffffff', fin: '#e0d6ca', pattern: '#c8392f' },
+      desc: '神社放生池滿出來時流進潟湖的。牠們在這裡長得比池子裡大兩倍。' },
+    { id: 'sk_kinme', name: '金目鯛', rarity: 'rare', shape: 'flat', scale: 1.0, pattern: 'none', value: 3200, minLen: 25, maxLen: 55,
+      colors: { body: '#d0483f', back: '#8a2620', belly: '#f6d4c4', fin: '#b03a32', eyeWhite: '#ffd766', pupil: '#20140c' },
+      desc: '那雙金色的大眼睛在燈下會整個亮起來，像兩枚小判。' },
+    { id: 'sk_ishidai', name: '石鯛', rarity: 'rare', shape: 'flat', scale: 1.0, pattern: 'stripe', value: 3080, minLen: 25, maxLen: 60,
+      colors: { body: '#c8cdd2', back: '#7d848c', belly: '#f2f5f7', fin: '#9aa1a8', pattern: '#20262c' },
+      desc: '七條黑橫紋。牙齒能咬碎貝殼，也能咬斷鉤子。' },
+    { id: 'sk_sakuramasu', name: '櫻鱒', rarity: 'rare', shape: 'wide', scale: 1.04, pattern: 'speck', value: 3260, minLen: 35, maxLen: 75,
+      colors: { body: '#e0a0a8', back: '#9c5460', belly: '#faeae8', fin: '#c47f8a', pattern: '#7f3a46' },
+      desc: '櫻花開的時候溯河而上，整條魚會轉成花瓣的顏色。' },
+
+    /* --- 史詩 --- */
+    { id: 'sk_koryu', name: '登龍門鯉', rarity: 'epic', shape: 'normal', scale: 1.12, pattern: 'scale', value: 12300, minLen: 60, maxLen: 130,
+      special: ['glow', 'whisker', 'horn'],
+      colors: { body: '#e8b845', back: '#a2761a', belly: '#faedbe', fin: '#c9962a', pattern: '#b88620', glow: '#ffd970', hornColor: '#fff0b4' },
+      desc: '傳說跳過瀑布的鯉魚會化成龍。這一條額頭上已經長出東西了。' },
+    { id: 'sk_hanzaki', name: '大山椒魚「半裂」', rarity: 'epic', shape: 'long', scale: 1.14, pattern: 'speck', value: 12000, minLen: 70, maxLen: 150,
+      special: ['whisker'],
+      colors: { body: '#5f5a4a', back: '#332f26', belly: '#b0a890', fin: '#4a4638', pattern: '#8a8470' },
+      desc: '名字來自「劈成兩半也能活下去」的傳說。牠已經在這條河待了六十年。' },
+
+    /* --- 傳說 --- */
+    { id: 'sk_ningyo', name: '人魚', rarity: 'legend', shape: 'flat', scale: 1.18, pattern: 'scale', value: 34000, minLen: 60, maxLen: 130,
+      special: ['glow'],
+      colors: { body: '#f0d8dc', back: '#b07f8c', belly: '#fdf4f6', fin: '#d8aab4', pattern: '#ffffff', glow: '#ffc0cf' },
+      legend: '吃了牠的肉可以活八百年。八百比丘尼就是這樣來的——她走遍全國種下椿樹，最後回到海邊的洞窟裡坐著，等那八百年過完。所以這一帶的漁民釣到了都放回去，沒有人想要那種東西。',
+      desc: '不該吃的那種魚。' },
+    { id: 'sk_shinshi', name: '神使白魚', rarity: 'legend', shape: 'long', scale: 1.16, pattern: 'none', value: 33000, minLen: 50, maxLen: 110,
+      special: ['glow'],
+      colors: { body: '#f6f8fa', back: '#c4cdd6', belly: '#ffffff', fin: '#dde4ea', glow: '#e8f4ff' },
+      legend: '祭典的前一晚，牠們會排成一列穿過鳥居下方，從海往神社的方向游。宮司說那是神明在點名。整個過程沒有聲音，水面也不會動。',
+      desc: '祭典前夜穿過鳥居的白色隊伍。' },
+
+    /* --- 魚王 --- */
+    { id: 'sk_king_yahiro', name: '淵之主「八尋」', rarity: 'king', shape: 'wide', scale: 1.32, pattern: 'scale', value: 135000, minLen: 180, maxLen: 300,
+      special: ['glow', 'whisker', 'scar'], cyOffset: 1,
+      colors: { body: '#c8402f', back: '#7a2018', belly: '#f6dca8', fin: '#a02e22', pattern: '#ffd76a', glow: '#ff9a5f' },
+      legend: '八尋是長度單位，大概十四公尺——當然沒有人真的量過。神社的緣起寫著：這片潟湖本來是海，八尋來的那天，海退開了，留下這座湖給牠住。鳥居是後來蓋的，蓋在牠進出的那條水路上，用意不是迎神，是攔。',
+      desc: '宵櫻神域之主。鳥居攔的就是牠。' }
+  ];
+
+  /* ============================================================
+     地點四：幽藍冰湖
      配色統一走「藍白冷調」，暖色只留給稀有以上的魚，
      讓玩家在結果卡上一眼就能認出「這條不一樣」。
      ============================================================ */
@@ -421,6 +516,7 @@ window.FG = window.FG || {};
       castCost: 400,
       unlock: { free: true },
       scene: {
+        terrain: 'forest',
         horizon: 0.30,
         sky: ['#2f4a5e', '#4d6f7f', '#7d9aa2'],
         hill: '#3d5560',
@@ -448,6 +544,7 @@ window.FG = window.FG || {};
       castCost: 1100,
       unlock: { free: true },
       scene: {
+        terrain: 'cliff',
         horizon: 0.34,
         sky: ['#3a2a4a', '#8a4a52', '#e08a52', '#f2c06a'],
         hill: '#4a3145',
@@ -467,6 +564,31 @@ window.FG = window.FG || {};
       fish: FJORD_FISH
     },
     {
+      id: 'sakura_shrine',
+      name: '宵櫻神域',
+      subtitle: '神域釣場 · 汽水',
+      desc: '海水漲進來就淹過鳥居腳下的那座潟湖。岸上有五重塔與整排夜櫻，遠方是終年戴雪的錐形山。這裡的魚不怕人——沒有人敢在神域裡動粗。',
+      seed: 88301,
+      castCost: 1800,
+      unlock: { free: true },
+      scene: {
+        terrain: 'shrine',
+        horizon: 0.38,
+        sky: ['#221a33', '#4a3352', '#8a5670', '#d98a8a'],
+        hill: '#4a3f5c',
+        snow: '#e8e2ee',
+        farTree: '#8a5a76', midTree: '#a86d84', trunk: '#3f2a35',
+        accent: ['#e8a8c0'],
+        pagoda: '#3a2630', pagodaRoof: '#20161e', stone: '#7d7684',
+        torii: '#c8442f',
+        shore: '#241a26',
+        waterTop: '#4a3a5e', waterBot: '#9a6a80', waterDeep: '#2e2140',
+        highlight: '#ffe0ea', highlight2: '#d8a8c8',
+        boat: '#4a3328', boatRim: '#6b4a38', boatDark: '#2e2019'
+      },
+      fish: SHRINE_FISH
+    },
+    {
       id: 'frost_lake',
       name: '幽藍冰湖',
       subtitle: '寒帶釣場 · 冰釣',
@@ -474,11 +596,12 @@ window.FG = window.FG || {};
       seed: 30011, castCost: 3000,
       unlock: { free: true },
       scene: {
+        terrain: 'ice',
         horizon: 0.36,
         sky: ['#1e2a3e', '#3c5a78', '#9dc0d6'],
         hill: '#4a6a84',
         farTree: '#5b7c92', midTree: '#3f5e74', nearTree: '#2c4658',
-        accent: ['#dfeef7'], shore: '#20323f',
+        accent: ['#dfeef7'], shore: '#20323f', floe: '#cfe8f4',
         waterTop: '#2f5b78', waterBot: '#67a5c4', waterDeep: '#1d3d55',
         highlight: '#ffffff', highlight2: '#bfe4f7',
         boat: '#3f4a58', boatRim: '#5a6b7c', boatDark: '#2a323c'
@@ -491,11 +614,12 @@ window.FG = window.FG || {};
       seed: 66607, castCost: 12000,
       unlock: { free: true },
       scene: {
+        terrain: 'night',
         horizon: 0.22,
         sky: ['#050a12', '#0b1826', '#123048'],
         hill: '#0a1622',
         farTree: '#0d1c28', midTree: '#091520', nearTree: '#060f18',
-        accent: ['#2f7f9c'], shore: '#04090f',
+        accent: ['#2f7f9c'], shore: '#04090f', star: '#cfe8ff', plankton: '#5fe0d8',
         waterTop: '#0a2033', waterBot: '#12405e', waterDeep: '#04101c',
         highlight: '#6fd8ff', highlight2: '#2f8fb8',
         boat: '#2a3038', boatRim: '#3f4750', boatDark: '#1a1e24'

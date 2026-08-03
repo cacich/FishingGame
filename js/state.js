@@ -30,7 +30,8 @@ window.FG = window.FG || {};
       // 自動釣魚設定（會記住上次的選擇）
       auto: {
         rounds: 50,          // 局數，0 = 無限
-        sellMode: 'rare',    // all=全賣 / rare=稀有以上收藏 / keep=全部收藏
+        // 收藏門檻：all=全賣 / keep=全收 / 其餘是稀有度 key（good|rare|epic|legend|king）＝該階以上收藏
+        sellMode: 'rare',
         stopChips: 0,        // 籌碼低於此值就停，0 = 不限
         stopRarity: 'legend',// none / rare / epic / legend / king
         speed: 2,            // 1 正常 / 2 兩倍 / 4 極速

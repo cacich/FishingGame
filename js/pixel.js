@@ -528,6 +528,23 @@ window.FG = window.FG || {};
         '...XXXXX....'
       ]
     },
+    // 神域用：繪馬（五角形的木製祈願牌，上緣的尖頂是它的識別特徵）
+    ema: {
+      pal: { X: '#4a2e1c', w: '#a87c4e', l: '#d0a871', k: '#2b1a10' },
+      map: [
+        '.....XX.....',
+        '....XwwX....',
+        '...XwllwX...',
+        '..XwllllwX..',
+        '.XwlkkkklwX.',
+        'XwllkllklwwX',
+        'XwlkkkllklwX',
+        'XwllkllkklwX',
+        'XwwlllllllwX',
+        '.XwwwwwwwwX.',
+        '..XXXXXXXX..'
+      ]
+    },
     // 深淵用：辨識不出物種的魚骨。頭在左、脊椎往右、肋骨是垂直短線
     bone: {
       pal: { b: '#e6e0cc', o: '#2a2822' },
@@ -645,6 +662,289 @@ window.FG = window.FG || {};
 
   px.sceneSize = { w: SCENE_W, h: SCENE_H };
 
+  /* ------------------------------------------------------------
+     地形產生器 · TERRAIN
+
+     每個釣點用 scene.terrain 指定一種。**只負責畫地平線以上的剪影**
+     （天空漸層、水面、倒影、深水都是共用的，不必也不該各寫一份）。
+     這樣設計的好處：倒影是把地平線上方逐列取出來疊回水面的，
+     所以換地形，倒影會自動跟著換，不需要為每種地形另寫倒影碼。
+
+     簽名：above(ctx, ctx物件) — 見 buildBackground 裡組出來的 T 物件。
+     另有選用的 below(...)，畫「站在水面上」的物件（例如鳥居），
+     會在水面、倒影、深水全部畫完之後才執行。
+     ------------------------------------------------------------ */
+  const TERRAIN = {};
+
+  // 一 · 森林：起伏山稜 + 遠中近三層針葉林（晨霧湖）
+  TERRAIN.forest = {
+    above: function (T) {
+      const { P, R, W, horizon, rect } = T;
+      if (P.hill) {
+        let hy = horizon - 46;
+        for (let x = 0; x < W; x++) {
+          hy += (R() - 0.5) * 2.4;
+          hy = FG.clamp(hy, horizon - 62, horizon - 30);
+          rect(x, hy, 1, horizon - hy, P.hill);
+        }
+      }
+      T.forest(horizon - 12, 22, P.farTree, 90, P.accent);
+      T.forest(horizon - 4, 26, P.midTree, 80, P.accent);
+      T.forest(horizon + 1, 20, P.nearTree, 60, P.accent2 || P.accent);
+    }
+  };
+
+  // 二 · 峽灣：兩側崖壁夾出中央水道 + 幾根海蝕柱（落霞峽灣）
+  //   崖高用 pow 曲線從邊緣往中央衰減，中間留白才有「峽」的感覺
+  TERRAIN.cliff = {
+    above: function (T) {
+      const { P, R, W, horizon, rect } = T;
+
+      function wall(color, peak, reach, side, jag) {
+        let noise = 0;
+        for (let x = 0; x < W; x++) {
+          const d = side < 0 ? x / reach : (W - 1 - x) / reach;    // 0 = 貼著畫面邊緣
+          if (d > 1) continue;
+          noise += (R() - 0.5) * jag;
+          noise = FG.clamp(noise, -6, 6);
+          const h = peak * Math.pow(1 - d, 1.7) + noise * (1 - d);
+          if (h < 2) continue;
+          rect(x, horizon - h, 1, h, color);
+          // 崖面的垂直節理：每 7px 一道暗紋，讓平塗的剪影有岩壁質感
+          if (x % 7 === 0) rect(x, horizon - h * 0.8, 1, h * 0.8, FG.shade(color, -0.22));
+        }
+      }
+      // 遠側崖（淺）先畫，近側崖（深）後畫蓋上去，做出空氣透視
+      wall(P.farTree, 74, 120, -1, 2.2);
+      wall(P.farTree, 62, 96, 1, 2.2);
+      wall(P.midTree, 92, 74, -1, 3.0);
+      wall(P.nearTree, 104, 58, 1, 3.4);
+
+      // 中央水道上的海蝕柱
+      for (let i = 0; i < 3; i++) {
+        const sx = 78 + Math.floor(R() * 46);
+        const sh = 12 + R() * 22, sw = 3 + Math.floor(R() * 3);
+        rect(sx, horizon - sh, sw, sh, P.midTree);
+        rect(sx, horizon - sh, 1, sh, FG.shade(P.midTree, 0.18));
+      }
+    }
+  };
+
+  // 三 · 冰原：遠方冰川牆 + 擠壓冰脊（三角冰刺）+ 水面浮冰（幽藍冰湖）
+  TERRAIN.ice = {
+    above: function (T) {
+      const { P, R, W, horizon, rect } = T;
+
+      // 遠方冰川牆：一整條平頂的塊體，用垂直裂隙線做出厚度
+      const wallTop = horizon - 34;
+      rect(0, wallTop, W, horizon - wallTop, P.farTree);
+      // 裂隙：只從冰川「底部」往上長，長度短。從頂端往下垂會被看成雨絲
+      for (let x = 0; x < W; x += 3) {
+        if (R() < 0.55) continue;
+        const d = 3 + R() * 9;
+        rect(x, horizon - d, 1, d, FG.shade(P.farTree, R() < 0.5 ? 0.16 : -0.24));
+      }
+      rect(0, wallTop, W, 2, FG.shade(P.farTree, 0.3));   // 冰川頂緣的受光面
+
+      // 擠壓冰脊：**刻意畫成又寬又扁的斜面板塊**，而不是三角錐——
+      // 尖三角在這個尺寸下會被誤讀成針葉樹，那就跟晨霧湖沒有分別了
+      function ridge(baseY, maxH, color, n, lean) {
+        for (let i = 0; i < n; i++) {
+          const x = Math.floor(R() * (W + 30)) - 15;
+          const h = maxH * (0.4 + R() * 0.7);
+          const w = Math.max(10, Math.round(h * (1.8 + R() * 1.6)));   // 寬遠大於高
+          const topW = w * (0.25 + R() * 0.3);                          // 頂面是平的，不收到一點
+          for (let k = 0; k < h; k++) {
+            const t = k / h;
+            const ww = Math.max(2, Math.round(w + (topW - w) * t));
+            const off = Math.round(k * lean);
+            rect(x - ww / 2 + off, baseY - k - 1, ww, 1, color);
+          }
+          // 左上受光面 + 頂緣高光，是「冰」而不是「岩」的關鍵
+          for (let k = 0; k < h; k++) {
+            const t = k / h;
+            const ww = Math.max(2, Math.round(w + (topW - w) * t));
+            rect(x - ww / 2 + Math.round(k * lean), baseY - k - 1, Math.max(1, Math.round(ww * 0.28)), 1, FG.shade(color, 0.3));
+          }
+          rect(x - topW / 2 + Math.round(h * lean), baseY - h - 1, topW, 1, FG.shade(color, 0.42));
+        }
+      }
+      ridge(horizon - 2, 13, P.midTree, 14, 0.5);
+      ridge(horizon + 2, 18, P.nearTree, 11, -0.42);
+    },
+    below: function (T) {
+      const { P, R, W, H, horizon, rect } = T;
+      // 水面浮冰：越靠近畫面下緣越大，做出景深。避開船身區域（x 40~150、y 225~260）
+      for (let i = 0; i < 14; i++) {
+        const y = horizon + 8 + R() * (H - horizon - 30);
+        const near = (y - horizon) / (H - horizon);
+        const w = Math.round(6 + near * 22 + R() * 8);
+        const x = Math.round(R() * (W + 20)) - 10;
+        if (x + w > 34 && x < 158 && y > 216 && y < 268) continue;
+        const h = Math.max(2, Math.round(w * 0.28));
+        rect(x, y, w, h, P.floe || '#cfe8f4');
+        rect(x + 1, y, w - 2, 1, FG.shade(P.floe || '#cfe8f4', 0.25));
+        rect(x, y + h, w, 1, FG.shade(P.floe || '#cfe8f4', -0.45));   // 貼水面的暗邊
+      }
+    }
+  };
+
+  // 四 · 夜海：星空 + 低矮海蝕柱 + 水面生物發光（深淵海溝）
+  //   這裡沒有陸地可畫，改用「幾乎空無一物」來表達開闊與不安
+  TERRAIN.night = {
+    above: function (T) {
+      const { P, R, W, horizon, rect } = T;
+      // 星星：越靠近地平線越稀疏（大氣消光）
+      for (let i = 0; i < 150; i++) {
+        const y = Math.floor(Math.pow(R(), 0.7) * (horizon - 6));
+        const x = Math.floor(R() * W);
+        const bright = R();
+        if (bright < 0.12) rect(x, y, 2, 1, P.star || '#dff2ff');
+        else rect(x, y, 1, 1, bright < 0.5 ? FG.shade(P.star || '#dff2ff', -0.45) : (P.star || '#dff2ff'));
+      }
+      // 遠方海蝕柱：少而粗，成一小群。太多太細會變成一排欄杆
+      const cluster = 20 + R() * 90;
+      for (let i = 0; i < 4; i++) {
+        const x = Math.floor(cluster + R() * 70);
+        const h = 9 + R() * 22;
+        const w = 5 + Math.floor(R() * 7);
+        rect(x, horizon - h, w, h, P.nearTree);
+        rect(x, horizon - h, 1, h, FG.shade(P.nearTree, 0.35));   // 迎光的那一側
+      }
+      // 貼著地平線的一層薄霧，把星空與海面分開
+      for (let k = 0; k < 5; k++) {
+        T.g.globalAlpha = 0.1 * (5 - k) / 5;
+        rect(0, horizon - 6 + k, W, 1, P.hill || '#0a1622');
+      }
+      T.g.globalAlpha = 1;
+    },
+    below: function (T) {
+      const { P, R, W, H, horizon, rect } = T;
+      // 生物發光：成團的靜態光點，密度往下增加
+      for (let i = 0; i < 90; i++) {
+        const y = horizon + 4 + Math.pow(R(), 0.6) * (H - horizon - 6);
+        const x = Math.floor(R() * W);
+        T.g.globalAlpha = 0.25 + R() * 0.5;
+        rect(x, y, 1, 1, P.plankton || '#5fe0d8');
+      }
+      T.g.globalAlpha = 1;
+    }
+  };
+
+  // 五 · 神域：錐形雪山 + 五重塔 + 櫻花林，鳥居立在水上（宵櫻神域）
+  TERRAIN.shrine = {
+    above: function (T) {
+      const { P, R, W, horizon, rect } = T;
+
+      // --- 錐形雪山：直線斜邊，跟 forest 的隨機遊走山稜是完全不同的輪廓 ---
+      const peakX = 128, peakY = horizon - 86, slope = 1.45;
+      for (let y = peakY; y < horizon; y++) {
+        const half = (y - peakY) * slope;
+        const snow = (y - peakY) < 22;
+        // 山頂積雪的下緣做成不規則，避免一條死板的水平線
+        const jag = snow && (y - peakY) > 15 ? Math.sin(y * 2.7) * 3 : 0;
+        rect(peakX - half, y, half * 2, 1, snow ? (P.snow || '#eef4f8') : P.hill);
+        if (snow && (y - peakY) > 14) {
+          rect(peakX - half, y + jag, half * 0.5, 1, P.hill);        // 左側的雪線缺口
+          rect(peakX + half * 0.6, y - jag, half * 0.4, 1, P.hill);  // 右側
+        }
+      }
+      // 山體左側的陰影面
+      for (let y = peakY; y < horizon; y++) {
+        const half = (y - peakY) * slope;
+        rect(peakX - half, y, Math.max(1, half * 0.22), 1, FG.shade(P.hill, -0.22));
+      }
+
+      // --- 五重塔剪影（左側）：五層屋簷，每層往上收窄 ---
+      const tx = 34, tBase = horizon - 2;
+      let ty = tBase;
+      for (let lv = 0; lv < 5; lv++) {
+        const w = 26 - lv * 3.4;              // 塔身寬度往上收
+        const eaves = w + 9;                  // 屋簷比塔身寬，這是日式塔最明顯的特徵
+        rect(tx - w / 2, ty - 11, w, 11, P.pagoda || '#3a2630');
+        rect(tx - eaves / 2, ty - 14, eaves, 3, P.pagodaRoof || '#241a22');
+        rect(tx - eaves / 2 + 1, ty - 15, eaves - 2, 1, FG.shade(P.pagodaRoof || '#241a22', 0.25));
+        ty -= 14;
+      }
+      rect(tx - 1, ty - 9, 2, 9, P.pagodaRoof || '#241a22');   // 頂上的相輪
+
+      // --- 櫻花林：圓形樹冠（不是針葉的三角形），花色為主、樹幹細 ---
+      function sakura(baseY, n, size, canopy, trunk) {
+        for (let i = 0; i < n; i++) {
+          const x = Math.floor(R() * (W + 16)) - 8;
+          const r = size * (0.6 + R() * 0.7);
+          const cy = baseY - r - 3;
+          rect(x - 1, cy, 2, r + 4, trunk);                       // 樹幹
+          for (let dy = -r; dy <= r; dy++) {                      // 圓形樹冠
+            const half = Math.sqrt(Math.max(0, r * r - dy * dy));
+            rect(x - half, cy + dy, half * 2, 1, canopy);
+          }
+          for (let k = 0; k < 4; k++) {                           // 樹冠上緣的亮色花簇
+            const a = R() * Math.PI;
+            rect(x + Math.cos(a) * r * 0.6, cy - Math.sin(a) * r * 0.55, 2, 2, FG.shade(canopy, 0.28));
+          }
+        }
+      }
+      sakura(horizon - 6, 16, 7, P.farTree, FG.shade(P.farTree, -0.5));
+      sakura(horizon + 1, 13, 10, P.midTree, P.trunk || '#4a3038');
+
+      // --- 岸邊的石燈籠 ---
+      for (let i = 0; i < 3; i++) {
+        const lx = 8 + Math.floor(R() * (W - 16));
+        if (lx > 100 && lx < 160) continue;
+        rect(lx - 1, horizon - 9, 3, 9, P.stone || '#8a8378');
+        rect(lx - 3, horizon - 14, 7, 4, P.stone || '#8a8378');
+        rect(lx - 4, horizon - 16, 9, 2, FG.shade(P.stone || '#8a8378', -0.3));
+      }
+    },
+    below: function (T) {
+      const { P, W, horizon, rect } = T;
+      // --- 立在水上的大鳥居 ---
+      // 位置刻意偏右上（水平線後方一點），才不會跟船與浮標打架
+      const cx = 156, baseY = horizon + 46, hgt = 54;
+      const red = P.torii || '#c8442f';
+      const dark = FG.shade(red, -0.34);
+      const top = baseY - hgt;
+
+      function post(x) {
+        rect(x - 2, top + 6, 5, hgt - 6, red);
+        rect(x - 2, top + 6, 1, hgt - 6, FG.shade(red, 0.22));   // 柱子的受光邊
+        rect(x + 2, top + 6, 1, hgt - 6, dark);
+      }
+      post(cx - 17); post(cx + 17);
+
+      // 笠木（最上面那根，兩端上翹是鳥居的識別特徵）＋島木
+      rect(cx - 30, top, 60, 4, dark);
+      rect(cx - 32, top + 1, 3, 2, dark);
+      rect(cx + 29, top + 1, 3, 2, dark);
+      rect(cx - 27, top + 4, 54, 3, red);
+      // 貫（中間那根橫木）與額束
+      rect(cx - 22, top + 17, 44, 3, red);
+      rect(cx - 2, top + 6, 4, 12, red);
+
+      // 倒影：往下鏡射、越遠越淡，讓鳥居真的「站在水裡」
+      const g = T.g;
+      for (let y = 0; y < hgt; y++) {
+        const src = baseY - 1 - y, dst = baseY + 1 + y;
+        if (dst >= T.H) break;
+        const img = g.getImageData(cx - 34, src, 68, 1);
+        const d = img.data;
+        let any = false;
+        for (let i = 0; i < d.length; i += 4) {
+          // 只留下鳥居的朱色（R 明顯大於 B），水面本身不重複疊
+          if (d[i] > d[i + 2] + 24 && d[i] > 90) { d[i + 3] = 120; any = true; }
+          else d[i + 3] = 0;
+        }
+        if (!any) continue;
+        const tmp = px.make(68, 1);
+        tmp.getContext('2d').putImageData(img, 0, 0);
+        g.globalAlpha = 0.75 * (1 - y / hgt);
+        g.drawImage(tmp, cx - 34 + Math.round(Math.sin(y * 0.8) * 1.5), dst);
+        g.globalAlpha = 1;
+      }
+    }
+  };
+
   function buildBackground(loc) {
     const P = loc.scene;
     const W = SCENE_W, H = SCENE_H;
@@ -664,18 +964,10 @@ window.FG = window.FG || {};
       rect(0, y, W, 1, FG.mix(sky[idx], sky[idx + 1], lt));
     }
 
-    // --- 遠山稜線 ---
-    if (P.hill) {
-      let hy = horizon - 46;
-      for (let x = 0; x < W; x++) {
-        hy += (R() - 0.5) * 2.4;
-        hy = FG.clamp(hy, horizon - 62, horizon - 30);
-        rect(x, hy, 1, horizon - hy, P.hill);
-      }
-    }
-
-    // --- 遠、中、近三層樹林 ---
-    function forest(baseY, height, color, density, accent) {
+    // 傳給地形產生器的上下文
+    const T = { g: g, P: P, R: R, W: W, H: H, horizon: horizon, rect: rect };
+    // 針葉林產生器（forest 地形用，也開放給其他地形沿用）
+    T.forest = function (baseY, height, color, density, accent) {
       for (let i = 0; i < density; i++) {
         const x = Math.floor(R() * (W + 12)) - 6;
         const h = height * (0.6 + R() * 0.7);
@@ -693,10 +985,10 @@ window.FG = window.FG || {};
           }
         }
       }
-    }
-    forest(horizon - 12, 22, P.farTree, 90, P.accent);
-    forest(horizon - 4, 26, P.midTree, 80, P.accent);
-    forest(horizon + 1, 20, P.nearTree, 60, P.accent2 || P.accent);
+    };
+
+    const terrain = TERRAIN[P.terrain] || TERRAIN.forest;
+    terrain.above(T);
 
     // --- 岸線 ---
     rect(0, horizon, W, 2, P.shore || FG.shade(P.nearTree, -0.35));
@@ -735,6 +1027,10 @@ window.FG = window.FG || {};
     g.globalAlpha = 0.35;
     rect(0, horizon + 26, W, H - horizon - 26, P.waterDeep);
     g.globalAlpha = 1;
+
+    // --- 地形的水面物件（浮冰、鳥居、發光浮游生物…） ---
+    // 放在最後才畫，這樣它們不會被倒影與深水的半透明疊層洗掉
+    if (terrain.below) terrain.below(T);
 
     return { canvas: cv, horizon: horizon };
   }
@@ -915,18 +1211,92 @@ window.FG = window.FG || {};
       g.fillStyle = FG.mix(P.sky[idx], P.sky[idx + 1], t * (P.sky.length - 1) - idx);
       g.fillRect(0, y, W, 1);
     }
-    for (let i = 0; i < 40; i++) {
-      const x = Math.floor(R() * W), hgt = 4 + R() * 8;
-      g.fillStyle = R() < 0.2 ? (P.accent ? P.accent[0] : P.midTree) : P.midTree;
-      for (let k = 0; k < hgt; k++) {
-        const ww = Math.max(1, Math.round(hgt * 0.4 * (k / hgt)));
-        g.fillRect(x - Math.floor(ww / 2), hz - hgt + k, ww, 1);
+    // 地平線以上的剪影：每種地形一份簡化版，讓釣點選單的縮圖一眼可辨
+    // （不共用 TERRAIN，因為縮圖尺寸差 3 倍以上，等比縮放的細節會糊掉）
+    function fill(x, y, w, h, c) { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); }
+    const S = Math.max(1, H / 50);        // 相對於 76×50 基準的尺寸係數
+
+    switch (P.terrain) {
+      case 'cliff':
+        // 兩側崖壁夾出中央水道
+        for (let x = 0; x < W; x++) {
+          const d = Math.min(x / (W * 0.42), (W - 1 - x) / (W * 0.36));
+          if (d > 1) continue;
+          const h = (x < W / 2 ? 15 : 19) * S * Math.pow(1 - d, 1.6);
+          if (h < 1) continue;
+          fill(x, hz - h, 1, h, x < W / 2 ? P.midTree : P.nearTree);
+        }
+        break;
+
+      case 'ice':
+        // 冰川牆 + 三角冰刺
+        fill(0, hz - 9 * S, W, 9 * S, P.farTree);
+        fill(0, hz - 9 * S, W, 1, FG.shade(P.farTree, 0.3));
+        for (let i = 0; i < 7; i++) {
+          const x = Math.floor(R() * W), hgt = (2 + R() * 4) * S, w = hgt * 2.4;
+          for (let k = 0; k < hgt; k++) {
+            const ww = Math.max(2, w * (1 - 0.55 * k / hgt));
+            fill(x - ww / 2 + k * 0.5, hz - k - 1, ww, 1, P.nearTree);
+          }
+          fill(x - w * 0.22 + hgt * 0.5, hz - hgt - 1, w * 0.45, 1, FG.shade(P.nearTree, 0.4));
+        }
+        break;
+
+      case 'night':
+        // 星空 + 幾根海蝕柱
+        for (let i = 0; i < 40; i++) fill(Math.floor(R() * W), Math.floor(Math.pow(R(), 0.7) * hz), 1, 1, P.star || '#dff2ff');
+        for (let i = 0; i < 5; i++) fill(Math.floor(R() * W), hz - (2 + R() * 5) * S, 1 + R() * 2 * S, 6 * S, P.nearTree);
+        break;
+
+      case 'shrine': {
+        // 錐形雪山 + 五重塔 + 櫻花樹
+        const px0 = W * 0.62, pkY = hz - 20 * S;
+        for (let y = pkY; y < hz; y++) {
+          const half = (y - pkY) * 1.45;
+          fill(px0 - half, y, half * 2, 1, (y - pkY) < 6 * S ? (P.snow || '#eef4f8') : P.hill);
+        }
+        let ty = hz - 1, tw = 9 * S;
+        for (let lv = 0; lv < 4; lv++) {
+          fill(W * 0.16 - tw / 2, ty - 3.4 * S, tw, 3.4 * S, P.pagoda || '#3a2630');
+          fill(W * 0.16 - (tw + 3 * S) / 2, ty - 4.4 * S, tw + 3 * S, S, P.pagodaRoof || '#241a22');
+          ty -= 4.4 * S; tw -= 1.6 * S;
+        }
+        for (let i = 0; i < 9; i++) {
+          const x = Math.floor(R() * W), r = (2 + R() * 2.6) * S;
+          for (let dy = -r; dy <= r; dy++) {
+            const half = Math.sqrt(Math.max(0, r * r - dy * dy));
+            fill(x - half, hz - r - S + dy, half * 2, 1, P.midTree);
+          }
+        }
+        break;
       }
+
+      default:
+        for (let i = 0; i < 40; i++) {
+          const x = Math.floor(R() * W), hgt = 4 + R() * 8;
+          g.fillStyle = R() < 0.2 ? (P.accent ? P.accent[0] : P.midTree) : P.midTree;
+          for (let k = 0; k < hgt; k++) {
+            const ww = Math.max(1, Math.round(hgt * 0.4 * (k / hgt)));
+            g.fillRect(x - Math.floor(ww / 2), hz - hgt + k, ww, 1);
+          }
+        }
     }
+
     for (let y = hz; y < H; y++) {
       g.fillStyle = FG.mix(P.waterTop, P.waterBot, (y - hz) / (H - hz));
       g.fillRect(0, y, W, 1);
     }
+
+    // 神域的縮圖補一座鳥居——它是這個釣點最好認的招牌
+    if (P.terrain === 'shrine') {
+      const cx = W * 0.5, ty2 = hz + 2 * S, hh = 9 * S, red = P.torii || '#c8442f';
+      fill(cx - 6 * S, ty2, 12 * S, S, FG.shade(red, -0.3));
+      fill(cx - 5 * S, ty2 + S, 10 * S, S, red);
+      fill(cx - 4 * S, ty2 + 3.5 * S, 8 * S, S, red);
+      fill(cx - 3.4 * S, ty2 + S, 1.4 * S, hh, red);
+      fill(cx + 2 * S, ty2 + S, 1.4 * S, hh, red);
+    }
+
     for (let i = 0; i < 40; i++) {
       const y = hz + 2 + R() * (H - hz - 3);
       g.fillStyle = P.highlight;

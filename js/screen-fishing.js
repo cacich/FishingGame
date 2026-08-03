@@ -21,6 +21,35 @@ window.FG = window.FG || {};
     { v: 'king',   t: '魚王' }
   ];
 
+  // 漁獲處理：'all' 全賣、'keep' 全收，其餘是「該稀有度以上收藏」的門檻。
+  // 值刻意沿用稀有度 key，這樣舊存檔的 'all' / 'rare' / 'keep' 全都還是合法值，不用遷移。
+  const KEEP_OPTS = [
+    { v: 'all',    t: '全賣' },
+    { v: 'good',   t: '優良' },
+    { v: 'rare',   t: '稀有' },
+    { v: 'epic',   t: '史詩' },
+    { v: 'legend', t: '傳說' },
+    { v: 'king',   t: '魚王' },
+    { v: 'keep',   t: '全收' }
+  ];
+  const KEEP_DESC = {
+    all:    '全部賣出，什麼都不留。',
+    good:   '<b>優良</b>以上收藏，普通與雜物賣出。魚缸消耗最快。',
+    rare:   '<b>稀有</b>以上收藏，其餘賣出。',
+    epic:   '<b>史詩</b>以上收藏，其餘賣出。',
+    legend: '<b>傳說</b>以上收藏，其餘賣出。跑長局建議用這個。',
+    king:   '<b>只收魚王</b>，其餘全部賣出。魚缸幾乎不會滿。',
+    keep:   '全部收藏（雜物除外）。魚缸很快就會滿。'
+  };
+
+  // 這條漁獲該不該收藏？雜物永遠賣出，由呼叫端另外擋
+  function keepsThis(sellMode, R) {
+    if (sellMode === 'keep') return true;
+    if (sellMode === 'all') return false;
+    const min = FG.RARITY[sellMode];
+    return !!min && R.order >= min.order;
+  }
+
   const S = FG.screenFishing = {
     id: 'fishing',
     label: '釣魚',
@@ -353,13 +382,18 @@ window.FG = window.FG || {};
         { v: 10, t: '10' }, { v: 50, t: '50' }, { v: 100, t: '100' }, { v: 500, t: '500' }, { v: 0, t: '無限' }
       ], cfg.rounds, function (v) { cfg.rounds = v; }));
 
-      box.appendChild(seg('漁獲處理', [
-        { v: 'all',  t: '全部賣出' },
-        { v: 'rare', t: '稀有以上收藏' },
-        { v: 'keep', t: '全部收藏' }
-      ], cfg.sellMode, function (v) { cfg.sellMode = v; }));
-      box.appendChild(note('「收藏」會放進家園魚缸（目前 <b>' + st.data.tank.length + '/' + st.tankCap() +
-        '</b>）。魚缸滿了會停止自動並讓你手動決定，不會擅自賣掉。雜物一律賣出。'));
+      // 漁獲處理：選項是「收藏門檻」，說明文字跟著選擇即時更新
+      const keepNote = note('');
+      function refreshKeepNote() {
+        keepNote.innerHTML = (KEEP_DESC[cfg.sellMode] || KEEP_DESC.all) +
+          '<br>收藏會放進家園魚缸（目前 <b>' + st.data.tank.length + '/' + st.tankCap() +
+          '</b>）。魚缸滿了會停止自動並讓你手動決定，不會擅自賣掉。';
+      }
+      box.appendChild(seg('漁獲處理（收藏門檻）', KEEP_OPTS, cfg.sellMode, function (v) {
+        cfg.sellMode = v; refreshKeepNote();
+      }));
+      refreshKeepNote();
+      box.appendChild(keepNote);
 
       box.appendChild(seg('釣到以下稀有度就停止', STOP_RARITY_OPTS, cfg.stopRarity, function (v) { cfg.stopRarity = v; }));
 
@@ -477,10 +511,7 @@ window.FG = window.FG || {};
         a.best = { fishId: fish.id, name: fish.name, rarity: fish.rarity, value: inst.value, len: inst.len };
       }
 
-      const wantKeep = !fish.junkArt && (
-        a.sellMode === 'keep' ||
-        (a.sellMode === 'rare' && R.order >= FG.RARITY.rare.order)
-      );
+      const wantKeep = !fish.junkArt && keepsThis(a.sellMode, R);
 
       // 該收藏卻沒位子 → 停下來交給玩家決定，不擅自賣掉
       if (wantKeep && st.tankFull()) {

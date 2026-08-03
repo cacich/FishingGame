@@ -51,7 +51,8 @@
 | `shape` | `normal` `long` `round` `flat` `wide` `ray` |
 | `pattern` | `none` `stripe` `band` `band2` `spot` `speck` `net` `scale` |
 | `special[]` | `glow` `spike` `whisker` `scar` `horn` |
-| `junkArt` | `boot` `can` `weed` `bottle` `ice` `bone` |
+| `junkArt` | `boot` `can` `weed` `bottle` `ice` `bone` `ema` |
+| `scene.terrain` | `forest` `cliff` `shrine` `ice` `night` |
 | `colors` | `body`(必填) `back` `belly` `fin` `pattern` `glow` `hornColor` `eyeWhite` `pupil` |
 
 ## 狀態機階段
@@ -82,7 +83,7 @@
 
 | key | 值 |
 |---|---|
-| `sellMode` | `all` 全部賣出／`rare` 稀有以上收藏／`keep` 全部收藏 |
+| `sellMode` | **收藏門檻**：`all` 全賣／`keep` 全收／`good` `rare` `epic` `legend` `king` 該階以上收藏 |
 | `stopRarity` | `none` `rare` `epic` `legend` `king` |
 | `speed` | `1` 正常／`2` 兩倍／`4` 極速 |
 
@@ -92,6 +93,7 @@
 |---|---|
 | `ml_` | 晨霧湖的魚 |
 | `fj_` | 落霞峽灣的魚 |
+| `sk_` | 宵櫻神域的魚 |
 | `fr_` | 幽藍冰湖的魚 |
 | `ab_` | 深淵海溝的魚 |
 | `rod_` `bait_` `eq_` | 釣竿／餌料／裝備 |

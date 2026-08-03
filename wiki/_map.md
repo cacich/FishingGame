@@ -40,8 +40,10 @@
 | **新增／刪除／改名任何前端資產** | 更新 `sw.js › ASSETS` 清單 ＋ **把 `VERSION` 加一** |
 | 動到任何影響機率／價格／成本的數值 | 跑 [10 §模擬腳本](10-balance-tuning.md#模擬腳本)，**更新基準表** |
 | 新增 shape / pattern / special / junkArt | [06](06-pixel-engine.md) 加說明 ＋ [07](07-data-schema.md) 加可用值 ＋ [12](12-glossary.md) 加清單 |
+| **新增 `TERRAIN` 地形** | [06 §地形系統](06-pixel-engine.md) 加一列 ＋ [07](07-data-schema.md) 的 scene 表與釣點表 ＋ [12](12-glossary.md) 加清單，**並補 `locThumb()` 的 switch case** |
 | 新增裝備／裝飾／餌料／釣竿 | [07](07-data-schema.md) 更新表格；裝備要記得加圖示（[09](09-recipes.md) 有步驟） |
 | 新增自動模式設定項 | [05](05-auto-mode.md) 狀態物件與停止條件表 ＋ [02](02-state-and-save.md) schema |
+| 改動自動模式的收藏門檻 | [05 §收藏門檻](05-auto-mode.md) 的對照表 ＋ [12](12-glossary.md) 的 `sellMode` |
 | 改存檔結構 | [02](02-state-and-save.md)；巢狀欄位要考慮 `SAVE_VER`（見 [11 §4](11-invariants-and-gotchas.md#4-存檔淺層合併)） |
 | 新增分頁 | [01](01-architecture.md)、[08](08-ui-and-screens.md)、[README](README.md)、本頁 |
 | 發現既有描述跟程式碼不符 | **當場修正 wiki**，並在 CHANGELOG 記一筆「文件修正」 |

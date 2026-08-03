@@ -32,7 +32,7 @@
 
 - **簽到**：七格網格。已領 `.got`（打勾＋降透明度）、今天可領 `.today`（金色框）。索引邏輯是 `streak % 7`。
 - **任務**：進度條 `.bar > i`，完成未領顯示金色領取鍵。
-- **釣點卡**：`px.locThumb()` 縮圖＋前往按鈕（四個釣點都免費，**解鎖按鈕的分支目前跑不到**，見 [11 §15](11-invariants-and-gotchas.md#15-comingsoon-與釣點解鎖目前都沒有釣點在用)）。跟 `main.js › locationPicker()` 是**兩份幾乎相同的程式碼**——改一邊記得改另一邊（已知的技術債，見 [11](11-invariants-and-gotchas.md#8-釣點卡有兩份實作)）。
+- **釣點卡**：`px.locThumb()` 縮圖＋前往按鈕（五個釣點都免費，**解鎖按鈕的分支目前跑不到**，見 [11 §15](11-invariants-and-gotchas.md#15-comingsoon-與釣點解鎖目前都沒有釣點在用)）。跟 `main.js › locationPicker()` 是**兩份幾乎相同的程式碼**——改一邊記得改另一邊（已知的技術債，見 [11](11-invariants-and-gotchas.md#8-釣點卡有兩份實作)）。
 
 ### 家園 · screen-home.js
 
