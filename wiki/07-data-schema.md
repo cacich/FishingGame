@@ -34,11 +34,16 @@
 | `sunset_fjord` | 落霞峽灣 | `cliff` | 1,100 | `free` | 24 | 21 | `fj_` |
 | `sakura_shrine` | 宵櫻神域 | `shrine` | 1,800 | `free` | 23 | 20 | `sk_` |
 | `frost_lake` | 幽藍冰湖 | `ice` | 3,000 | `free` | 23 | 20 | `fr_` |
+| `lotus_river` | 煙雨蓮江 | `karst` | 6,000 | `free` | 23 | 20 | `lr_` |
 | `abyss` | 深淵海溝 | `night` | 12,000 | `free` | 23 | 20 | `ab_` |
 
-「圖鑑分母」是 `codexProgress()` 算出來的數字，**雜物不列入**（見 [02 §圖鑑](02-state-and-save.md)）。五個釣點的圖鑑分母都刻意維持在 20 以上，讓每張圖鑑頁的收集進度條長度感覺一致。
+**陣列順序 = 進程順序 = 各處 UI 的顯示順序**，並且刻意跟 `castCost` 遞增一致（400 → 1,100 → 1,800 → 3,000 → 6,000 → 12,000）。煙雨蓮江是後來插在冰湖與深淵之間的，補掉原本 3,000 → 12,000 那個 4 倍跳躍。插隊是安全的：所有跨檔案的參照都用 `loc.id`（`data.loc`、`unlocked[]`、`bgCache`、魚的 id 前綴），沒有任何地方用索引記住釣點。唯一的索引是 `screen-codex.js › locIdx`，那是每次 `onShow()` 由 `data.loc` 重算的暫存值。
+
+「圖鑑分母」是 `codexProgress()` 算出來的數字，**雜物不列入**（見 [02 §圖鑑](02-state-and-save.md)）。所有釣點的圖鑑分母都刻意維持在 20 以上，讓每張圖鑑頁的收集進度條長度感覺一致。
 
 **每個釣點都有專屬的 `terrain`**，不是只換調色盤——地形產生器與各自的設計理由見 [06 §地形系統](06-pixel-engine.md#三之二--地形系統--terrain)。
+
+> ⚠️ **釣點名稱長度會撞到 UI。** 四個中文字的釣點名在 320px 級的螢幕上會把圖鑑的釣點切換列擠到折行。這已經用橫向捲動解決（見 [08 §會隨釣點數量成長的介面](08-ui-and-screens.md#會隨釣點數量成長的介面)），但**新釣點的 `name` 還是建議控制在 4 個字以內**，`subtitle` 控制在 8 個字以內。
 
 ### 為什麼所有釣點都是免費的
 
@@ -81,6 +86,13 @@
 | `trunk` `stone` | `shrine` | 櫻花樹幹、石燈籠 |
 | `floe` | `ice` | 水面浮冰 |
 | `star` `plankton` | `night` | 星星、生物發光 |
+| `mist` | `karst` | 山腰霧帶（半透明疊加，**要用接近白的高明度色**，太暗會變成髒污） |
+| `wall` `tile` | `karst` | 水鄉屋的白牆與黑瓦 |
+| `bridge` | `karst` | 月拱橋的石色 |
+| `lotus` `bloom` | `karst` | 荷葉、蓮花 |
+| `trunk` | `karst` | 竹桿（與 `shrine` 共用同一個 key，語意不同） |
+
+> ⚠️ **`karst` 的白牆（`wall`）與霧帶（`mist`）不會有倒影。** 倒影只保留亮度 ≤ 150 的像素（見 [06 §為什麼倒影用 getImageData](06-pixel-engine.md#為什麼倒影用-getimagedata)），這兩個色都遠高於門檻。這是刻意接受的：白牆在水裡鏡射會亮到蓋掉水面，霧本來也不該有倒影。要讓某個新地形物件有倒影，它的顏色就必須壓在 150 以下。
 
 配色訣竅：`waterTop` 要比 `waterBot` 暗（遠處水面反射天空較深），否則景深會反過來。
 
@@ -95,15 +107,15 @@
   id:      'ml_bass',      // 唯一！同時是圖鑑 key 與精靈快取 key
   name:    '黑鱸',
   rarity:  'good',         // junk|common|good|rare|epic|legend|king
-  shape:   'normal',       // normal|long|round|flat|wide|ray|catfish|tuna|dragon|pike|abyss
+  shape:   'normal',       // normal|long|round|flat|wide|ray|catfish|tuna|dragon|pike|abyss|paddle
   scale:   0.9,            // 在精靈框中的佔比，魚王建議 1.25～1.35
   pattern: 'band',         // none|stripe|band|band2|spot|speck|net|scale
-  special: ['glow'],       // 選用：glow|spike|whisker|scar|horn|jaw|lantern|finlet|mane|frost
+  special: ['glow'],       // 選用：glow|spike|whisker|scar|horn|jaw|lantern|finlet|mane|frost|rostrum
   cyOffset: 1,             // 選用：垂直微調（像素）
   value:   330,            // 基礎估價（實際售價依體長平方縮放）
   minLen:  25, maxLen: 50, // 體長範圍（cm）
   colors:  { body, back, belly, fin, pattern, glow, hornColor,
-             scar, tooth, frost, lantern, mane,      // 各 special 的專屬色，省略有預設值
+             scar, tooth, frost, lantern, mane, rostrum,   // 各 special 的專屬色，省略有預設值
              eyeWhite, pupil },
   desc:    '一句描述',
   legend:  '長篇傳說文字'    // 選用。有的話結果卡與圖鑑會用琥珀色框強調
@@ -138,6 +150,7 @@
 | 落日巨鮪「赫利歐」 | 落霞峽灣 | `tuna` | `band2` | `glow` `finlet` | 鎌狀高背鰭＋深叉月牙尾 |
 | 淵之主「八尋」 | 宵櫻神域 | `dragon` | `scale` | `glow` `whisker` `horn` `mane` | 帶狀長身＋頭角＋背上飄動的鬃 |
 | 霜牙巨狗魚「寇爾德」 | 幽藍冰湖 | `pike` | `spot` | `glow` `jaw` `frost` | 後半肥、背鰭極後＋獠牙＋體表霜晶 |
+| 江神白鱘「渡江」 | 煙雨蓮江 | `paddle` | `net` | `glow` `rostrum` `spike` | 佔體長近半的劍狀長吻＋背部骨板 |
 | 深淵之顎「尼克斯」 | 深淵海溝 | `abyss` | `net` | `glow` `jaw` `lantern` | 巨頭小尾＋獠牙＋頭頂發光燈籠 |
 
 **`scar` 只給翁德。** 牠的傳說明寫「背上那道疤」，是角色設定；其他四位沒有這段故事，加了只會讓五條魚看起來像同一張貼圖換色。這是實際踩過的坑——初版五王全是 `shape: 'wide'` + `glow` + `scar`，只有配色不同，並排在圖鑑裡完全認不出是不同的魚。詳見 [11 §五王同型](11-invariants-and-gotchas.md)。
@@ -174,7 +187,14 @@
 | 宵櫻神域 | 朱紅 × 櫻粉 × 墨黑的和風三色 | 稀有以上多用金與朱；汽水域所以淡水鹹水魚種混編 |
 | 落霞峽灣 | 藍綠海色，點綴橘金 | 傳說用大面積暖色（霞光魟、皇帶魚） |
 | 幽藍冰湖 | **全部壓在藍白冷調** | 暖色（橘點、紫鰭）只給優良以上，玩家一眼認得出「這條不一樣」 |
+| 煙雨蓮江 | **水墨色域**：墨青、灰藍、青瓷綠 | 暖色（朱紅、胭脂、金）只給稀有以上。整片灰綠打底，所以一條胭脂魚或金鯉會非常突出 |
 | 深淵海溝 | **底色壓到接近黑** | 辨識度全靠 `special: ['glow']` 與冷光 `pattern`；沒有陽光的地方不會有保護色，所以幾乎每種都帶生物發光 |
+
+### 煙雨蓮江的另一條識別線：真實物種
+
+其他釣點的身分是「什麼環境」（高原湖、峽灣、潟湖、冰湖、海溝），煙雨蓮江的身分是**「哪條江」**——魚種全部取自中國江河的真實物種（麥穗魚、鰟鮍、武昌魴、翹嘴鮊、鱖、胭脂魚、中華鱘、鰣、大鯢、白鱘），`desc` 帶的是這些魚在當地生活裡的位置而不是生態說明。
+
+這樣做的原因：這個釣點在進程上夾在冰湖與深淵之間，如果又靠「奇幻程度」往上加，就會跟深淵的方向撞車。改成往**寫實**的方向走，反而在六個釣點裡是唯一一個，辨識度來自「這些名字是真的」。
 
 深淵的魚幾乎全帶 `glow` 是**設計而非偷懶**：`buildFish()` 的反蔭蔽在極暗底色下幾乎看不出來，沒有光暈的話整格圖鑑會是一團黑。
 

@@ -15,7 +15,8 @@ window.FG = window.FG || {};
     build: function () {
       const el = FG.el('section', 'screen');
       el.id = 'screen-codex';
-      el.innerHTML = '<div class="scroll"><div class="seg" id="codexSeg"></div><div id="codexBody"></div></div>';
+      // 釣點切換列用 seg-scroll：釣點數量會持續成長，等分擠壓會讓中文折行（見 styles.css）
+      el.innerHTML = '<div class="scroll"><div class="seg seg-scroll" id="codexSeg"></div><div id="codexBody"></div></div>';
       this.el = el;
       FG.state.on('codex', function () { if (S.el) S.render(); });
       return el;
@@ -36,11 +37,25 @@ window.FG = window.FG || {};
       // 地點切換列
       const seg = this.el.querySelector('#codexSeg');
       seg.innerHTML = '';
+      let onBtn = null;
       FG.LOCATIONS.forEach(function (loc, i) {
         const b = FG.el('button', i === self.locIdx ? 'on' : '', loc.name);
+        if (i === self.locIdx) onBtn = b;
         b.onclick = function () { FG.sfx.click(); self.locIdx = i; self.render(); };
         seg.appendChild(b);
       });
+      // 目前選中的釣點若捲出可視範圍就拉回來——從釣魚畫面切進圖鑑時，
+      // 當前釣點可能排在最後面，不捲的話玩家會以為圖鑑跳到了別的釣點
+      if (onBtn) {
+        const l = onBtn.offsetLeft, r = l + onBtn.offsetWidth;
+        if (l < seg.scrollLeft || r > seg.scrollLeft + seg.clientWidth) {
+          seg.scrollLeft = l - (seg.clientWidth - onBtn.offsetWidth) / 2;
+        }
+      }
+      // 一定要在動過 scrollLeft **之後**才算邊緣提示。
+      // 反過來的話會用舊的捲動位置算，漸層遮罩就會蓋在錯的一側
+      // （scroll 事件是非同步的，補不回這一幀）
+      FG.ui.scrollEdges(seg);
 
       const loc = FG.LOCATIONS[this.locIdx];
       const body = this.el.querySelector('#codexBody');

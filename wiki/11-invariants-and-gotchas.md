@@ -118,7 +118,7 @@ if (x < 0 || x >= W || y < 0 || y >= H) continue;
 
 ### 15. `comingSoon` 與釣點解鎖目前都沒有釣點在用
 
-**五個釣點全部是 `unlock: { free: true }`、全部沒有 `comingSoon`**，所以下面這些路徑現在一條都跑不到：
+**所有釣點全部是 `unlock: { free: true }`、全部沒有 `comingSoon`**，所以下面這些路徑現在一條都跑不到：
 
 | 跑不到的東西 | 在哪 |
 |---|---|
@@ -166,7 +166,7 @@ if (x < 0 || x >= W || y < 0 || y >= H) continue;
 
 **原因**：`sc` 的夾住規則（`0.98 / (bodyLen + tailLen)`）會讓 `scale ≥ 1.2` 的魚吻端落在 x≈91，而鬍鬚要往前伸約 11px。`whisker` 的繪製碼有 `room = W - 2 - mx` 的保護會自己截斷（這是 §5 那個坑留下的防護），所以**不會畫錯位，只會靜默消失**——比報錯更難發現。
 
-**對策**：`buildFish()` 開頭的 `headRoom` 會在有 `whisker` 時預留 12px，代價是魚整體小約 12%。細節見 [06 §吻端留白](06-pixel-engine.md#吻端留白--headroom)。**新增「會往身體外延伸」的 special（鬍鬚、燈籠竿、長鰭條）時，先確認它要的空間是不是也需要納入 `headRoom`。**
+**對策**：`buildFish()` 開頭有一張 `HEAD_ROOM = { whisker: 12, rostrum: 24 }` 表，取最大值預留，代價是魚整體小 10～20%。細節見 [06 §吻端留白](06-pixel-engine.md#吻端留白--headroom)。**新增「會往身體外延伸」的 special（鬍鬚、燈籠竿、長吻、長鰭條）時，第一件事就是在 `HEAD_ROOM` 補一列。** 忘了補的症狀就是「那個特徵沒畫出來」而不是報錯。
 
 ### 20. 自動模式的補貨只寫在結算裡 → 開場即停
 
@@ -178,6 +178,34 @@ if (x < 0 || x >= W || y < 0 || y >= H) continue;
 
 **一般化的教訓**：自動模式有**兩個**進入拋竿的入口（`startAuto()` 的第一竿、`frame()` 排程的後續竿），前者不經過 `resolveAuto()`。**任何「每局都要檢查」的條件，都要確認開場那一竿也檢查得到。**
 
+### 21. `flex: 1` 的橫向列會壓縮中文到折行
+
+**症狀**：加了第六個釣點之後，圖鑑頂部的釣點切換列在窄螢幕上每顆按鈕高度不一，看起來像壞了。
+
+**原因**：`.seg button` 是 `flex: 1`，也就是 `flex: 1 1 0%`——**flex-basis 是 0，所以項目可以被壓到比內容還窄**。四個中文字（48px）加左右 padding 需要 56px，320px 螢幕上六等分只有 50px，於是折行。
+
+**對策**：選項數量會成長的分段列一律用 `.seg.seg-scroll`（`overflow-x: auto` ＋ button `flex: 0 0 auto` ＋ `nowrap`）。**寧可捲動，也不要壓縮文字。** 實測數字與配套的邊緣提示見 [08 §會隨釣點數量成長的介面](08-ui-and-screens.md#會隨釣點數量成長的介面)。
+
+**驗證方式**：把視窗縮到 320px，比對加不加 `seg-scroll` 的 `offsetHeight`——折行時高度會從 33 跳到 50（兩行）或 67（三行）。
+
+```js
+const seg = document.querySelector('#codexSeg');
+const h = [...seg.querySelectorAll('button')].map(b => b.offsetHeight);
+new Set(h).size > 1 || h[0] > 34   // true = 有折行
+```
+
+**同類風險**：`autoModal()` 的「漁獲處理」有 7 個選項（`KEEP_OPTS`），目前標籤都是 2 個字所以還撐得住。**再加選項或把標籤變長就要改成 `seg-scroll`。**
+
+### 22. `scrollEdges()` 必須在動過 `scrollLeft` 之後才呼叫
+
+**症狀**：圖鑑選在最後一個釣點時，橫向捲動列的漸層遮罩畫在**右邊**（暗示右邊還有內容），但實際上已經捲到最右、有內容的是左邊。
+
+**原因**：`render()` 裡先呼叫 `FG.ui.scrollEdges(seg)`（此時 `scrollLeft` 還是 0，算出 `at-start`），之後才把選中的分頁捲進可視範圍。`scrollLeft` 的賦值會觸發 `scroll` 事件讓它重算，但**那是非同步的**，這一幀已經用錯的 class 畫出去了。
+
+**對策**：順序反過來——先捲，再算邊緣。`ui.scrollEdges()` 回傳更新函式，需要時也可以自己再呼叫一次。
+
+**一般化**：任何「讀取版面狀態 → 設定 class」的程式碼，都要排在所有會改變該狀態的操作之後。非同步事件補不回同一幀。
+
 ---
 
 ## 必須維持的不變式
@@ -188,8 +216,9 @@ if (x < 0 || x >= W || y < 0 || y >= H) continue;
 - **`RARITY_ORDER` 的順序不可打亂。** `order` 欄位被用來做 `>=` 比較（自動模式門檻、稀有以上收藏）。
 - **`FG.RODS` / `FG.BAITS` 的陣列順序 = 圖示配色。** 插隊會讓圖示錯位。
 - **每個釣點的 `scene.terrain` 必須是 `pixel.js › TERRAIN` 裡存在的 key**，而且**不要跟其他釣點重複**。拼錯不會報錯，只會靜默退回 `forest`（`TERRAIN[P.terrain] || TERRAIN.forest`）——症狀就是「新釣點看起來跟晨霧湖一樣」。
-- **可進入的釣點，`fish[]` 不可為空。** 空陣列會讓 `rarityTable()` 回傳空表，`weightedPick([])` 回 `undefined`，接著 `FG.pick(row.fish)` 直接 TypeError。**目前五個釣點都已填魚、都沒有 `comingSoon`，所以少了「不可進入」這層保護——加新釣點時只要忘了 `comingSoon: true` 又還沒填魚，一進去就會爆。**
-- **每個釣點的每一個稀有度階級都要有魚。** 不是硬性規定（缺席只會讓該階權重消失，不會爆），但**費率表會因此跟其他釣點不一致**，玩家換釣點時看到機率跳動會覺得是 bug。現行五個釣點都是 junk 3 / common 6 / good 5 / rare 4 / epic 2～3 / legend 2 / king 1，配額的理由見 [07 §一個釣點該放幾條魚](07-data-schema.md#一個釣點該放幾條魚)。
+- **可進入的釣點，`fish[]` 不可為空。** 空陣列會讓 `rarityTable()` 回傳空表，`weightedPick([])` 回 `undefined`，接著 `FG.pick(row.fish)` 直接 TypeError。**目前所有釣點都已填魚、都沒有 `comingSoon`，所以少了「不可進入」這層保護——加新釣點時只要忘了 `comingSoon: true` 又還沒填魚，一進去就會爆。**
+- **每個釣點的每一個稀有度階級都要有魚。** 不是硬性規定（缺席只會讓該階權重消失，不會爆），但**費率表會因此跟其他釣點不一致**，玩家換釣點時看到機率跳動會覺得是 bug。現行六個釣點都是 junk 3 / common 6 / good 5 / rare 4 / epic 2～3 / legend 2 / king 1，配額的理由見 [07 §一個釣點該放幾條魚](07-data-schema.md#一個釣點該放幾條魚)。
+- **`FG.LOCATIONS` 的順序可以自由插隊。** 所有跨檔案的參照都用 `loc.id`，沒有任何地方用索引記住釣點（`screen-codex.js › locIdx` 是每次 `onShow()` 從 `data.loc` 重算的暫存值）。但**順序要跟 `castCost` 遞增一致**，因為它同時是各處 UI 的顯示順序，也是玩家讀到的進程順序。
 
 ### 架構
 

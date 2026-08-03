@@ -12,7 +12,7 @@
 | `js/pixel.js` | [06 像素引擎](06-pixel-engine.md) | [07 資料規格](07-data-schema.md)（新增 shape/pattern/special 時）、[11 地雷](11-invariants-and-gotchas.md) |
 | `js/data.js` | [07 資料規格](07-data-schema.md) | [03 經濟](03-economy.md)、[10 平衡調參](10-balance-tuning.md)（**任何數值改動都要重跑模擬更新基準表**）、[12 名詞表](12-glossary.md) |
 | `js/state.js` | [02 狀態與存檔](02-state-and-save.md) | [03 經濟](03-economy.md)（抽獎相關）、[10 平衡調參](10-balance-tuning.md)、[11 地雷](11-invariants-and-gotchas.md) |
-| `js/ui.js` | [08 介面](08-ui-and-screens.md) | |
+| `js/ui.js` | [08 介面](08-ui-and-screens.md) | [11 地雷](11-invariants-and-gotchas.md)（捲動／版面時序問題） |
 | `js/screen-fishing.js` | [04 釣魚循環](04-fishing-loop.md)、[05 自動模式](05-auto-mode.md) | [08 介面](08-ui-and-screens.md)、[03 經濟](03-economy.md) |
 | `js/screen-daily.js` | [08 介面](08-ui-and-screens.md) | [02 存檔](02-state-and-save.md)（簽到／任務結構） |
 | `js/screen-home.js` | [08 介面](08-ui-and-screens.md) | [06 像素引擎](06-pixel-engine.md)（房間繪製、裝飾圖示） |
@@ -40,6 +40,9 @@
 | **新增／刪除／改名任何前端資產** | 更新 `sw.js › ASSETS` 清單 ＋ **把 `VERSION` 加一** |
 | 動到任何影響機率／價格／成本的數值 | 跑 [10 §模擬腳本](10-balance-tuning.md#模擬腳本)，**更新基準表** |
 | 新增 shape / pattern / special / junkArt | [06](06-pixel-engine.md) 加說明 ＋ [07](07-data-schema.md) 加可用值 ＋ [12](12-glossary.md) 加清單 |
+| 新增「會往魚身體外延伸」的 special | 上面那一列全做，**再加 `buildFish()` 的 `HEAD_ROOM` 一列**（見 [11 §19](11-invariants-and-gotchas.md)） |
+| **新增釣點** | [07](07-data-schema.md) 釣點表＋配色規則表、[10](10-balance-tuning.md) 基準表＋模擬腳本、[12](12-glossary.md) id 前綴、[README](README.md) 三十秒版本，並**在 320px 寬檢查 [08 §會隨釣點數量成長的介面](08-ui-and-screens.md#會隨釣點數量成長的介面) 列的兩處** |
+| 新增選項數量會成長的橫向列 | 用 `.seg.seg-scroll`（**不要用 `.seg`**）＋ [08](08-ui-and-screens.md) 設計語彙表加一列。步驟見 [09](09-recipes.md) |
 | **新增 `TERRAIN` 地形** | [06 §地形系統](06-pixel-engine.md) 加一列 ＋ [07](07-data-schema.md) 的 scene 表與釣點表 ＋ [12](12-glossary.md) 加清單，**並補 `locThumb()` 的 switch case** |
 | 新增裝備／裝飾／餌料／釣竿 | [07](07-data-schema.md) 更新表格；裝備要記得加圖示（[09](09-recipes.md) 有步驟） |
 | 新增自動模式設定項 | [05](05-auto-mode.md) 狀態物件與停止條件表 ＋ [02](02-state-and-save.md) schema |

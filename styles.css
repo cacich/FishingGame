@@ -371,6 +371,57 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 }
 .seg button.on { background: var(--panel-3); color: var(--gold); box-shadow: inset 0 -3px 0 var(--gold); }
 
+/* ---------- 橫向捲動的分段列（釣點數量會成長，不能靠等分擠） ----------
+   .seg 的 button 是 flex:1（= flex-basis 0），釣點多到一定數量就會被壓到比文字還窄，
+   中文於是折行、每顆按鈕高度不一，整條列看起來壞掉。
+   .seg-scroll 改成「按鈕不縮、整條橫向捲動」，這樣加釣點永遠不會擠壞版面。 */
+.seg-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-3) transparent;
+  /* 兩端的漸層遮罩：桌機沒有觸控慣性，需要一個「還有東西」的視覺提示 */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
+}
+.seg-scroll.at-start {
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 10px), transparent 100%);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 10px), transparent 100%);
+}
+.seg-scroll.at-end {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 10px);
+  mask-image: linear-gradient(90deg, transparent 0, #000 10px);
+}
+.seg-scroll.at-start.at-end { -webkit-mask-image: none; mask-image: none; }
+.seg-scroll button {
+  flex: 0 0 auto;              /* 不縮：寧可捲動，也不要壓縮文字 */
+  white-space: nowrap;
+  padding: 8px 11px;
+  scroll-snap-align: center;
+}
+.seg-scroll::-webkit-scrollbar { height: 4px; }
+.seg-scroll::-webkit-scrollbar-track { background: #0c141d; }
+.seg-scroll::-webkit-scrollbar-thumb { background: var(--panel-3); }
+
+/* ---------- 可捲動的釣點清單 ----------
+   釣點選單彈窗裡，清單長度會隨釣點數量成長，把下方的說明文字推出可視範圍。
+   限制清單自己的高度並讓它捲動，說明文字就永遠在原地。 */
+.loc-list {
+  max-height: 44dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-3) transparent;
+  margin-bottom: 10px;
+}
+.loc-list::-webkit-scrollbar { width: 5px; }
+.loc-list::-webkit-scrollbar-track { background: #0c141d; }
+.loc-list::-webkit-scrollbar-thumb { background: var(--panel-3); }
+.loc-list .loc-card:last-child { margin-bottom: 0; }
+/* 捲動容器內部要留一點右側間距，卡片的外框才不會被捲軸切到 */
+.loc-list.scrollable { padding-right: 6px; }
+
 /* ---------- 圖鑑格 ---------- */
 .codex-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
 .codex-cell {
@@ -466,6 +517,14 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 .loc-card .lc-info .ds { font-size: 11px; color: var(--ink-mute); margin-top: 3px; line-height: 1.4; }
 .loc-card.on { box-shadow: inset -2px -2px 0 rgba(0,0,0,.35), 0 0 0 2px var(--gold); }
 .loc-card.lock canvas { filter: grayscale(.85) brightness(.6); }
+/* 窄螢幕（iPhone SE 級的 320px）把縮圖縮小，把寬度讓給文字。
+   不縮的話 .lc-info 只剩 96px，四個字的釣點名加副標會被擠成三行。 */
+@media (max-width: 359px) {
+  .loc-card { gap: 7px; padding: 8px; }
+  .loc-card canvas { width: 58px; height: 38px; flex-basis: 58px; }
+  .loc-card .lc-info .nm { font-size: 13px; }
+  .loc-card .act .btn, .loc-card .btn { min-width: 0; padding: 7px 8px; }
+}
 
 /* 費率表 */
 .rate-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }

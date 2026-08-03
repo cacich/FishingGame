@@ -72,10 +72,15 @@
 5. 填魚。**七個階級都要有**（junk 3 / common 6 / good 5 / rare 4 / epic 2～3 / legend 2 / king 1），配額理由見 [07 §一個釣點該放幾條魚](07-data-schema.md#一個釣點該放幾條魚)。缺席的階級權重會消失，費率表會跟其他釣點不一致。
    - 扣掉雜物之後至少要有 **20 種**，圖鑑的收集進度條長度才跟其他釣點一致。
    - 每個釣點至少配一件**專屬的雜物美術**（`pixel.js › JUNK_MAPS` 加一筆），其餘可以沿用既有的圖只換名字。
-6. 設 `castCost`，`unlock` 填 `{ free: true }`（現行五個釣點都免費，門檻靠拋竿費）。各階級 `value` 用 [10 §加新釣點的抓法](10-balance-tuning.md#加新釣點的抓法) 的係數表——**係數會隨 `castCost` 遞減，不要套用固定倍數**。
-7. 拿掉 `comingSoon`，用 [10 §模擬腳本](10-balance-tuning.md#模擬腳本) 驗證滿裝倍率落在 1.9～2.5 之間，並回頭更新基準表。
+6. 設 `castCost`，`unlock` 填 `{ free: true }`（現行釣點都免費，門檻靠拋竿費）。**在 `FG.LOCATIONS` 裡的位置要跟 `castCost` 遞增一致**——那個順序同時是各處 UI 的顯示順序與玩家讀到的進程順序。插隊是安全的（所有參照都用 `loc.id`）。
+   各階級 `value` 用 [10 §加新釣點的抓法](10-balance-tuning.md#加新釣點的抓法) 的係數表——**係數會隨 `castCost` 遞減，不要套用固定倍數，也不要在欄位之間內插**。
+7. 拿掉 `comingSoon`，用 [10 §模擬腳本](10-balance-tuning.md#模擬腳本) 驗證：
+   - 滿裝倍率落在 1.9～2.5 之間，**而且要維持整條進程的單調遞增**（不能比後面的釣點高）。
+   - 跑 **100 萬竿以上、跑兩次**。30 萬竿的噪音有 ±2%，會讓你追著雜訊調數值。
+   - 回頭更新基準表。
+8. **檢查窄螢幕的介面**。把視窗縮到 320px，看圖鑑的釣點切換列與釣點選單彈窗（[08 §會隨釣點數量成長的介面](08-ui-and-screens.md#會隨釣點數量成長的介面)）。`name` 建議 4 個字以內、`subtitle` 8 個字以內。
 
-📝 **要更新**：[07 資料規格](07-data-schema.md) 的釣點表、[06 像素引擎](06-pixel-engine.md) 的地形表（若加了新地形）、[10 平衡調參](10-balance-tuning.md) 的基準表、[12 名詞表](12-glossary.md) 的 id 前綴與 terrain 清單、[README](README.md) 的檔案總覽（若行數變化大）。
+📝 **要更新**：[07 資料規格](07-data-schema.md) 的釣點表與配色規則表、[06 像素引擎](06-pixel-engine.md) 的地形表（若加了新地形）、[10 平衡調參](10-balance-tuning.md) 的基準表與模擬腳本、[12 名詞表](12-glossary.md) 的 id 前綴與 terrain 清單、[README](README.md) 的三十秒版本。
 
 ---
 
@@ -107,6 +112,19 @@
 3. `js/screen-home.js › DECO_ART` — 商品列的 16×8 字元圖。
 
 📝 **要更新**：[06 像素引擎 §家園房間](06-pixel-engine.md#四--家園房間)、[07 資料規格](07-data-schema.md)。
+
+---
+
+## 加一條「選項數量會成長」的橫向列
+
+例如新的分段選擇器、新的分頁標籤。**不要用預設的 `.seg`**——它的 button 是 `flex: 1`，選項一多就會把中文壓到折行（[11 §21](11-invariants-and-gotchas.md#21-flex-1-的橫向列會壓縮中文到折行)）。
+
+1. class 用 `seg seg-scroll`。
+2. 內容建好之後呼叫 `FG.ui.scrollEdges(el)` 掛邊緣漸層提示。
+3. **如果會程式化改 `scrollLeft`（例如把選中項捲進可視範圍），一定要先捲再呼叫 `scrollEdges()`**（[11 §22](11-invariants-and-gotchas.md#22-scrolledges-必須在動過-scrollleft-之後才呼叫)）。
+4. 驗證：把視窗縮到 320px，確認所有 button 的 `offsetHeight` 一致且 ≤ 34。
+
+📝 **要更新**：[08 介面](08-ui-and-screens.md) 的設計語彙表。
 
 ---
 

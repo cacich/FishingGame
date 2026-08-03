@@ -61,6 +61,10 @@ window.FG = window.FG || {};
   FG.locationPicker = function () {
     const st = FG.state;
     const box = FG.el('div');
+    // 卡片放進自己的捲動容器：釣點數量會成長，直接堆在 modal-body 裡會把下方的
+    // 說明文字推出可視範圍（彈窗有 max-height，超出的部分要捲整個 body 才看得到）
+    const list = FG.el('div', 'loc-list');
+    box.appendChild(list);
     FG.LOCATIONS.forEach(function (loc) {
       const unlocked = st.isUnlocked(loc);
       const cur = st.data.loc === loc.id;
@@ -96,12 +100,15 @@ window.FG = window.FG || {};
         act.appendChild(b);
       }
       card.appendChild(act);
-      box.appendChild(card);
+      list.appendChild(card);
     });
-    const note = FG.el('div', 'tiny mute', '四個釣點都可以自由切換，不需要解鎖。每個釣點有專屬魚種與魚王，拋竿成本與產出也不同。');
+    // 數字由陣列長度算出來，加釣點就不用回來改文案（原本寫死「四個」，第五個上線後就錯了）
+    const note = FG.el('div', 'tiny mute',
+      FG.LOCATIONS.length + ' 個釣點都可以自由切換，不需要解鎖。每個釣點有專屬魚種與魚王，拋竿成本與產出也不同。');
     note.style.lineHeight = '1.8';
     box.appendChild(note);
     FG.ui.modal({ title: '選擇釣點', body: box });
+    FG.ui.scrollEdges(list, 'y');
   };
 
   /* ---------------- 儲值（測試版：點擊直接發放） ---------------- */

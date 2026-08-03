@@ -48,12 +48,14 @@
 
 | 欄位 | 可用值 |
 |---|---|
-| `shape` | 一般：`normal` `long` `round` `flat` `wide` `ray`／魚王專屬：`catfish` `tuna` `dragon` `pike` `abyss` |
+| `shape` | 一般：`normal` `long` `round` `flat` `wide` `ray`／魚王專屬：`catfish` `tuna` `dragon` `pike` `abyss` `paddle` |
 | `pattern` | `none` `stripe` `band` `band2` `spot` `speck` `net` `scale` |
-| `special[]` | `glow` `spike` `whisker` `scar` `horn` `jaw` `lantern` `finlet` `mane` `frost` |
-| `junkArt` | `boot` `can` `weed` `bottle` `ice` `bone` `ema` |
-| `scene.terrain` | `forest` `cliff` `shrine` `ice` `night` |
-| `colors` | `body`(必填) `back` `belly` `fin` `pattern` `glow` `hornColor` `scar` `tooth` `frost` `lantern` `mane` `eyeWhite` `pupil` |
+| `special[]` | `glow` `spike` `whisker` `scar` `horn` `jaw` `lantern` `finlet` `mane` `frost` `rostrum` |
+| `junkArt` | `boot` `can` `weed` `bottle` `ice` `bone` `ema` `porcelain` |
+| `scene.terrain` | `forest` `cliff` `shrine` `ice` `karst` `night` |
+| `colors` | `body`(必填) `back` `belly` `fin` `pattern` `glow` `hornColor` `scar` `tooth` `frost` `lantern` `mane` `rostrum` `eyeWhite` `pupil` |
+
+會觸發 `headRoom`（吻端前方預留空間）的 special：`whisker`(12px)、`rostrum`(24px)。
 
 ## 狀態機階段
 
@@ -95,6 +97,7 @@
 | `fj_` | 落霞峽灣的魚 |
 | `sk_` | 宵櫻神域的魚 |
 | `fr_` | 幽藍冰湖的魚 |
+| `lr_` | 煙雨蓮江的魚 |
 | `ab_` | 深淵海溝的魚 |
 | `rod_` `bait_` `eq_` | 釣竿／餌料／裝備 |
 | `FG.screenXxx` | 分頁模組 |

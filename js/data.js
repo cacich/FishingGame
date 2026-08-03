@@ -116,7 +116,7 @@ window.FG = window.FG || {};
   ];
 
   /* ============================================================
-     地點二：落霞峽灣（需以籌碼解鎖，示範多地點切換）
+     地點二：落霞峽灣
      ============================================================ */
   const FJORD_FISH = [
     /* --- 雜物 --- */
@@ -403,7 +403,103 @@ window.FG = window.FG || {};
   ];
 
   /* ============================================================
-     地點四：深淵海溝
+     地點五：煙雨蓮江
+     配色規則：整片壓在「水墨」色域——墨青、灰藍、青瓷綠。
+     暖色（朱紅、胭脂、金）只留給稀有以上，讓它在一片灰綠裡跳出來。
+     魚種全部取自中國江河的真實物種，這是這個釣點的識別方式：
+     其他四個釣點是「什麼環境」，這裡是「哪條江」。
+     ============================================================ */
+  const LOTUS_FISH = [
+    /* --- 雜物 --- */
+    { id: 'lr_porcelain', name: '青花碎碗',   rarity: 'junk', junkArt: 'porcelain', value: 78, minLen: 8,  maxLen: 22, unit: 'cm', desc: '缺了一角。碗底還看得出半個模糊的字。' },
+    { id: 'lr_can',       name: '鏽蝕茶葉罐', rarity: 'junk', junkArt: 'can',       value: 62, minLen: 8,  maxLen: 16, unit: 'cm', desc: '倒出來的不是茶葉，是江底的泥。' },
+    { id: 'lr_caltrop',   name: '纏繞菱角藤', rarity: 'junk', junkArt: 'weed',      value: 68, minLen: 25, maxLen: 80, unit: 'cm', desc: '菱角早就被摘走了，只剩藤纏在鉤上。' },
+
+    /* --- 普通 --- */
+    { id: 'lr_topmouth', name: '麥穗魚', rarity: 'common', shape: 'long', scale: .62, pattern: 'none', value: 488, minLen: 4, maxLen: 11,
+      colors: { body: '#9aa8a4', back: '#5a6a6a', belly: '#e4eae4', fin: '#7c8a88' },
+      desc: '整條江裡最不值錢也最抓不完的一種。小孩用竹篩就能撈起一整碗。' },
+    { id: 'lr_bitterling', name: '彩鰟鮍', rarity: 'common', shape: 'flat', scale: .58, pattern: 'band', value: 526, minLen: 3, maxLen: 8,
+      colors: { body: '#8fa2a8', back: '#4f6470', belly: '#eef2f0', fin: '#6f858c', pattern: '#6a8f9c' },
+      desc: '產卵時會把卵託給河蚌照顧。體側那道藍線在陽光下會轉色。' },
+    { id: 'lr_hemiculter', name: '白鰷', rarity: 'common', shape: 'long', scale: .74, pattern: 'none', value: 502, minLen: 10, maxLen: 22,
+      colors: { body: '#c0ccc8', back: '#76888a', belly: '#f6faf8', fin: '#9aa8a6' },
+      desc: '成群在水面下十公分處游，太陽一照整片江面像撒了碎銀。' },
+    { id: 'lr_crucian', name: '土鯽', rarity: 'common', shape: 'round', scale: .8, pattern: 'scale', value: 550, minLen: 12, maxLen: 30,
+      colors: { body: '#8d8a68', back: '#54523c', belly: '#ded8b8', fin: '#6d6a50', pattern: '#a8a480' },
+      desc: '哪裡都活得下去。江水再濁，牠都還在。' },
+    { id: 'lr_loach', name: '青泥鰍', rarity: 'common', shape: 'long', scale: .78, pattern: 'speck', value: 512, minLen: 10, maxLen: 24,
+      special: ['whisker'],
+      colors: { body: '#5f6a55', back: '#333a2c', belly: '#c4c8ac', fin: '#48513c', pattern: '#8a9478' },
+      desc: '滑到抓不住。整個冬天埋在泥裡不動，開春再爬出來。' },
+    { id: 'lr_yellowcat', name: '黃顙魚', rarity: 'common', shape: 'wide', scale: .7, pattern: 'none', value: 536, minLen: 8, maxLen: 20,
+      special: ['whisker'],
+      colors: { body: '#a8903f', back: '#5f4f1e', belly: '#e8dca8', fin: '#8a7430' },
+      desc: '背鰭前那根硬刺會扎人，江邊的孩子都被扎過一次才學會怎麼拿。' },
+
+    /* --- 優良 --- */
+    { id: 'lr_grass', name: '青草魚', rarity: 'good', shape: 'wide', scale: .92, pattern: 'scale', value: 1834, minLen: 30, maxLen: 75,
+      colors: { body: '#7d8a66', back: '#454e35', belly: '#dee4c8', fin: '#5f6b4c', pattern: '#9aa880' },
+      desc: '一天能吃掉自己體重一半的水草。江邊的水草到哪裡斷，就知道牠在哪裡。' },
+    { id: 'lr_bream', name: '武昌魴', rarity: 'good', shape: 'flat', scale: .86, pattern: 'band', value: 1766, minLen: 20, maxLen: 45,
+      colors: { body: '#9aa8b0', back: '#586a76', belly: '#eef2f4', fin: '#76888f', pattern: '#67797f' },
+      desc: '側扁得像一片瓦。當地人說隔水就能認出牠游動的角度。' },
+    { id: 'lr_culter', name: '翹嘴鮊', rarity: 'good', shape: 'long', scale: .96, pattern: 'none', value: 1882, minLen: 30, maxLen: 70,
+      colors: { body: '#b4c0be', back: '#5f7276', belly: '#f4f8f6', fin: '#8d9c9c' },
+      desc: '嘴往上翹，專門從下往上撞水面的小魚。追餌時整條江面會炸開。' },
+    { id: 'lr_xenocypris', name: '黃尾鯝', rarity: 'good', shape: 'normal', scale: .84, pattern: 'band', value: 1804, minLen: 18, maxLen: 40,
+      colors: { body: '#a4aca0', back: '#5f6a5e', belly: '#eaeee4', fin: '#c8a848', pattern: '#7f8a7c' },
+      desc: '只有尾鰭是黃的，其餘一片灰。在濁水裡就靠那點黃認同伴。' },
+    { id: 'lr_sleeper', name: '沙塘鱧', rarity: 'good', shape: 'round', scale: .78, pattern: 'net', value: 1920, minLen: 10, maxLen: 22,
+      special: ['spike'],
+      colors: { body: '#6a6053', back: '#3a352b', belly: '#c8c0aa', fin: '#514a3e', pattern: '#8f8672' },
+      desc: '趴在石縫裡等，一整天只動一次。動的那一次不會失手。' },
+
+    /* --- 稀有 --- */
+    { id: 'lr_mandarin', name: '花斑鱖', rarity: 'rare', shape: 'wide', scale: 1.0, pattern: 'spot', value: 8106, minLen: 25, maxLen: 60,
+      colors: { body: '#a89050', back: '#5c4b22', belly: '#eee0b4', fin: '#7f6a34', pattern: '#2e2a1c' },
+      desc: '「桃花流水鱖魚肥」寫的就是牠。只吃活魚，餌不動牠就不理。' },
+    { id: 'lr_blackcarp', name: '墨背青魚', rarity: 'rare', shape: 'wide', scale: 1.06, pattern: 'none', value: 7961, minLen: 50, maxLen: 120,
+      colors: { body: '#4a5560', back: '#1e252d', belly: '#c0c8cc', fin: '#333e48' },
+      desc: '咽喉裡有一塊像磨盤的骨板，河蚌的殼在牠嘴裡會發出聲音。' },
+    { id: 'lr_sucker', name: '胭脂魚', rarity: 'rare', shape: 'flat', scale: 1.04, pattern: 'band2', value: 8396, minLen: 40, maxLen: 100,
+      colors: { body: '#d8b0a4', back: '#8a4a44', belly: '#f8e8de', fin: '#c25a4e', pattern: '#a8342c' },
+      desc: '幼魚背鰭高得像一面帆，身上三道胭脂色斜帶。長大之後帆會收起來，帶也淡掉。' },
+    { id: 'lr_eel', name: '江鰻', rarity: 'rare', shape: 'long', scale: 1.0, pattern: 'none', value: 7836, minLen: 40, maxLen: 90,
+      colors: { body: '#4f5a4c', back: '#262d24', belly: '#c4c4a8', fin: '#3a4236' },
+      desc: '在江裡長大，回海裡產卵，然後就不再回來了。沒有人在江裡見過牠的卵。' },
+
+    /* --- 史詩 --- */
+    { id: 'lr_sturgeon', name: '中華鱘', rarity: 'epic', shape: 'wide', scale: 1.1, pattern: 'net', value: 31460, minLen: 90, maxLen: 200,
+      special: ['spike', 'whisker'],
+      colors: { body: '#7f8a8f', back: '#414c52', belly: '#e0e6e4', fin: '#5f6a70', pattern: '#adb8ba' },
+      desc: '背上五列骨板，這個形狀從一億四千萬年前就沒改過。牠比這條江老。' },
+    { id: 'lr_shad', name: '銀鱗鰣', rarity: 'epic', shape: 'flat', scale: 1.08, pattern: 'scale', value: 30880, minLen: 40, maxLen: 80,
+      special: ['glow'],
+      colors: { body: '#dce6e8', back: '#8fa2aa', belly: '#ffffff', fin: '#b8c8cc', pattern: '#f4fafc', glow: '#e8f4f8' },
+      desc: '出水就死，鱗片絕不能刮——這是吃過的人才知道的規矩。每年只來一次，來的那幾天江邊沒人睡覺。' },
+
+    /* --- 傳說 --- */
+    { id: 'lr_koi', name: '躍門金鯉', rarity: 'legend', shape: 'round', scale: 1.18, pattern: 'scale', value: 87330, minLen: 60, maxLen: 130,
+      special: ['glow', 'horn'],
+      colors: { body: '#e0a838', back: '#8f5c14', belly: '#fbe8b0', fin: '#c88a24', pattern: '#fff0c0', glow: '#ffd76a', hornColor: '#fff4c8' },
+      legend: '額頭上那兩個突起還不算角。老人說那是快要成的樣子——鯉魚跳過那道門就化龍，跳不過就摔回水裡，額頭上留下這個。江上每年都有人看到牠往上游衝，沒有人看過牠成功。',
+      desc: '額上已經長出角的雛形。' },
+    { id: 'lr_salamander', name: '夜啼大鯢', rarity: 'legend', shape: 'long', scale: 1.22, pattern: 'spot', value: 85400, minLen: 80, maxLen: 180,
+      colors: { body: '#6a6a4e', back: '#38382a', belly: '#b4b48c', fin: '#4e4e3a', pattern: '#26261c' },
+      legend: '牠會在半夜叫，聲音跟嬰兒一模一樣。沿岸的規矩是聽到就把窗關上，不要應聲、不要出去看。至於為什麼——問了也只會得到同一句：「就是不要。」',
+      desc: '不是魚，但每年都有人從江裡拉起來。' },
+
+    /* --- 魚王 --- */
+    { id: 'lr_king_dujiang', name: '江神白鱘「渡江」', rarity: 'king', shape: 'paddle', scale: 1.3, pattern: 'net', value: 335800, minLen: 250, maxLen: 520,
+      special: ['glow', 'rostrum', 'spike'],
+      colors: { body: '#8fa6b0', back: '#3f5660', belly: '#f0f6f6', fin: '#647f88', pattern: '#c4d8dc', glow: '#ffe6a8', rostrum: '#7c94a0' },
+      legend: '牠那根吻可以有一個人高，古書裡管牠叫「象魚」。最後一次有人親眼看見是很久以前的事了，之後只剩下聲納紀錄——一個沿著江心緩慢上行、比船還長的訊號，每年春天出現一次，然後停了。江邊的廟裡還供著牠，供桌上是空的，因為沒有人知道該供什麼給一條要渡江的神。',
+      desc: '煙雨蓮江之王。廟裡供的就是牠。' }
+  ];
+
+  /* ============================================================
+     地點六：深淵海溝
      這裡的設計規則：底色一律壓到接近黑，辨識度全靠 glow 與 pattern 的冷光。
      沒有陽光的地方不會有保護色，所以幾乎每一種都帶生物發光。
      ============================================================ */
@@ -607,6 +703,31 @@ window.FG = window.FG || {};
         boat: '#3f4a58', boatRim: '#5a6b7c', boatDark: '#2a323c'
       },
       fish: FROST_FISH
+    },
+    {
+      id: 'lotus_river',
+      name: '煙雨蓮江',
+      subtitle: '水鄉釣場 · 緩流',
+      desc: '峰林從水裡直接長出來，山腰整年掛著霧。白牆黑瓦的屋子沿岸排開，一座石拱橋跨過江面，橋下浮著成片荷葉。這裡的水很慢，慢到你會忘記自己在等什麼。',
+      seed: 51224, castCost: 6000,
+      unlock: { free: true },
+      scene: {
+        terrain: 'karst',
+        horizon: 0.34,
+        // 陰天的煙雨天光：整條漸層都壓在灰綠白，不出現藍天，這是水墨感的來源
+        sky: ['#5f7484', '#93a8b2', '#c8d4d4', '#e2e6dc'],
+        hill: '#6e8290',
+        farTree: '#7f95a0', midTree: '#5b7480', nearTree: '#3f5560',
+        mist: '#eef2f0',
+        wall: '#e6e9e4', tile: '#2b3138', bridge: '#b4b0a2',
+        lotus: '#3f7a52', bloom: '#f0a8c4',
+        trunk: '#4a5c3a', accent: ['#6f8a4a'],
+        shore: '#2a3630',
+        waterTop: '#5a7280', waterBot: '#93a8a8', waterDeep: '#3a4e54',
+        highlight: '#f4f8f4', highlight2: '#c4d4cc',
+        boat: '#4a3a28', boatRim: '#6b5438', boatDark: '#2e2419'
+      },
+      fish: LOTUS_FISH
     },
     {
       id: 'abyss', name: '深淵海溝', subtitle: '深海釣場 · 未知',
