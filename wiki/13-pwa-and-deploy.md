@@ -116,6 +116,12 @@ repo：`git@github-personal:cacich/FishingGame.git`（→ [11 §多帳號 SSH](1
 
 因為 `start_url` / `scope` / SW 註冊路徑全部用相對路徑，子路徑部署不需要任何調整。
 
+### 根目錄的 `.nojekyll` 不能刪
+
+GitHub Pages 預設會用 Jekyll 處理整個 repo，而 Jekyll **會排除所有底線開頭的檔案與資料夾**——`wiki/_map.md` 就會發不出去，wiki 首頁指過去的連結全部 404。
+
+根目錄放一個空的 `.nojekyll` 就會完全跳過 Jekyll、原樣供應所有檔案，順便讓建置變快。這個檔案沒有內容，很容易在整理時被誤刪。
+
 **PWA 安裝需要 HTTPS**（`localhost` 例外）。GitHub Pages 自帶 HTTPS，所以手機開那個網址就能直接安裝。
 
 ### 手機測試

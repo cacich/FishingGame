@@ -16,6 +16,16 @@
 
 ---
 
+## 2026-08-03 · 部署到 GitHub Pages
+
+**改了什麼**：新增根目錄空檔 `.nojekyll`。
+**為什麼**：GitHub Pages 預設用 Jekyll 處理 repo，Jekyll 會排除所有底線開頭的檔案，`wiki/_map.md` 會發不出去（wiki 首頁有連結指向它）。`.nojekyll` 讓 Pages 原樣供應所有檔案，順便加快建置。
+**動到的檔案**：`.nojekyll`（新）
+**已更新的 wiki**：[13 PWA 與部署](13-pwa-and-deploy.md)
+**注意事項**：這個檔案是空的，整理專案時很容易誤刪，刪掉會讓 wiki 的部分連結 404。
+
+---
+
 ## 2026-08-03 · PWA：可安裝、可離線
 
 **改了什麼**：
