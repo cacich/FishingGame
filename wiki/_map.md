@@ -1,0 +1,66 @@
+# 原始碼 ↔ WIKI 對照表
+
+> **改了左欄的檔案，就必須更新右欄的頁面。** 這是 [`CLAUDE.md`](../CLAUDE.md) 強制規則的執行清單。
+
+## 對照表
+
+| 原始碼 | 必須更新 | 視情況更新 |
+|---|---|---|
+| `index.html` | [01 架構](01-architecture.md) | [README](README.md) 檔案總覽 |
+| `styles.css` | [08 介面](08-ui-and-screens.md) | |
+| `js/util.js` | [01 架構](01-architecture.md) | [11 地雷](11-invariants-and-gotchas.md) |
+| `js/pixel.js` | [06 像素引擎](06-pixel-engine.md) | [07 資料規格](07-data-schema.md)（新增 shape/pattern/special 時）、[11 地雷](11-invariants-and-gotchas.md) |
+| `js/data.js` | [07 資料規格](07-data-schema.md) | [03 經濟](03-economy.md)、[10 平衡調參](10-balance-tuning.md)（**任何數值改動都要重跑模擬更新基準表**）、[12 名詞表](12-glossary.md) |
+| `js/state.js` | [02 狀態與存檔](02-state-and-save.md) | [03 經濟](03-economy.md)（抽獎相關）、[10 平衡調參](10-balance-tuning.md)、[11 地雷](11-invariants-and-gotchas.md) |
+| `js/ui.js` | [08 介面](08-ui-and-screens.md) | |
+| `js/screen-fishing.js` | [04 釣魚循環](04-fishing-loop.md)、[05 自動模式](05-auto-mode.md) | [08 介面](08-ui-and-screens.md)、[03 經濟](03-economy.md) |
+| `js/screen-daily.js` | [08 介面](08-ui-and-screens.md) | [02 存檔](02-state-and-save.md)（簽到／任務結構） |
+| `js/screen-home.js` | [08 介面](08-ui-and-screens.md) | [06 像素引擎](06-pixel-engine.md)（房間繪製、裝飾圖示） |
+| `js/screen-shop.js` | [08 介面](08-ui-and-screens.md) | [07 資料規格](07-data-schema.md)（裝備圖示） |
+| `js/screen-codex.js` | [08 介面](08-ui-and-screens.md) | |
+| `js/main.js` | [01 架構](01-architecture.md) | [08 介面](08-ui-and-screens.md)（儲值／設定彈窗） |
+| `js/pwa.js` | [13 PWA 與部署](13-pwa-and-deploy.md) | [08 介面](08-ui-and-screens.md)（安裝提示條樣式） |
+| `sw.js` | [13 PWA 與部署](13-pwa-and-deploy.md) | [11 地雷](11-invariants-and-gotchas.md) |
+| `manifest.webmanifest` | [13 PWA 與部署](13-pwa-and-deploy.md) | |
+| `tools/make-icons.py` · `icons/` | [13 PWA 與部署](13-pwa-and-deploy.md) | |
+| **新增任何 js 檔** | [01 架構](01-architecture.md)、[README](README.md)、**本頁補一列**，並更新 `sw.js › ASSETS` | |
+
+## 一定要做的三件事
+
+不管改了什麼，只要行為有變：
+
+1. **更新對照表指到的頁面** — 內容改了就改內文，加功能就加小節，砍功能就刪段落。
+2. **寫 [CHANGELOG](CHANGELOG.md)** — 最上方新增一筆。
+3. **踩到新坑就補 [11 地雷](11-invariants-and-gotchas.md)** — 這頁的投報率最高。
+
+## 特殊觸發條件
+
+| 情況 | 額外要做的事 |
+|---|---|
+| **新增／刪除／改名任何前端資產** | 更新 `sw.js › ASSETS` 清單 ＋ **把 `VERSION` 加一** |
+| 動到任何影響機率／價格／成本的數值 | 跑 [10 §模擬腳本](10-balance-tuning.md#模擬腳本)，**更新基準表** |
+| 新增 shape / pattern / special / junkArt | [06](06-pixel-engine.md) 加說明 ＋ [07](07-data-schema.md) 加可用值 ＋ [12](12-glossary.md) 加清單 |
+| 新增裝備／裝飾／餌料／釣竿 | [07](07-data-schema.md) 更新表格；裝備要記得加圖示（[09](09-recipes.md) 有步驟） |
+| 新增自動模式設定項 | [05](05-auto-mode.md) 狀態物件與停止條件表 ＋ [02](02-state-and-save.md) schema |
+| 改存檔結構 | [02](02-state-and-save.md)；巢狀欄位要考慮 `SAVE_VER`（見 [11 §4](11-invariants-and-gotchas.md#4-存檔淺層合併)） |
+| 新增分頁 | [01](01-architecture.md)、[08](08-ui-and-screens.md)、[README](README.md)、本頁 |
+| 發現既有描述跟程式碼不符 | **當場修正 wiki**，並在 CHANGELOG 記一筆「文件修正」 |
+
+## 反向索引：wiki 頁 → 它描述的原始碼
+
+| wiki 頁 | 涵蓋範圍 |
+|---|---|
+| [00 上手](00-onboarding.md) | 全域概念，無特定檔案 |
+| [01 架構](01-architecture.md) | `index.html`、`util.js`、`main.js`、跨檔案契約 |
+| [02 狀態與存檔](02-state-and-save.md) | `state.js`（存檔／事件／API） |
+| [03 經濟與抽獎](03-economy.md) | `state.js`（`castCost` `bonus` `rarityTable` `rollCatch` `recordCatch`）、`data.js › FG.RARITY` |
+| [04 釣魚循環](04-fishing-loop.md) | `screen-fishing.js`（狀態機／演出／結果卡） |
+| [05 自動模式](05-auto-mode.md) | `screen-fishing.js`（`auto*` 系列） |
+| [06 像素引擎](06-pixel-engine.md) | `pixel.js` 全部 ＋ 各分頁檔的字元圖常數 |
+| [07 資料規格](07-data-schema.md) | `data.js` 全部 |
+| [08 介面與畫面](08-ui-and-screens.md) | `styles.css`、`ui.js`、四個非釣魚分頁 |
+| [09 操作手冊](09-recipes.md) | 跨檔案的操作流程 |
+| [10 平衡調參](10-balance-tuning.md) | 數值旋鈕與驗證方法 |
+| [11 不變式與地雷](11-invariants-and-gotchas.md) | 跨檔案的約束與已知問題 |
+| [12 名詞表](12-glossary.md) | key 值速查 |
+| [13 PWA 與部署](13-pwa-and-deploy.md) | `manifest.webmanifest`、`sw.js`、`js/pwa.js`、`tools/make-icons.py`、GitHub Pages |

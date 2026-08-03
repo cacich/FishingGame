@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1119">
+<meta name="description" content="手機直式的像素風釣魚小遊戲。付籌碼下竿，收集各釣點的專屬魚種與魚王。">
+<title>霧湖釣手 · Pixel Fishing</title>
+
+<!-- PWA：可安裝、可離線 -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="霧湖釣手">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="app">
+  <header id="topbar">
+    <button class="loc-chip" id="topLocBtn">
+      <span class="loc-name">晨霧湖</span>
+      <span class="loc-caret">▾</span>
+    </button>
+    <div class="grow"></div>
+    <button class="chip-wallet" id="chipsBtn">
+      <canvas class="coin-ico" width="12" height="12"></canvas>
+      <span id="chipsVal">0</span>
+      <i class="plus">＋</i>
+    </button>
+  </header>
+
+  <main id="screens"></main>
+
+  <nav id="tabbar"></nav>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+
+<script src="js/util.js"></script>
+<script src="js/pixel.js"></script>
+<script src="js/data.js"></script>
+<script src="js/state.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/screen-fishing.js"></script>
+<script src="js/screen-daily.js"></script>
+<script src="js/screen-home.js"></script>
+<script src="js/screen-shop.js"></script>
+<script src="js/screen-codex.js"></script>
+<script src="js/pwa.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

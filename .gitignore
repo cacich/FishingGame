@@ -1,0 +1,16 @@
+# 作業系統雜物
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 編輯器
+.vscode/
+.idea/
+*.swp
+
+# Obsidian（用來瀏覽 wiki/）的本機介面狀態
+.obsidian/
+
+# Python（tools/ 的圖示產生器）
+__pycache__/
+*.pyc
