@@ -16,6 +16,23 @@
 
 ---
 
+## 2026-08-03 · 修正線上版更新不即時（SW 快取策略）
+
+**改了什麼**：
+- `sw.js` `VERSION` v1 → v2。
+- 取用策略改為：程式碼類（html/js/css/webmanifest 與導覽請求）走 **network-first 且 `cache:'no-cache'`**，逾時 2.5 秒或離線回快取；圖片類維持 cache-first。
+- `js/pwa.js`：`controllerchange` 時自動重載一次（用進頁時有無 controller 區分首裝與更新，避免第一次開遊戲白閃）；註冊後與每次回到前景時主動 `reg.update()`。
+
+**為什麼**：GitHub Pages 送 `Cache-Control: max-age=600`。原本程式碼類用 stale-while-revalidate + 一般 `fetch()`，該請求仍會先問瀏覽器的 HTTP 快取，導致 SW「以為抓了新版、實際拿到 10 分鐘前的舊檔」再寫回自己的快取。實際效果是推上去之後最糟要等 10 分鐘＋重載兩次才看得到新版。改完之後推上去、Pages 建置完成、重載一次即為新版。
+
+**動到的檔案**：`sw.js › fetch 處理`、`js/pwa.js`
+
+**已更新的 wiki**：[13 PWA 與部署](13-pwa-and-deploy.md)（改寫策略段、新增日常發佈流程與 VERSION 對照表）、[11 地雷](11-invariants-and-gotchas.md)（§11 改寫成三層快取對照表）
+
+**注意事項**：`VERSION` 現在只有在「新增／刪除／改名資產」「換圖片」「改 sw.js 邏輯」時才需要加一，改一般程式碼內容不用。用 `no-cache` 而非 `no-store`——前者仍走 ETag 協商，沒變就回 304。
+
+---
+
 ## 2026-08-03 · 部署到 GitHub Pages
 
 **改了什麼**：新增根目錄空檔 `.nojekyll`。

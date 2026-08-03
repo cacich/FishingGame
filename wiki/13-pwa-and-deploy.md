@@ -54,29 +54,48 @@ python tools/make-icons.py
 ## Service Worker 策略
 
 ```
-導覽請求（開啟頁面）  → network-first，離線才回快取
-其他同源 GET         → stale-while-revalidate
-非 GET / 跨來源       → 不插手
+程式碼類（html / js / css / webmanifest、以及導覽請求）
+    → network-first，且用 cache:'no-cache' 強制向伺服器驗證
+    → 逾時 2.5 秒或離線時回快取
+圖片類（png…）
+    → cache-first
+非 GET / 跨來源
+    → 不插手
 ```
 
-**為什麼分開處理**：導覽走 network-first，新版本部署後一開頁就會拿到新的 `index.html`；其他資產走 SWR，開得快又能在背景自我更新，下一次載入就是新版。兩者都能離線。
+### 為什麼程式碼類一定要 `cache:'no-cache'`
 
-生命週期：
-- `install` → 逐一 `cache.add()`（**不用 `addAll`**，單一檔案失敗不會讓整包掛掉）→ `skipWaiting()`
+GitHub Pages 回應標頭是 **`Cache-Control: max-age=600`**。也就是瀏覽器自己的 HTTP 快取會把檔案留住 10 分鐘。
+
+如果 SW 裡用一般的 `fetch(req)`，這個請求**仍然會先問瀏覽器的 HTTP 快取**——結果就是「SW 以為自己抓了新版，其實拿到的是 10 分鐘前的舊檔」，再把舊檔寫回 SW 快取。舊版曾用 stale-while-revalidate，疊上這層之後最糟要等 10 分鐘＋重載兩次才會更新。
+
+`cache: 'no-cache'` 的語意是**跳過 HTTP 快取直接問伺服器，但仍走 ETag 協商**。檔案沒變就回 304（幾乎不耗流量），變了就給新的。這是「一定拿到最新」與「不浪費頻寬」的平衡點。
+
+（不要用 `no-store`，那會連 ETag 協商都跳過，每次都下載完整內容。）
+
+圖片維持 cache-first 是因為圖示幾乎不變，又是位元組大宗。真的換圖時把 `VERSION` 加一，`install` 階段會強制重抓。
+
+### 生命週期
+
+- `install` → 逐一 `cache.add(..., {cache:'reload'})`（**不用 `addAll`**，單一檔案失敗不會讓整包掛掉）→ `skipWaiting()`
 - `activate` → 刪掉所有 `fishing-` 開頭但版本不符的快取 → `clients.claim()`
 - `message: 'skipWaiting'` → 讓頁面能主動要求立刻套用新版
 
-### ★ 發佈新版本要把 `VERSION` 加一
+### 頁面端的配合（`js/pwa.js`）
 
-`sw.js` 開頭：
+- **`controllerchange` 自動重載一次**。`sw.js` 換版時新 SW 會 `skipWaiting` + `claim` 接管，但**頁面上跑的還是舊 JS**，不重載看不到變化。用進頁時的 `navigator.serviceWorker.controller` 是否存在來區分「首裝」與「更新」——首裝時的 `controllerchange` 不該觸發重載，否則第一次開遊戲會白閃一次。
+- **主動 `reg.update()`**：註冊後呼叫一次，並在 `visibilitychange` 回到前景時再呼叫。瀏覽器預設檢查更新的間隔最長可到 24 小時，已安裝的 App 尤其容易卡在舊版。
 
-```js
-const VERSION = 'v1';
-```
+### `VERSION` 什麼時候要加一
 
-改動遊戲檔案後**必須**把它加一。理由：瀏覽器是用「`sw.js` 的位元組有沒有變」來判斷有沒有新版本的。只改 `js/*.js` 而不動 `sw.js`，瀏覽器不會重新安裝 SW，舊快取會一直留著。
+`sw.js` 開頭的 `const VERSION = 'v2';`
 
-（SWR 策略下多數資產其實會自我更新，但預先快取清單與快取清理只在 install/activate 跑，所以還是要靠 VERSION 才乾淨。）
+| 情況 | 要不要加一 |
+|---|---|
+| 只改 js / css / html 內容 | **不用**。network-first 會直接拿到新版 |
+| 新增／刪除／改名前端資產 | **要**（同時更新 `ASSETS` 清單），否則離線時缺檔 |
+| 換圖示或其他圖片 | **要**，圖片是 cache-first 不會自動更新 |
+| 改 `sw.js` 本身的邏輯 | **要**（其實只要內容變了瀏覽器就會偵測到，但加一才會清掉舊快取） |
 
 ## 安裝流程 · `js/pwa.js`
 
@@ -115,6 +134,20 @@ repo：`git@github-personal:cacich/FishingGame.git`（→ [11 §多帳號 SSH](1
 3. 等一兩分鐘，網址是 `https://cacich.github.io/FishingGame/`
 
 因為 `start_url` / `scope` / SW 註冊路徑全部用相對路徑，子路徑部署不需要任何調整。
+
+### 日常發佈流程
+
+```bash
+git add -A && git commit -m "..." && git push
+```
+
+推上去後 GitHub 會跑 `pages build and deployment`（約 1 分鐘），完成後**重新載入一次**就是新版。多數情況不需要動 `VERSION`（見下方對照表）。
+
+想確認建置狀態：
+
+```bash
+curl -s "https://api.github.com/repos/cacich/FishingGame/actions/runs?per_page=1" | grep -E '"(status|conclusion)"'
+```
 
 ### 根目錄的 `.nojekyll` 不能刪
 

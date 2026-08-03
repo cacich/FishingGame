@@ -95,15 +95,34 @@ window.FG = window.FG || {};
 
   // file:// 下沒有 serviceWorker（也不需要），要擋掉否則會拋錯
   if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+
+    // 進頁時就有 controller，代表這不是第一次安裝。
+    // 用它來區分「首裝」與「更新」——首裝時的 controllerchange 不該觸發重載。
+    const hadController = !!navigator.serviceWorker.controller;
+    let reloading = false;
+
+    // sw.js 本身換版時：新 SW 會 skipWaiting + claim 接管，但頁面上跑的還是舊 JS。
+    // 這裡自動重載一次，讓使用者不必手動再按一次重新整理。
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!hadController || reloading) return;
+      reloading = true;
+      location.reload();
+    });
+
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js').then(function (reg) {
+        // 每次回到遊戲都主動問一次有沒有新版（瀏覽器預設最長可能隔 24 小時才檢查）
+        reg.update().catch(function () {});
+        document.addEventListener('visibilitychange', function () {
+          if (!document.hidden) reg.update().catch(function () {});
+        });
+
         reg.addEventListener('updatefound', function () {
           const sw = reg.installing;
           if (!sw) return;
           sw.addEventListener('statechange', function () {
-            // 有 controller 代表這是「更新」而不是「第一次安裝」
             if (sw.state === 'installed' && navigator.serviceWorker.controller) {
-              if (FG.ui) FG.ui.toast('有新版本，重新整理即可更新', 'gold', 4000);
+              if (FG.ui) FG.ui.toast('正在更新到新版本…', 'gold', 3000);
             }
           });
         });

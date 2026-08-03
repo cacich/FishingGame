@@ -74,16 +74,20 @@ if (x < 0 || x >= W || y < 0 || y >= H) continue;
 
 `#stage` 內部固定 200×340，用 CSS 撐滿容器並裁切。**在不同螢幕比例下邊緣會被切掉**，所以重要元素（船、浮標、訊息）都要留在中央區域。同理 `#homeStage`（200×150，改用 `aspect-ratio` 避免裁切）。
 
-### 11. Service Worker 讓「改了沒更新」變本加厲
+### 11. 三層快取疊在一起，「改了沒更新」
 
-**症狀**：改了 JS，Ctrl+F5 也沒用。
-**原因**：除了 §1 的 http.server 快取，現在還多一層 Service Worker 快取。SW 的 stale-while-revalidate 會先回舊的、背景才更新，所以**第一次重載一定是舊版**。
-**對策**：
-- 開發時在 DevTools → Application → Service Workers 勾 **Bypass for network**（或 Update on reload）。
-- 發佈前把 `sw.js` 的 `VERSION` 加一。
-- 緊急清除：`caches.keys().then(k => k.forEach(n => caches.delete(n)))` 再重載。
+線上版總共有**三層**快取，任何一層都可能讓你看到舊檔：
 
-詳見 [13 PWA 與部署](13-pwa-and-deploy.md#-發佈新版本要把-version-加一)。
+| 層 | 誰造成的 | 怎麼處理 |
+|---|---|---|
+| 瀏覽器 HTTP 快取 | GitHub Pages 送 `Cache-Control: max-age=600` | SW 抓程式碼類資產時用 `cache:'no-cache'` 繞過（已實作） |
+| Service Worker 快取 | 我們自己 | 程式碼類走 network-first（已實作）；圖片是 cache-first，換圖要把 `VERSION` 加一 |
+| 本機 `python -m http.server` | 開發環境 | Ctrl+F5，見 §1 |
+
+**開發時**建議在 DevTools → Application → Service Workers 勾 **Bypass for network**，直接把 SW 那層拿掉。
+**緊急清除**：`caches.keys().then(k => k.forEach(n => caches.delete(n)))` 再重載。
+
+> 曾經的錯誤設計：程式碼類用 stale-while-revalidate + 一般 `fetch()`。SW 以為抓了新版，其實被瀏覽器的 10 分鐘 HTTP 快取攔下回舊檔，再把舊檔寫回 SW 快取——最糟要等 10 分鐘＋重載兩次。詳見 [13 §為什麼程式碼類一定要 no-cache](13-pwa-and-deploy.md#為什麼程式碼類一定要-cacheno-cache)。
 
 ### 12. 多帳號 SSH：別用 `github.com` 推個人 repo
 
