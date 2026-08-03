@@ -600,6 +600,104 @@ window.FG = window.FG || {};
   ];
 
   /* ============================================================
+     地點七：世界樹根
+     配色規則：底色是極夜的深藍黑，**唯一的亮色來源是極光**（青綠 × 紫）。
+     所以這裡的魚分成兩派——一般魚是北大西洋的真實冷水魚種、用銀白灰；
+     稀有以上換成神話生物、帶 glow 並吃極光的青綠紫。
+     那道分界本身就是玩家讀到的「越過某條線之後就不是普通魚了」。
+     ============================================================ */
+  const WORLD_ROOT_FISH = [
+    /* --- 雜物 --- */
+    { id: 'wr_shield', name: '裂開的圓盾', rarity: 'junk', junkArt: 'shield', value: 290, minLen: 30, maxLen: 70, unit: 'cm', desc: '中央的凸飾還在，木板已經散了一半。有人在這裡打過架，或者只是把它丟了。' },
+    { id: 'wr_can',    name: '鏽蝕的祭器', rarity: 'junk', junkArt: 'can',    value: 245, minLen: 8,  maxLen: 18, unit: 'cm', desc: '形狀像個杯子。裡面的東西早就沒了，也不確定原本裝的是不是能喝的。' },
+    { id: 'wr_root',   name: '纏繞的根鬚', rarity: 'junk', junkArt: 'weed',   value: 265, minLen: 30, maxLen: 95, unit: 'cm', desc: '從上面掉下來的。拉起來的時候還在動——大概是水流。' },
+
+    /* --- 普通（北大西洋的真實冷水魚，全部走銀白灰） --- */
+    { id: 'wr_herring', name: '銀鯡', rarity: 'common', shape: 'long', scale: .68, pattern: 'none', value: 1730, minLen: 15, maxLen: 32,
+      colors: { body: '#b8c4cc', back: '#5f7180', belly: '#f4f8fa', fin: '#8fa0ac' },
+      desc: '一群能有幾十萬條。極光亮起來的時候整片水面會跟著閃。' },
+    { id: 'wr_capelin', name: '毛鱗魚', rarity: 'common', shape: 'long', scale: .6, pattern: 'none', value: 1765, minLen: 8, maxLen: 18,
+      colors: { body: '#a8b4b8', back: '#556468', belly: '#eef4f4', fin: '#7f8c90' },
+      desc: '產卵之後就成片死在岸邊。這裡的每一種大魚都靠牠們過冬。' },
+    { id: 'wr_lumpsucker', name: '圓鰭魚', rarity: 'common', shape: 'round', scale: .72, pattern: 'speck', value: 1800, minLen: 10, maxLen: 24,
+      colors: { body: '#6f7f8a', back: '#3c4850', belly: '#c8d4d8', fin: '#54626b', pattern: '#94a4ac' },
+      desc: '腹部有個吸盤，能整天吸在同一塊石頭上不動。' },
+    { id: 'wr_plaice', name: '北海鰈', rarity: 'common', shape: 'flat', scale: .8, pattern: 'spot', value: 1840, minLen: 20, maxLen: 45,
+      colors: { body: '#8a8470', back: '#4e4a3c', belly: '#eae6d8', fin: '#6b6658', pattern: '#c88f4a' },
+      desc: '趴在砂上，只有那排橘點看得出牠在哪。' },
+    { id: 'wr_whiting', name: '藍身鱈', rarity: 'common', shape: 'long', scale: .84, pattern: 'none', value: 1780, minLen: 22, maxLen: 48,
+      colors: { body: '#7f8fa4', back: '#3f4d60', belly: '#dce4ec', fin: '#5f6e80' },
+      desc: '白天沉在深處，天一暗就整群浮上來。這裡的天沒有真的亮過，所以牠們一直在上面。' },
+    { id: 'wr_goby', name: '符文鰕虎', rarity: 'common', shape: 'round', scale: .64, pattern: 'net', value: 1810, minLen: 6, maxLen: 14,
+      colors: { body: '#8a8478', back: '#4c4840', belly: '#dad4c4', fin: '#6a6558', pattern: '#c0b48f' },
+      desc: '體側的花紋跟岸上石板的刻痕很像。當然只是巧合。' },
+
+    /* --- 優良 --- */
+    { id: 'wr_cod', name: '北洋鱈', rarity: 'good', shape: 'wide', scale: .94, pattern: 'speck', value: 6900, minLen: 40, maxLen: 90,
+      colors: { body: '#8a8f78', back: '#4a4f3f', belly: '#e4e8d8', fin: '#686d58', pattern: '#b4b898' },
+      desc: '一整個時代的人靠這種魚活下來，也為了牠打過仗。' },
+    { id: 'wr_salmon', name: '銀腹鮭', rarity: 'good', shape: 'wide', scale: .92, pattern: 'spot', value: 6750, minLen: 35, maxLen: 80,
+      colors: { body: '#a4aeb8', back: '#54606c', belly: '#f4f6f8', fin: '#7f8b96', pattern: '#3c4650' },
+      desc: '牠們一路往上游，撞到瀑布也不轉彎。' },
+    { id: 'wr_wolffish', name: '狼牙魚', rarity: 'good', shape: 'long', scale: .96, pattern: 'band2', value: 7050, minLen: 40, maxLen: 95,
+      special: ['jaw'],
+      colors: { body: '#5f5a6a', back: '#332f3c', belly: '#bab4c4', fin: '#474254', pattern: '#8a8498', tooth: '#f0ead8' },
+      desc: '嘴裡的牙一年換一次，換牙那幾週牠什麼都不吃。' },
+    { id: 'wr_turbot', name: '盾鱗鮃', rarity: 'good', shape: 'flat', scale: .88, pattern: 'net', value: 6860, minLen: 25, maxLen: 55,
+      colors: { body: '#7a7264', back: '#443f36', belly: '#e0dacc', fin: '#5c5649', pattern: '#a89c84' },
+      desc: '身上的骨質突起排得像一面小盾。拿起來手會被刮。' },
+    { id: 'wr_spurdog', name: '角鯊', rarity: 'good', shape: 'long', scale: 1.0, pattern: 'none', value: 7120, minLen: 45, maxLen: 100,
+      special: ['spike'],
+      colors: { body: '#6a7480', back: '#3a424c', belly: '#c4ccd4', fin: '#505a66' },
+      desc: '背鰭前那兩根刺帶毒。牠可以活一百年，慢到讓人以為牠不會死。' },
+
+    /* --- 稀有 --- */
+    { id: 'wr_halibut', name: '巨舌鮃', rarity: 'rare', shape: 'flat', scale: 1.08, pattern: 'spot', value: 30100, minLen: 60, maxLen: 170,
+      colors: { body: '#5a5f5a', back: '#2e332f', belly: '#dfe4de', fin: '#42473f', pattern: '#8f9488' },
+      desc: '拉上船之前最好先確認船比牠大。不是每次都是。' },
+    { id: 'wr_ray', name: '雷紋電鰩', rarity: 'rare', shape: 'ray', scale: 1.04, pattern: 'net', value: 30900, minLen: 50, maxLen: 120,
+      special: ['glow'],
+      colors: { body: '#4a5570', back: '#242c40', belly: '#c4cee0', fin: '#343e54', pattern: '#8fd8ff', glow: '#7fc0ff' },
+      desc: '摸到牠的人說那不像被電到，像被人用力推了一下。' },
+    { id: 'wr_eel', name: '銀牙海鰻', rarity: 'rare', shape: 'long', scale: 1.02, pattern: 'none', value: 29600, minLen: 50, maxLen: 110,
+      colors: { body: '#4f5a5f', back: '#272e32', belly: '#c0c8c8', fin: '#3a4348' },
+      desc: '從石縫裡出來的時候只看得到頭。後面有多長要等牠自己決定。' },
+    { id: 'wr_lump', name: '盾牌魨', rarity: 'rare', shape: 'round', scale: 1.0, pattern: 'net', value: 30400, minLen: 30, maxLen: 70,
+      special: ['spike'],
+      colors: { body: '#7f6a5a', back: '#453a30', belly: '#ddcdb8', fin: '#5f5044', pattern: '#b09878' },
+      desc: '整條魚外面裹著一層骨板，敲下去是硬的。牠不游，牠滾。' },
+
+    /* --- 史詩（開始換成神話生物，配色吃極光） --- */
+    { id: 'wr_nidhogg', name: '噬根幼龍', rarity: 'epic', shape: 'long', scale: 1.12, pattern: 'speck', value: 118000, minLen: 90, maxLen: 200,
+      special: ['glow', 'jaw'],
+      colors: { body: '#3a4a3f', back: '#1a2420', belly: '#7f9484', fin: '#28342c', pattern: '#6fe0a8', glow: '#5fd898', tooth: '#eef4e4' },
+      desc: '樹根上的咬痕不是一天造成的，而牠們還很小。上面那條有多大，沒有人往下看過。' },
+    { id: 'wr_lyngbakr', name: '島鯨幼體', rarity: 'epic', shape: 'wide', scale: 1.14, pattern: 'none', value: 120400, minLen: 100, maxLen: 240,
+      special: ['glow'],
+      colors: { body: '#4a5566', back: '#222b38', belly: '#aab6c4', fin: '#333d4c', glow: '#8fa8e0' },
+      desc: '成體背上會長出土和草，看起來就是一座島。上去生火的人再也沒回來——牠只是覺得燙。' },
+
+    /* --- 傳說 --- */
+    { id: 'wr_loki', name: '詭火鮭「洛基」', rarity: 'legend', shape: 'wide', scale: 1.2, pattern: 'scale', value: 326000, minLen: 70, maxLen: 150,
+      special: ['glow'],
+      colors: { body: '#c85f3a', back: '#7a2f18', belly: '#f6dcb4', fin: '#a04524', pattern: '#ffb86a', glow: '#ff9a4f' },
+      legend: '被追到走投無路的時候，牠變成一條鮭魚躲進瀑布下面。追的人張了一張網——牠算準了要從網上跳過去，於是那個人改用手，在牠躍起的半空中抓住了尾巴。從那天起所有的鮭魚尾巴都是往內收的。牠現在還在這裡，還是那個形狀，還是在算什麼時候跳。',
+      desc: '尾巴上有一圈握過的痕跡。' },
+    { id: 'wr_mead', name: '詩人蜜酒鰻', rarity: 'legend', shape: 'long', scale: 1.2, pattern: 'speck', value: 331000, minLen: 90, maxLen: 190,
+      special: ['glow'],
+      colors: { body: '#a8823f', back: '#5f451a', belly: '#f0dca8', fin: '#84642c', pattern: '#ffe6a8', glow: '#ffcf6a' },
+      legend: '喝過那桶蜜酒的人開口就是詩。這條鰻魚在桶被搬走的那晚一直待在下游，把漏出來的那幾滴喝了。牠不會說話，但釣起牠的人那天晚上會做一個很長的夢，醒來記得每一句。',
+      desc: '漏出來的那幾滴，被牠喝掉了。' },
+
+    /* --- 魚王 --- */
+    { id: 'wr_king_jormungandr', name: '世界蛇「耶夢加得」', rarity: 'king', shape: 'serpent', scale: 1.3, pattern: 'scale', value: 1140000, minLen: 500, maxLen: 900,
+      special: ['glow', 'forkTongue'],
+      colors: { body: '#3f6a58', back: '#16302a', belly: '#a8ccb4', fin: '#2a4a40', pattern: '#7fe0b0', glow: '#5fffc0', tongue: '#e0566a' },
+      legend: '牠被扔進海裡的時候還很小。牠長到繞完整個世界，然後咬住自己的尾巴——不是因為想，是因為沒有別的地方可以放了。所以牠鬆口的那一天，就是世界不再是一個圈的那一天。這口泉在世界樹的根上，而牠的身體從這裡經過。你釣起來的只是其中一段，而牠沒有掙扎，因為牠知道你放不下整條。',
+      desc: '世界樹根之王。你釣起來的只是其中一段。' }
+  ];
+
+  /* ============================================================
      地點列表
      ============================================================ */
   FG.LOCATIONS = [
@@ -746,6 +844,30 @@ window.FG = window.FG || {};
         boat: '#2a3038', boatRim: '#3f4750', boatDark: '#1a1e24'
       },
       fish: ABYSS_FISH
+    },
+    {
+      id: 'world_root',
+      name: '世界樹根',
+      subtitle: '神話釣場 · 極夜',
+      desc: '沒有人說得清這裡還算不算人間。一根巨大的樹幹從水裡直接長上去，樹冠在雲層之外，看不到頂。岸邊立著幾塊刻滿符文的石板，字沒有人讀得懂。極光整夜不停，水面跟著一起亮。',
+      seed: 91130, castCost: 24000,
+      unlock: { free: true },
+      scene: {
+        terrain: 'yggdrasil',
+        // 地平線刻意壓到最低（0.44）：極光與樹幹都在水面以上，要把天空的空間讓出來
+        horizon: 0.44,
+        sky: ['#070b1a', '#101a33', '#1d2c4a', '#2c3f58'],
+        hill: '#141d30',
+        farTree: '#1a2436', midTree: '#131b2a', nearTree: '#0d141f',
+        aurora: ['#5fe0a8', '#8f7fe0'],
+        bark: '#3a2a1e', stone: '#6f6a78', rune: '#d8c08f',
+        star: '#dfeaff',
+        shore: '#0a1018',
+        waterTop: '#0e1b30', waterBot: '#28405c', waterDeep: '#060d18',
+        highlight: '#9fffd8', highlight2: '#7f8fe0',
+        boat: '#4a3a2a', boatRim: '#6b5440', boatDark: '#2e2419'
+      },
+      fish: WORLD_ROOT_FISH
     }
   ];
 

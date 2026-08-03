@@ -171,7 +171,11 @@ window.FG = window.FG || {};
     pike:    { bodyLen: .66, bodyH: .34, gamma: 0.78, e: .60, tailLen: .16, tailH: .72, fork: .34, dorsal: .38, dorsalAt: [.08, .26], anal: .28, analAt: [.06, .22] },
     abyss:   { bodyLen: .60, bodyH: .52, gamma: 1.70, e: .40, tailLen: .22, tailH: .48, fork: .12, dorsal: .24, dorsalAt: [.16, .50], anal: .22, analAt: [.10, .36] },
     // 鱘／鱘形目：背鰭與臀鰭都極靠尾、深叉尾。身體刻意畫短，長度靠 rostrum 補回來
-    paddle:  { bodyLen: .54, bodyH: .38, gamma: 1.25, e: .46, tailLen: .18, tailH: .88, fork: .55, dorsal: .32, dorsalAt: [.08, .28], anal: .24, analAt: [.05, .20] }
+    paddle:  { bodyLen: .54, bodyH: .38, gamma: 1.25, e: .46, tailLen: .18, tailH: .88, fork: .55, dorsal: .32, dorsalAt: [.08, .28], anal: .24, analAt: [.05, .20] },
+    // 真蛇：**幾乎沒有鰭**，尾巴收成一點（不是尾鰭）。
+    // e = .30 讓剖面接近矩形＝粗細均勻的管子，這是「蛇」跟 dragon 那種帶狀魚身最大的差別；
+    // dragon 有 tailH .95 的大尾扇與高聳的鬃，serpent 兩者都沒有
+    serpent: { bodyLen: .78, bodyH: .21, gamma: 1.30, e: .30, tailLen: .07, tailH: .14, fork: .00, dorsal: .05, dorsalAt: [.10, .80], anal: .04, analAt: [.10, .60] }
   };
 
   const SPR_W = 96, SPR_H = 56, MARGIN = 4;
@@ -190,7 +194,7 @@ window.FG = window.FG || {};
     // 會往吻端前方延伸的 special 要先預留空間。不預留的話，魚王級的 scale 會把吻端推到 x≈91，
     // 那些特徵只剩 3px 可畫＝等於完全看不見（原本有鬍鬚的魚王全中這個坑）。
     // 新增這類 special 時記得在這裡登記需要的 px 數，取最大值。
-    const HEAD_ROOM = { whisker: 12, rostrum: 24 };
+    const HEAD_ROOM = { whisker: 12, rostrum: 24, forkTongue: 12 };
     let headRoom = 0;
     for (const k in HEAD_ROOM) if (sp.indexOf(k) >= 0) headRoom = Math.max(headRoom, HEAD_ROOM[k]);
     // 避免體型倍率把魚撐出畫面；有鬍鬚時連同前方留白一起算進去
@@ -457,6 +461,26 @@ window.FG = window.FG || {};
         }
       }
     }
+    // --- 分叉的蛇舌 ---
+    // 在 serpent 這種沒有鰭、沒有尾扇的輪廓上，舌頭是唯一能把「蛇」跟「鰻」分開的訊號。
+    // 分叉一定要張得夠開（末端上下各 3px）；只岔 1px 在 4 倍放大後看起來只是一條粗線。
+    if (sp.indexOf('forkTongue') >= 0) {
+      const tc = C.tongue || '#e0566a';
+      const my = Math.round(cy + profile(0.96) * 0.45);
+      const stem = 7;
+      for (let k = 1; k <= stem; k++) {
+        const x = x1 + k;
+        if (x < 0 || x >= W) break;
+        if (my >= 0 && my < H && !col[my * W + x]) col[my * W + x] = tc;
+      }
+      for (let j = 1; j <= 3; j++) {
+        for (let s = -1; s <= 1; s += 2) {
+          const x = x1 + stem + j, y = my + s * j;
+          if (x < 0 || x >= W || y < 0 || y >= H) continue;
+          if (!col[y * W + x]) col[y * W + x] = tc;
+        }
+      }
+    }
     // --- 巨顎與外露獠牙 ---
     // 原本的「嘴」只有吻端 4px 的一道暗痕，在掠食型魚王身上完全撐不起「顎」的印象。
     // 這裡把咬合線拉長到體長的兩成，再交錯插上亮色牙齒——牙齒畫在身體像素上（不外凸），
@@ -718,6 +742,25 @@ window.FG = window.FG || {};
         '.XsswwwwsX',
         '..XssssssX',
         '...XXXXXX.'
+      ]
+    },
+    // 世界樹根用：裂開的維京圓盾。同心圓（鐵緣 → 彩繪環 → 中央凸飾）是圓盾的識別結構，
+    // 少了中央那顆凸飾就只是一個圓圈。裂縫從右緣往內咬進去、右下角整塊缺掉——
+    // 破損刻意做成**不對稱**，對稱的缺口會被讀成「設計」而不是「壞了」
+    shield: {
+      pal: { X: '#2a2118', w: '#c8b491', r: '#8e3a30', b: '#8a8f98', B: '#d4dae2' },
+      map: [
+        '...XXXXXX...',
+        '..XwwwwwwX..',
+        '.XwrrrrrrwX.',
+        'XwrrwwwwrrwX',
+        'XwrwwbbwXrwX',
+        'XwrwbBBbwrwX',
+        'XwrwwbbwwrwX',
+        'XwrrwwwXrrwX',
+        '.XwrrrrX.wX.',
+        '..XwwwX.....',
+        '...XXX......'
       ]
     },
     // 深淵用：辨識不出物種的魚骨。頭在左、脊椎往右、肋骨是垂直短線
@@ -1260,6 +1303,121 @@ window.FG = window.FG || {};
     }
   };
 
+  // 七 · 世界樹：極光帷幕 + 一根貫穿畫面的巨大樹幹 + 岸邊符文石，樹根拱出水面（世界樹根）
+  //   構圖上跟前六種都不同：前六種都是「很多個小東西排開」，這一種是**單一巨物**。
+  //   在 200×340 的畫布上，一個佔掉三分之一寬度的物件是最強的辨識手段。
+  TERRAIN.yggdrasil = {
+    above: function (T) {
+      const { P, R, W, horizon, rect } = T;
+      const g = T.g;
+
+      // --- 星空：刻意稀疏，極光才是主角 ---
+      for (let i = 0; i < 70; i++) {
+        const y = Math.floor(Math.pow(R(), 0.8) * (horizon - 24));
+        const s = P.star || '#dfeaff';
+        rect(Math.floor(R() * W), y, 1, 1, R() < 0.3 ? s : FG.shade(s, -0.45));
+      }
+
+      // --- 極光帷幕 ---
+      // 真實極光是**垂直的簾子**，不是橫向的帶。做法：先算一條 sin 疊 sin 的下緣，
+      // 再從下緣往上畫垂直筆畫、alpha 隨高度衰減。每 3px 一道較亮的筆畫，
+      // 筆畫之間的明暗差就是簾子的褶皺。
+      // **刻意不用橫帶**——那會撞到 karst 的山腰霧帶。
+      // 兩道簾子的 base 要拉開 40px 以上，否則會在中間疊成一團、分不出青綠與紫兩層。
+      // 初版只差 30px、高度又設 34/46，結果整片糊在一起
+      const cols = P.aurora || ['#5fe0a8', '#8f7fe0'];
+      for (let b = 0; b < cols.length; b++) {
+        const base = horizon - 22 - b * 40;
+        const amp = 12 + b * 6, ph = b * 2.1, hgt = 30 + b * 4;
+        for (let x = 0; x < W; x++) {
+          const by = base + Math.sin(x * 0.035 + ph) * amp + Math.sin(x * 0.11 + ph * 2) * 4;
+          const stroke = (x % 3) === 0 ? 1 : 0.5;
+          for (let k = 0; k < hgt; k += 2) {
+            const y = by - k;
+            if (y < -1) break;
+            g.globalAlpha = 0.27 * stroke * Math.pow(1 - k / hgt, 1.4);
+            rect(x, y, 1, 2, cols[b]);
+          }
+        }
+      }
+      g.globalAlpha = 1;
+
+      // --- 世界樹 ---
+      // 樹幹貫穿整個畫面、樹冠畫到畫面外，用「裝不下」來表達尺度。
+      // 位置偏左（tx=38），中央水道留給船與浮標
+      const bark = P.bark || '#3a2a1e';
+      const tx = 38;
+      for (let y = 0; y < horizon; y++) {
+        const t = y / horizon;
+        const half = 9 + t * t * 14;                 // 往下逐漸變粗，接近根部才明顯張開
+        rect(tx - half, y, half * 2, 1, bark);
+        rect(tx - half, y, Math.max(1, half * 0.26), 1, FG.shade(bark, 0.24));   // 受光側
+        if (y % 5 === 0) rect(tx + half * 0.1, y, Math.max(1, half * 0.45), 1, FG.shade(bark, -0.3));
+      }
+      // 往右上斜出的粗枝：只畫根部，末端出畫面（同樣是「裝不下」）
+      [[0.10, 1.7, 7], [0.30, 1.15, 5], [0.52, 0.7, 4]].forEach(function (b) {
+        const y0 = horizon * b[0];
+        for (let k = 0; k < 60; k++) {
+          const x = tx + 11 + k, y = y0 - k * b[1];
+          if (x >= W || y < 0) break;
+          rect(x, y, 1, Math.max(2, b[2] - k * 0.09), bark);
+        }
+      });
+
+      // --- 岸邊符文石 ---
+      // 石板要**微微傾斜**：立正的石板看起來像柱子，歪的才像「被人立起來很久了」
+      const stn = P.stone || '#6f6a78';
+      const rn = P.rune || '#d8c08f';
+      [[92, 23, 0.14], [126, 17, -0.11], [178, 27, 0.08], [152, 13, 0.2]].forEach(function (s) {
+        const sx = s[0], h = s[1], lean = s[2];
+        for (let k = 0; k < h; k++) {
+          const w = 6 - k * 0.06;
+          rect(sx + k * lean - w / 2, horizon - 1 - k, w, 1, stn);
+        }
+        rect(sx + h * lean - 2, horizon - h - 1, 4, 1, FG.shade(stn, 0.26));
+        // 刻痕：橫向短線加偶爾一道豎筆，構成「讀不懂但有規律」的字樣
+        for (let k = 3; k < h - 3; k += 4) {
+          rect(sx + k * lean - 2, horizon - 1 - k, 4, 1, rn);
+          if (k % 8 === 3) rect(sx + k * lean, horizon - 2 - k, 1, 2, rn);
+        }
+      });
+    },
+    below: function (T) {
+      const { P, R, W, H, horizon, rect } = T;
+      const g = T.g;
+      const bark = P.bark || '#3a2a1e';
+
+      // --- 樹根拱出水面 ---
+      // 樹在左，所以只畫左側；全部避開船（x 34~158、y 212~270）
+      [[16, 36, 17], [32, 26, 12], [52, 20, 9]].forEach(function (r) {
+        const cx = r[0], span = r[1], rise = r[2];
+        const baseY = horizon + 16 + (rise - 9);
+        for (let x = -span / 2; x <= span / 2; x++) {
+          const t = x / (span / 2);
+          const y = baseY - Math.round(Math.sqrt(Math.max(0, 1 - t * t)) * rise);
+          const th = Math.max(2, Math.round(3 + (1 - Math.abs(t)) * 2));
+          rect(cx + x, y, 1, th, bark);
+          rect(cx + x, y, 1, 1, FG.shade(bark, 0.22));
+        }
+      });
+
+      // --- 水面上的符文光 ---
+      // 幾組 3×3 的發光刻痕，暗示「這口泉水自己記著什麼」。
+      // 數量刻意少（5 組），多了會變成裝飾圖案而不是遺跡
+      const rn = P.rune || '#d8c08f';
+      for (let i = 0; i < 5; i++) {
+        const x = Math.round(20 + R() * (W - 50));
+        const y = Math.round(horizon + 22 + R() * (H - horizon - 60));
+        if (x > 24 && x < 168 && y > 206 && y < 276) continue;   // 避開船
+        g.globalAlpha = 0.42 + R() * 0.3;
+        rect(x, y + 1, 5, 1, rn);
+        rect(x + 2, y, 1, 3, rn);
+        rect(x + (R() < 0.5 ? 0 : 4), y + (R() < 0.5 ? 0 : 2), 1, 1, rn);
+      }
+      g.globalAlpha = 1;
+    }
+  };
+
   function buildBackground(loc) {
     const P = loc.scene;
     const W = SCENE_W, H = SCENE_H;
@@ -1601,6 +1759,25 @@ window.FG = window.FG || {};
         g.globalAlpha = 0.34;
         for (let k = 0; k < Math.max(2, 3 * S); k++) fill(0, hz - 7 * S + k, W, 1, P.mist || '#dfe8ee');
         g.globalAlpha = 1;
+        break;
+      }
+
+      case 'yggdrasil': {
+        // 極光 + 一根巨大樹幹。縮圖放不下符文石與樹根，留這兩樣就夠認
+        const auc = (P.aurora && P.aurora[0]) || '#5fe0a8';
+        const ah = hz * 0.5;
+        for (let x = 0; x < W; x++) {
+          const by = hz * 0.62 + Math.sin(x * 0.17) * hz * 0.16;
+          for (let k = 0; k < ah; k++) {
+            g.globalAlpha = 0.34 * (1 - k / ah) * ((x % 3) === 0 ? 1 : 0.55);
+            fill(x, by - k, 1, 1, auc);
+          }
+        }
+        g.globalAlpha = 1;
+        for (let y = 0; y < hz; y++) {
+          const half = (2.2 + (y / hz) * (y / hz) * 2.6) * S;
+          fill(W * 0.24 - half, y, half * 2, 1, P.bark || '#3a2a1e');
+        }
         break;
       }
 

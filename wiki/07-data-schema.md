@@ -36,8 +36,11 @@
 | `frost_lake` | 幽藍冰湖 | `ice` | 3,000 | `free` | 23 | 20 | `fr_` |
 | `lotus_river` | 煙雨蓮江 | `karst` | 6,000 | `free` | 23 | 20 | `lr_` |
 | `abyss` | 深淵海溝 | `night` | 12,000 | `free` | 23 | 20 | `ab_` |
+| `world_root` | 世界樹根 | `yggdrasil` | 24,000 | `free` | 23 | 20 | `wr_` |
 
-**陣列順序 = 進程順序 = 各處 UI 的顯示順序**，並且刻意跟 `castCost` 遞增一致（400 → 1,100 → 1,800 → 3,000 → 6,000 → 12,000）。煙雨蓮江是後來插在冰湖與深淵之間的，補掉原本 3,000 → 12,000 那個 4 倍跳躍。插隊是安全的：所有跨檔案的參照都用 `loc.id`（`data.loc`、`unlocked[]`、`bgCache`、魚的 id 前綴），沒有任何地方用索引記住釣點。唯一的索引是 `screen-codex.js › locIdx`，那是每次 `onShow()` 由 `data.loc` 重算的暫存值。
+**陣列順序 = 進程順序 = 各處 UI 的顯示順序**，並且刻意跟 `castCost` 遞增一致（400 → 1,100 → 1,800 → 3,000 → 6,000 → 12,000 → 24,000）。煙雨蓮江是後來插在冰湖與深淵之間的，補掉原本 3,000 → 12,000 那個 4 倍跳躍；世界樹根是接在最後面的新終點。插隊與接尾都是安全的：所有跨檔案的參照都用 `loc.id`（`data.loc`、`unlocked[]`、`bgCache`、魚的 id 前綴），沒有任何地方用索引記住釣點。唯一的索引是 `screen-codex.js › locIdx`，那是每次 `onShow()` 由 `data.loc` 重算的暫存值。
+
+> **深淵海溝不再是最後一個釣場了。** 它的 `desc` 沒有宣稱自己是終點（只說「光線到不了的地方」），所以不需要改；但**未來再加釣點時要檢查最後一名的文案有沒有寫死「最深」「最後」這類字眼**。
 
 「圖鑑分母」是 `codexProgress()` 算出來的數字，**雜物不列入**（見 [02 §圖鑑](02-state-and-save.md)）。所有釣點的圖鑑分母都刻意維持在 20 以上，讓每張圖鑑頁的收集進度條長度感覺一致。
 
@@ -91,6 +94,11 @@
 | `bridge` | `karst` | 月拱橋的石色 |
 | `lotus` `bloom` | `karst` | 荷葉、蓮花 |
 | `trunk` | `karst` | 竹桿（與 `shrine` 共用同一個 key，語意不同） |
+| `aurora` | `yggdrasil` | **色碼陣列**，一個顏色一道極光簾子（目前 2 道：青綠、紫） |
+| `bark` | `yggdrasil` | 世界樹的樹幹與樹根 |
+| `rune` | `yggdrasil` | 符文石的刻痕與水面上的符文光 |
+| `stone` | `yggdrasil` | 符文石板（與 `shrine` 的石燈籠共用同一個 key） |
+| `star` | `yggdrasil` | 星星（與 `night` 共用同一個 key） |
 
 > ⚠️ **`karst` 的白牆（`wall`）與霧帶（`mist`）不會有倒影。** 倒影只保留亮度 ≤ 150 的像素（見 [06 §為什麼倒影用 getImageData](06-pixel-engine.md#為什麼倒影用-getimagedata)），這兩個色都遠高於門檻。這是刻意接受的：白牆在水裡鏡射會亮到蓋掉水面，霧本來也不該有倒影。要讓某個新地形物件有倒影，它的顏色就必須壓在 150 以下。
 
@@ -107,15 +115,17 @@
   id:      'ml_bass',      // 唯一！同時是圖鑑 key 與精靈快取 key
   name:    '黑鱸',
   rarity:  'good',         // junk|common|good|rare|epic|legend|king
-  shape:   'normal',       // normal|long|round|flat|wide|ray|catfish|tuna|dragon|pike|abyss|paddle
+  shape:   'normal',       // normal|long|round|flat|wide|ray
+                           // 魚王專屬：catfish|tuna|dragon|pike|abyss|paddle|serpent
   scale:   0.9,            // 在精靈框中的佔比，魚王建議 1.25～1.35
   pattern: 'band',         // none|stripe|band|band2|spot|speck|net|scale
-  special: ['glow'],       // 選用：glow|spike|whisker|scar|horn|jaw|lantern|finlet|mane|frost|rostrum
+  special: ['glow'],       // 選用：glow|spike|whisker|scar|horn|jaw|lantern
+                           //       finlet|mane|frost|rostrum|forkTongue
   cyOffset: 1,             // 選用：垂直微調（像素）
   value:   330,            // 基礎估價（實際售價依體長平方縮放）
   minLen:  25, maxLen: 50, // 體長範圍（cm）
   colors:  { body, back, belly, fin, pattern, glow, hornColor,
-             scar, tooth, frost, lantern, mane, rostrum,   // 各 special 的專屬色，省略有預設值
+             scar, tooth, frost, lantern, mane, rostrum, tongue,  // 各 special 的專屬色，省略有預設值
              eyeWhite, pupil },
   desc:    '一句描述',
   legend:  '長篇傳說文字'    // 選用。有的話結果卡與圖鑑會用琥珀色框強調
@@ -152,6 +162,9 @@
 | 霜牙巨狗魚「寇爾德」 | 幽藍冰湖 | `pike` | `spot` | `glow` `jaw` `frost` | 後半肥、背鰭極後＋獠牙＋體表霜晶 |
 | 江神白鱘「渡江」 | 煙雨蓮江 | `paddle` | `net` | `glow` `rostrum` `spike` | 佔體長近半的劍狀長吻＋背部骨板 |
 | 深淵之顎「尼克斯」 | 深淵海溝 | `abyss` | `net` | `glow` `jaw` `lantern` | 巨頭小尾＋獠牙＋頭頂發光燈籠 |
+| 世界蛇「耶夢加得」 | 世界樹根 | `serpent` | `scale` | `glow` `forkTongue` | **完全沒有鰭**的均勻長管＋分叉蛇舌 |
+
+> **`serpent` 與 `dragon` 是刻意區分開的兩種「長條形」。** `dragon`（八尋）有 `tailH .95` 的大尾扇與 `mane` 的高聳鬃毛，是「帶狀的魚」；`serpent`（耶夢加得）`tailH .14`、`dorsal .05`、`e .30`，是「粗細均勻、沒有鰭、尾巴收成一點」的真蛇。兩者放在一起不會被認成同一條。
 
 **`scar` 只給翁德。** 牠的傳說明寫「背上那道疤」，是角色設定；其他四位沒有這段故事，加了只會讓五條魚看起來像同一張貼圖換色。這是實際踩過的坑——初版五王全是 `shape: 'wide'` + `glow` + `scar`，只有配色不同，並排在圖鑑裡完全認不出是不同的魚。詳見 [11 §五王同型](11-invariants-and-gotchas.md)。
 
@@ -189,6 +202,16 @@
 | 幽藍冰湖 | **全部壓在藍白冷調** | 暖色（橘點、紫鰭）只給優良以上，玩家一眼認得出「這條不一樣」 |
 | 煙雨蓮江 | **水墨色域**：墨青、灰藍、青瓷綠 | 暖色（朱紅、胭脂、金）只給稀有以上。整片灰綠打底，所以一條胭脂魚或金鯉會非常突出 |
 | 深淵海溝 | **底色壓到接近黑** | 辨識度全靠 `special: ['glow']` 與冷光 `pattern`；沒有陽光的地方不會有保護色，所以幾乎每種都帶生物發光 |
+| 世界樹根 | 極夜的深藍黑，**唯一亮色來源是極光**（青綠 × 紫） | 用「**魚種性質**」而不是配色分界：普通～優良是北大西洋真實冷水魚、一律銀白灰；史詩以上換成神話生物、帶 `glow` 並吃極光的青綠紫金 |
+
+### 世界樹根的分界線就是它的識別方式
+
+其他六個釣點的稀有度對比靠「同一個色系裡的明度／彩度差」，這裡改成**換掉魚的種類**：
+
+- junk～good：銀鯡、毛鱗魚、圓鰭魚、北海鰈、北洋鱈、狼牙魚、角鯊——全部是真實存在的北大西洋冷水魚，配色一律壓在銀白灰。
+- epic 以上：噬根幼龍（尼德霍格的幼體）、島鯨幼體（Lyngbakr）、詭火鮭「洛基」、詩人蜜酒鰻、世界蛇「耶夢加得」——全部出自北歐神話，配色改吃極光的青綠紫與蜜酒金，並且全部帶 `glow`。
+
+**那道分界本身就是玩家讀到的訊息**：「越過某條線之後，釣起來的東西就不是普通的魚了」。這是這個釣點作為終點站要傳達的感覺，也讓它跟深淵海溝（那裡是**全部**都不像魚）區分開來。
 
 ### 煙雨蓮江的另一條識別線：真實物種
 

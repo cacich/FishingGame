@@ -48,14 +48,14 @@
 
 | 欄位 | 可用值 |
 |---|---|
-| `shape` | 一般：`normal` `long` `round` `flat` `wide` `ray`／魚王專屬：`catfish` `tuna` `dragon` `pike` `abyss` `paddle` |
+| `shape` | 一般：`normal` `long` `round` `flat` `wide` `ray`／魚王專屬：`catfish` `tuna` `dragon` `pike` `abyss` `paddle` `serpent` |
 | `pattern` | `none` `stripe` `band` `band2` `spot` `speck` `net` `scale` |
-| `special[]` | `glow` `spike` `whisker` `scar` `horn` `jaw` `lantern` `finlet` `mane` `frost` `rostrum` |
-| `junkArt` | `boot` `can` `weed` `bottle` `ice` `bone` `ema` `porcelain` |
-| `scene.terrain` | `forest` `cliff` `shrine` `ice` `karst` `night` |
-| `colors` | `body`(必填) `back` `belly` `fin` `pattern` `glow` `hornColor` `scar` `tooth` `frost` `lantern` `mane` `rostrum` `eyeWhite` `pupil` |
+| `special[]` | `glow` `spike` `whisker` `scar` `horn` `jaw` `lantern` `finlet` `mane` `frost` `rostrum` `forkTongue` |
+| `junkArt` | `boot` `can` `weed` `bottle` `ice` `bone` `ema` `porcelain` `shield` |
+| `scene.terrain` | `forest` `cliff` `shrine` `ice` `karst` `night` `yggdrasil` |
+| `colors` | `body`(必填) `back` `belly` `fin` `pattern` `glow` `hornColor` `scar` `tooth` `frost` `lantern` `mane` `rostrum` `tongue` `eyeWhite` `pupil` |
 
-會觸發 `headRoom`（吻端前方預留空間）的 special：`whisker`(12px)、`rostrum`(24px)。
+會觸發 `headRoom`（吻端前方預留空間）的 special：`whisker`(12px)、`forkTongue`(12px)、`rostrum`(24px)。
 
 ## 狀態機階段
 
@@ -99,6 +99,7 @@
 | `fr_` | 幽藍冰湖的魚 |
 | `lr_` | 煙雨蓮江的魚 |
 | `ab_` | 深淵海溝的魚 |
+| `wr_` | 世界樹根的魚 |
 | `rod_` `bait_` `eq_` | 釣竿／餌料／裝備 |
 | `FG.screenXxx` | 分頁模組 |
 | `px.` | `FG.px` 像素引擎命名空間 |
