@@ -153,7 +153,18 @@ window.FG = window.FG || {};
       const s = this, n = [660, 830, 990, 1320];
       n.forEach(function (f, i) { setTimeout(function () { s.tone(f, 0.13, 'square', 0.06); }, i * 90); });
     },
-    fail:  function () { this.tone(220, 0.2, 'sawtooth', 0.04, 110); }
+    fail:  function () { this.tone(220, 0.2, 'sawtooth', 0.04, 110); },
+
+    // 依序播一串音。cut-in 用它把每位魚王的音階動機播出來——同一套演出骨架
+    // 配不同的音階，聽起來就是不同的登場曲（見 cutin.js 的 KING 表）。
+    seq: function (notes, gap, dur, type, vol) {
+      const s = this;
+      (notes || []).forEach(function (f, i) {
+        setTimeout(function () { s.tone(f, dur || 0.15, type || 'square', vol || 0.06); }, i * (gap || 110));
+      });
+    },
+    // 魚王 cut-in 開場的悶響。低頻下滑，跟 fail() 的挫敗感刻意分開（音量與波形不同）
+    impact: function () { this.tone(130, 0.34, 'sawtooth', 0.075, 42); }
   };
   FG.sfx = Sfx;
 

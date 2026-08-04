@@ -7,7 +7,7 @@
      重新安裝並清掉舊快取。不改的話舊快取會一直留著。
    ============================================================ */
 
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE = 'fishing-' + VERSION;
 
 // 程式碼類資產走 network-first 時，等網路的上限（毫秒）。超時就回快取，
@@ -25,6 +25,7 @@ const ASSETS = [
   './js/data.js',
   './js/state.js',
   './js/ui.js',
+  './js/cutin.js',
   './js/screen-fishing.js',
   './js/screen-daily.js',
   './js/screen-home.js',

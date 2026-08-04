@@ -67,7 +67,18 @@
 | `cast` | 浮標飛出 |
 | `wait` | 等待魚訊 |
 | `bite` | 咬鉤 |
+| `cutin` | 登場演出（**只有傳說以上才有這一段**） |
 | `reel` | 收線（魚躍出水面） |
+
+## cut-in
+
+| key | 值 |
+|---|---|
+| `kind` | `legend`（1250ms）／`king`（2100ms） |
+| `motif` | `legend`／魚王四選一：`emerge` `charge` `spiral` `reveal` |
+| `particle` | 粒子動線：`up` 上浮／`burst` 四散／`drift` 橫流 |
+
+八位魚王的分配表在 [04 §cut-in](04-fishing-loop.md#cut-in--傳說以上的登場演出)。
 
 ## 事件名
 

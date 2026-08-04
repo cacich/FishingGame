@@ -190,6 +190,7 @@ FG.ui.scrollEdges(el, axis)       // 捲動容器的邊緣漸層提示，見 §�
 | `.codex-grid` `.codex-cell` | 圖鑑格 |
 | `.loc-card` | 釣點卡 |
 | `.catch-card` | 釣獲結果卡 |
+| `.cutin` ＋ `.cutin-legend` `.cutin-king` `.motif-*` `.pm-*` | 傳說／魚王的登場疊層，見下節 |
 
 ### 像素風的做法
 
@@ -203,6 +204,35 @@ box-shadow:
 ```
 
 **字型刻意用系統 sans-serif，沒有套點陣字型。** 中文點陣字型在小字級下辨識度很差，寧可讓 UI 文字清楚可讀，像素感由 canvas 內容和 UI 邊框提供。
+
+### cut-in 疊層 · `.cutin`
+
+傳說／魚王登場演出的樣式，整段在 `styles.css` 的「傳說／魚王 cut-in」區塊。機制、骨架與資料表寫在 [04 §cut-in](04-fishing-loop.md#cut-in--傳說以上的登場演出)，這裡只記 CSS 這一側的約束。
+
+**類名的三層結構**，JS 一次掛上：
+
+```
+.cutin  .cutin-king  .motif-spiral      ← 根元素
+   └ .ci-particles.pm-burst             ← 粒子容器
+```
+
+- `.cutin-legend` / `.cutin-king` 決定**總長與收尾時機**。
+- `.motif-emerge|charge|spiral|reveal` 決定魚怎麼進場、要不要黑幕／符文環。
+- `.pm-up|burst|drift` 決定粒子動線。
+
+顏色走兩個 CSS 變數 `--ci-key` / `--ci-accent`，由 `cutin.js` 從魚自己的 `colors.glow` / `colors.pattern` 寫進 style。**不要在 CSS 裡寫死稀有度顏色**——那樣八位魚王會長得一樣。放射線與光帶用 `currentColor` 配 `color: var(--ci-key)`，因為 gradient 裡不能直接吃自訂屬性當色票。
+
+三個硬性約束：
+
+1. **keyframes 只動 `transform` 與 `opacity`。** 這一層蓋滿整個場景，把 `box-shadow`／`filter`／`clip-path` 放進動畫等於每幀重繪整片。揭幕型的黑幕因此做成兩塊會滑開的 `div`（`.ci-slit`）而不是 `clip-path`。
+2. **收尾一律淡出到 `opacity: 0`。** 疊層有機會沒被即時移除（分頁切走時 `frame()` 會停），淡到全透明就不會變成卡住的殘影。
+3. **時間軸跟 `cutin.js › DUR_LEGEND / DUR_KING` 綁死。** 改一邊要改另一邊，見 [11 §26](11-invariants-and-gotchas.md)。
+
+疊放順序就是 DOM append 順序：`背景 → 魚 → 粒子 → 黑幕 → 文字 → 白閃`。黑幕要蓋得住魚才擋得住，文字要在黑幕之上才不會被最後留下的上下留邊切掉。
+
+`.ci-fish` 的 `inset` 底部讓出 18%：魚是在這個框裡置中的，不讓的話大魚的下緣會壓到標語。320px 寬實測 415px 高的場景裡，魚佔 84～256、標語 273 起，不重疊。
+
+`prefers-reduced-motion` 只拿掉震動與粒子，**不能整組把 `animation-duration` 歸零**——那會讓收尾的 `ciOut` 立刻生效，整段 cut-in 變成兩秒空白畫面。
 
 ### 所有 canvas 都要
 

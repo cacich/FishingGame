@@ -13,6 +13,7 @@
 | `js/data.js` | [07 資料規格](07-data-schema.md) | [03 經濟](03-economy.md)、[10 平衡調參](10-balance-tuning.md)（**任何數值改動都要重跑模擬更新基準表**）、[12 名詞表](12-glossary.md) |
 | `js/state.js` | [02 狀態與存檔](02-state-and-save.md) | [03 經濟](03-economy.md)（抽獎相關）、[10 平衡調參](10-balance-tuning.md)、[11 地雷](11-invariants-and-gotchas.md) |
 | `js/ui.js` | [08 介面](08-ui-and-screens.md) | [11 地雷](11-invariants-and-gotchas.md)（捲動／版面時序問題） |
+| `js/cutin.js` | [04 釣魚循環](04-fishing-loop.md) | [08 介面](08-ui-and-screens.md)（`.cutin` 樣式與 CSS 時間軸）、[09 操作手冊](09-recipes.md)（新增釣點的第七樣）、[11 地雷](11-invariants-and-gotchas.md) |
 | `js/screen-fishing.js` | [04 釣魚循環](04-fishing-loop.md)、[05 自動模式](05-auto-mode.md) | [08 介面](08-ui-and-screens.md)、[03 經濟](03-economy.md) |
 | `js/screen-daily.js` | [08 介面](08-ui-and-screens.md) | [02 存檔](02-state-and-save.md)（簽到／任務結構） |
 | `js/screen-home.js` | [08 介面](08-ui-and-screens.md) | [06 像素引擎](06-pixel-engine.md)（房間繪製、裝飾圖示） |
@@ -41,7 +42,9 @@
 | 動到任何影響機率／價格／成本的數值 | 跑 [10 §模擬腳本](10-balance-tuning.md#模擬腳本)，**更新基準表** |
 | 新增 shape / pattern / special / junkArt | [06](06-pixel-engine.md) 加說明 ＋ [07](07-data-schema.md) 加可用值 ＋ [12](12-glossary.md) 加清單 |
 | 新增「會往魚身體外延伸」的 special | 上面那一列全做，**再加 `buildFish()` 的 `HEAD_ROOM` 一列**（見 [11 §19](11-invariants-and-gotchas.md)） |
-| **新增釣點** | ★ **必須一次生出一整套**：釣點＋魚種＋釣竿＋餌料＋裝備＋家園裝飾，規則與理由見 [09 §新增一個釣點](09-recipes.md#新增一個釣點--一次要生出一整套)。文件要更新 [07](07-data-schema.md) 釣點表＋配色規則表＋四張裝備表、[10](10-balance-tuning.md) 基準表＋模擬腳本、[12](12-glossary.md) id 前綴、[README](README.md) 三十秒版本，並**在 320px 寬檢查 [08](08-ui-and-screens.md#會隨釣點數量成長的介面) 列的兩處** |
+| **新增釣點** | ★ **必須一次生出一整套**：釣點＋魚種＋釣竿＋餌料＋裝備＋家園裝飾＋**魚王 cut-in**，規則與理由見 [09 §新增一個釣點](09-recipes.md#新增一個釣點--一次要生出一整套)。文件要更新 [07](07-data-schema.md) 釣點表＋配色規則表＋四張裝備表、[10](10-balance-tuning.md) 基準表＋模擬腳本、[12](12-glossary.md) id 前綴、[04](04-fishing-loop.md) 魚王 cut-in 分配表、[README](README.md) 三十秒版本，並**在 320px 寬檢查 [08](08-ui-and-screens.md#會隨釣點數量成長的介面) 列的兩處** |
+| **新增魚王** | `cutin.js › KING` 補一筆（`motif` / `particle` / `title` / `tone`）＋ [04](04-fishing-loop.md) 的分配表加一列。**漏了不報錯**，只是那位魚王的登場演出跟別人一樣 |
+| 改 cut-in 的長度或動畫 | `cutin.js › DUR_*` 與 `styles.css` 的 keyframes **必須一起改**（[11 §26](11-invariants-and-gotchas.md)）＋ [04 §時間軸](04-fishing-loop.md#時間軸) 的表 ＋ [08](08-ui-and-screens.md) |
 | 新增釣竿／餌料 | [07](07-data-schema.md) 的表；**維持 price 遞增**；`screen-shop.js › rodIcon()` 的色表要同步加長（[11 §24](11-invariants-and-gotchas.md)） |
 | 新增**裝備** | [07](07-data-schema.md) 的表 ＋ `screen-shop.js › EQUIP_ART` 圖示。**釣點專屬的一律綁 `effect.loc` 且只給一個效果**，否則倍率會疊乘失控（[10](10-balance-tuning.md)） |
 | 新增**家園裝飾** | [07](07-data-schema.md) 的表 ＋ `screen-home.js › DECO_ART` 圖示 ＋ `pixel.js › drawRoom()` 繪製碼。**釣點主題的一律純裝飾**（`effect: {}`） |
@@ -62,7 +65,7 @@
 | [01 架構](01-architecture.md) | `index.html`、`util.js`、`main.js`、跨檔案契約 |
 | [02 狀態與存檔](02-state-and-save.md) | `state.js`（存檔／事件／API） |
 | [03 經濟與抽獎](03-economy.md) | `state.js`（`castCost` `bonus` `rarityTable` `rollCatch` `recordCatch`）、`data.js › FG.RARITY` |
-| [04 釣魚循環](04-fishing-loop.md) | `screen-fishing.js`（狀態機／演出／結果卡） |
+| [04 釣魚循環](04-fishing-loop.md) | `screen-fishing.js`（狀態機／演出／結果卡）、`cutin.js` 全部 |
 | [05 自動模式](05-auto-mode.md) | `screen-fishing.js`（`auto*` 系列） |
 | [06 像素引擎](06-pixel-engine.md) | `pixel.js` 全部 ＋ 各分頁檔的字元圖常數 |
 | [07 資料規格](07-data-schema.md) | `data.js` 全部 |

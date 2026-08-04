@@ -32,6 +32,9 @@ state.js         依賴 data（FG.RODS/BAITS/EQUIPS/LOCATIONS…）＋ util（FG
   ↓
 ui.js            依賴 util（FG.el/FG.esc）＋ data（FG.RARITY）＋ pixel（FG.px.spriteEl）
   ↓
+cutin.js         依賴 util（FG.el/FG.$$/FG.sfx）＋ data（FG.RARITY）＋ pixel（FG.px.spriteEl）。
+                 傳說／魚王的 cut-in 演出，只被 screen-fishing 呼叫。→ 詳見 04-fishing-loop
+  ↓
 screen-*.js ×5   依賴以上全部。只註冊物件，不執行任何啟動邏輯
   ↓
 pwa.js           依賴 util（FG.store）＋ ui（FG.ui.toast）。註冊 Service Worker、
@@ -54,11 +57,15 @@ main.js          最後執行，boot() 把所有東西串起來
 | 格式 | `FG.fmt(n)`（千分位）、`FG.fmtShort(n)`（萬／億縮寫）、`FG.todayKey()`（`YYYY-M-D`，本地時區） |
 | DOM | `FG.$`、`FG.$$`、`FG.el(tag, cls, html)`、`FG.esc(str)` |
 | 儲存 | `FG.store.load/save/clear`，全部 try/catch 包住（`file://` 或隱私模式下 localStorage 可能拋錯） |
-| 音效 | `FG.sfx.click/cast/splash/bite/coin/win/fail`，WebAudio 即時合成，無音檔 |
+| 音效 | `FG.sfx.click/cast/splash/bite/coin/win/fail/seq/impact`，WebAudio 即時合成，無音檔 |
 
 **`FG.seeded` 的用途**：讓場景細節（樹林分佈、水面反光位置）每次重繪都長一樣。傳同一個 seed 就得到同一串亂數。地點資料裡的 `seed` 欄位就是餵這個用的。
 
 **音效解鎖**：瀏覽器要求使用者互動後才能啟動 AudioContext。`main.js › boot()` 綁了一次性的 `pointerdown` 呼叫 `FG.sfx.init()`。
+
+**`seq(notes, gap, dur, type, vol)`**：依序播一串音（用 `setTimeout` 排，跟既有的 `bite()` / `coin()` 同一套做法）。cut-in 靠它讓每位魚王有自己的登場音階動機，見 [04 §cut-in](04-fishing-loop.md#cut-in--傳說以上的登場演出)。每一聲最後都會走進 `tone()`，而 `tone()` 是**發聲當下**才檢查 `sfx.on`，所以序列播到一半關掉音效，剩下的音就不會響。
+
+**`impact()`**：低頻下滑的悶響，魚王 cut-in 開場用。跟 `fail()` 刻意分開（音量更大、下滑更深），否則玩家會把「魚王登場」聽成「操作失敗」。
 
 ## 畫面模組契約
 

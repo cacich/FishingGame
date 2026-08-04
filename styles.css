@@ -313,6 +313,219 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   white-space: nowrap;
 }
 
+/* ---------- 傳說／魚王 cut-in ----------
+
+   疊在場景 canvas 上的 DOM 層，不畫進 canvas：那張 canvas 是 object-fit:cover，
+   畫上去的東西邊緣會被裁掉、位置也不可控。
+
+   ★ 這裡的時間軸跟 js/cutin.js 的 DUR_LEGEND(1250) / DUR_KING(2100) 是綁在一起的。
+     所有動畫都要在那個時間點之前收完，改一邊一定要改另一邊。
+
+   ★ 只動 transform / opacity。box-shadow、filter、clip-path 之類會觸發重繪的
+     屬性一律不放進 keyframes——這層蓋滿整個場景，重繪成本是整片的。
+
+   顏色來自 --ci-key / --ci-accent，由 cutin.js 從魚自己的 colors.glow / colors.pattern
+   餵進來，所以每位魚王的演出色調不一樣。
+*/
+.cutin {
+  position: absolute; inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* 收尾一律淡出到 opacity:0。這樣萬一疊層沒被即時移除（例如分頁切走時
+   frame() 停掉），留在 DOM 裡的也是看不見的，不會變成卡住的殘影。 */
+.cutin-legend { animation: ciOut .2s linear 1.05s forwards; }
+.cutin-king   { animation: ciOut .2s linear 1.9s forwards, ciShake .3s linear 0s 3; }
+@keyframes ciOut { to { opacity: 0; } }
+@keyframes ciShake {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(-3px, 2px); }
+  50%  { transform: translate(3px, -2px); }
+  75%  { transform: translate(-2px, -3px); }
+  100% { transform: translate(0, 0); }
+}
+
+.ci-veil { position: absolute; inset: 0; background: #050a10; opacity: 0; }
+.cutin-legend .ci-veil { animation: ciVeil .18s ease-out both; }
+.cutin-king   .ci-veil { animation: ciVeilK .24s ease-out both; }
+@keyframes ciVeil  { to { opacity: .55; } }
+@keyframes ciVeilK { to { opacity: .86; } }
+
+/* 放射線。用 currentColor 讓 --ci-key 能透過 color 進到 gradient 裡 */
+.ci-rays {
+  position: absolute; left: 50%; top: 46%;
+  width: 220%; aspect-ratio: 1; margin: -110% 0 0 -110%;
+  color: var(--ci-key);
+  background: repeating-conic-gradient(from 0deg, currentColor 0deg 2.4deg, transparent 2.4deg 12deg);
+  opacity: 0;
+}
+.cutin-king .ci-rays { animation: ciRays 1.9s linear .05s both; }
+@keyframes ciRays {
+  0%   { transform: rotate(0deg) scale(.6); opacity: 0; }
+  18%  { opacity: .16; }
+  100% { transform: rotate(26deg) scale(1); opacity: .05; }
+}
+
+/* 符文環（盤旋型專用）。內層再轉一個 45 度的方框，做出雙環咬合的感覺 */
+.ci-ring {
+  position: absolute; left: 50%; top: 46%;
+  width: 62%; aspect-ratio: 1; margin: -31% 0 0 -31%;
+  border: 3px solid currentColor;
+  color: var(--ci-key);
+  opacity: 0;
+}
+.ci-ring::after {
+  content: ''; position: absolute; inset: 14%;
+  border: 2px solid var(--ci-accent);
+  transform: rotate(45deg);
+}
+.motif-spiral .ci-ring { animation: ciRing 1.5s linear .05s both; }
+@keyframes ciRing {
+  0%   { transform: rotate(0deg) scale(.45); opacity: 0; }
+  25%  { opacity: .5; }
+  100% { transform: rotate(-220deg) scale(1.3); opacity: 0; }
+}
+
+/* 斜切光帶（傳說專用） */
+.ci-band {
+  position: absolute; top: -30%; left: 0;
+  width: 42%; height: 160%;
+  color: var(--ci-key);
+  background: linear-gradient(90deg, transparent, currentColor, transparent);
+  opacity: 0;
+}
+.cutin-legend .ci-band { animation: ciBand .62s cubic-bezier(.2,.7,.3,1) .06s both; }
+@keyframes ciBand {
+  0%   { transform: rotate(18deg) translateX(-260%); opacity: 0; }
+  20%  { opacity: .6; }
+  100% { transform: rotate(18deg) translateX(300%); opacity: 0; }
+}
+
+/* 揭幕型的上下黑幕。合攏 → 拉開成留邊的橫帶 */
+.ci-slit { display: none; position: absolute; left: 0; right: 0; height: 50%; background: #04070c; }
+.motif-reveal .ci-slit { display: block; }
+.ci-slit.t { top: 0; }
+.ci-slit.b { bottom: 0; }
+.motif-reveal .ci-slit.t { animation: ciSlitT 1.05s cubic-bezier(.2,.85,.25,1) .2s both; }
+.motif-reveal .ci-slit.b { animation: ciSlitB 1.05s cubic-bezier(.2,.85,.25,1) .2s both; }
+@keyframes ciSlitT { 0% { transform: translateY(0); } 100% { transform: translateY(-72%); } }
+@keyframes ciSlitB { 0% { transform: translateY(0); } 100% { transform: translateY(72%); } }
+
+/* 魚。ci-fish 只是定位框，動畫掛在 ci-layer 上——衝擊型會有多層殘影。
+   底部讓出 18%：魚是在這個框裡置中的，不讓的話大魚的下緣會壓到標語上。 */
+.ci-fish { position: absolute; inset: 0 0 18% 0; }
+.ci-layer {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.ci-layer canvas { max-width: 92%; height: auto; }
+
+.cutin-legend .ci-layer { animation: ciFishL .45s steps(7) .12s both; }
+@keyframes ciFishL {
+  from { transform: translateX(-55%) rotate(-10deg); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+.motif-emerge .ci-layer { animation: ciEmerge 1.15s cubic-bezier(.2,.8,.3,1) .1s both; }
+@keyframes ciEmerge {
+  0%   { transform: translateY(34%) scale(.72); opacity: 0; }
+  45%  { opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+
+.motif-charge .ci-layer { animation: ciCharge .5s cubic-bezier(.15,.9,.25,1) .18s both; }
+.motif-charge .ci-ghost { animation-name: ciChargeG; }
+.motif-charge .ci-ghost:nth-child(1) { animation-delay: .26s; }
+.motif-charge .ci-ghost:nth-child(2) { animation-delay: .22s; }
+@keyframes ciCharge {
+  0%   { transform: translateX(-130%) scaleX(1.3); opacity: 0; }
+  22%  { opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+@keyframes ciChargeG {
+  0%   { transform: translateX(-130%) scaleX(1.3); opacity: 0; }
+  22%  { opacity: .34; }
+  100% { transform: none; opacity: 0; }
+}
+
+.motif-spiral .ci-layer { animation: ciSpiral 1.2s cubic-bezier(.25,.8,.3,1) .1s both; }
+@keyframes ciSpiral {
+  0%   { transform: rotate(-170deg) scale(.26); opacity: 0; }
+  25%  { opacity: 1; }
+  70%  { transform: rotate(10deg) scale(1.06); opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+
+.motif-reveal .ci-layer { animation: ciReveal 1.2s cubic-bezier(.2,.8,.3,1) .18s both; }
+@keyframes ciReveal {
+  0%   { transform: scale(1.14); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+
+/* 粒子。動線只有三種，顏色吃魚的配色，所以同一條動線在不同魚王身上不一樣 */
+.ci-particles { position: absolute; inset: 0; overflow: hidden; }
+.ci-p {
+  position: absolute; display: block;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-iteration-count: infinite;
+}
+.pm-up .ci-p    { animation-name: ciPUp; }
+.pm-burst .ci-p { animation-name: ciPBurst; }
+.pm-drift .ci-p { animation-name: ciPDrift; }
+@keyframes ciPUp {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  15%  { opacity: .9; }
+  100% { transform: translate(var(--tx, 0), -260px); opacity: 0; }
+}
+@keyframes ciPBurst {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--tx, 0), var(--ty, 0)) scale(.4); opacity: 0; }
+}
+@keyframes ciPDrift {
+  0%   { transform: translate(0, 0); opacity: 0; }
+  15%  { opacity: .85; }
+  100% { transform: translate(-460px, var(--ty, 0)); opacity: 0; }
+}
+
+/* 白閃 */
+.ci-flash { position: absolute; inset: 0; background: #fff; opacity: 0; }
+.cutin-legend .ci-flash { animation: ciFlash .28s ease-out .3s both; }
+.cutin-king   .ci-flash { animation: ciFlashK .5s ease-out .05s both; }
+@keyframes ciFlash  { 0% { opacity: 0; } 30% { opacity: .5; } 100% { opacity: 0; } }
+@keyframes ciFlashK { 0% { opacity: .9; } 100% { opacity: 0; } }
+
+/* 文字 */
+.ci-text { position: absolute; left: 0; right: 0; bottom: 13%; text-align: center; }
+.ci-kanji {
+  font-size: 32px; font-weight: 700; letter-spacing: 8px;
+  color: var(--ci-key);
+  text-shadow: 3px 3px 0 #000, -3px 3px 0 #000, 3px -3px 0 #000, -3px -3px 0 #000;
+}
+.cutin-legend .ci-kanji { font-size: 26px; }
+.ci-name {
+  margin-top: 5px; font-size: 13px; letter-spacing: 1px; color: #fff;
+  text-shadow: 2px 2px 0 #000, -2px 2px 0 #000, 2px -2px 0 #000, -2px -2px 0 #000;
+}
+.ci-rank { margin-top: 3px; font-size: 10.5px; letter-spacing: 6px; color: var(--ci-accent); }
+.cutin-legend .ci-kanji { animation: ciTextIn .3s cubic-bezier(.2,1.5,.4,1) .3s both; }
+.cutin-legend .ci-name,
+.cutin-legend .ci-rank  { animation: ciTextUp .28s ease-out .44s both; }
+.cutin-king .ci-kanji { animation: ciTextIn .34s cubic-bezier(.2,1.5,.4,1) .85s both; }
+.cutin-king .ci-name,
+.cutin-king .ci-rank  { animation: ciTextUp .3s ease-out 1.12s both; }
+@keyframes ciTextIn { from { transform: scale(1.9); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes ciTextUp { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* 會動暈的人：拿掉震動與粒子，其餘照播。
+   不能整組把 animation-duration 歸零——那會讓收尾的 ciOut 立刻生效，
+   整段 cut-in 變成兩秒空白畫面。 */
+@media (prefers-reduced-motion: reduce) {
+  .cutin-king { animation: ciOut .2s linear 1.9s forwards; }
+  .ci-particles, .ci-rays { display: none; }
+}
+
 /* 設定表單 */
 .set-row { margin-bottom: 12px; }
 .set-label { font-size: 11.5px; color: var(--ink-dim); margin-bottom: 5px; }

@@ -1,6 +1,6 @@
 /* ============================================================
    screen-fishing.js — 釣魚主畫面
-   演出流程：拋竿 → 等待 → 咬鉤 → 收線（魚躍出水面）→ 結果卡
+   演出流程：拋竿 → 等待 → 咬鉤 →（傳說以上：cut-in）→ 收線（魚躍出水面）→ 結果卡
    釣獲結果在「拋竿當下」就抽好，聲納裝備才能提前給魚影提示
 
    自動模式：連續拋竿並自動處理漁獲，可設定局數、籌碼下限、
@@ -61,6 +61,7 @@ window.FG = window.FG || {};
     pending: null,      // 本次抽到的漁獲
     dur: null,          // 本次演出各階段長度（拋竿當下依速度算好）
     hinted: false,
+    cutinPlan: null,    // 本次要播的 cut-in（null = 不播），拋竿當下決定
     auto: null,         // 自動模式執行中的狀態，null = 手動
     nextCastAt: 0,
 
@@ -113,7 +114,12 @@ window.FG = window.FG || {};
       return el;
     },
 
-    onShow: function () { this.refresh(); },
+    // 分頁切走時 frame() 會停（見 wiki 01 §主迴圈），cut-in 的疊層可能留在 DOM 裡。
+    // 回來時若已經不在 cutin 階段就清掉，避免看到停在最後一格的殘影。
+    onShow: function () {
+      if (this.phase !== 'cutin') this.clearCutin();
+      this.refresh();
+    },
 
     // 目前演出速度倍率
     spd: function () { return this.auto ? this.auto.speed : 1; },
@@ -203,11 +209,16 @@ window.FG = window.FG || {};
       this.t0 = performance.now();
       this.hinted = false;
 
+      // 傳說以上要不要插 cut-in，在這裡就決定好，跟其他階段長度一起凍住。
+      // 注意 cutin 刻意不除以 spd：極速自動模式下也照原速播完（見 wiki 04 §時間軸）。
+      this.cutinPlan = FG.cutin.plan(FG.fishById(this.pending.fishId));
+
       const spd = this.spd();
       this.dur = {
         cast: 700 / spd,
         wait: (this.auto ? 500 + Math.random() * 800 : 1200 + Math.random() * 2200) / spd,
         bite: 850 / spd,
+        cutin: this.cutinPlan ? this.cutinPlan.dur : 0,
         reel: 1100 / spd
       };
 
@@ -216,11 +227,28 @@ window.FG = window.FG || {};
       this.refresh();
     },
 
-    // 點畫面加速演出
+    // 點畫面加速演出。
+    // cast / wait 才給跳；bite、cutin、reel 是演出高潮，跳掉就沒有意義了。
     skip: function () {
       if (this.auto) return;
       if (this.phase === 'wait') this.t0 = performance.now() - this.dur.wait;
       else if (this.phase === 'cast') this.t0 = performance.now() - this.dur.cast;
+    },
+
+    /* ---------------- cut-in（傳說以上） ---------------- */
+
+    startCutin: function () {
+      const fish = FG.fishById(this.pending.fishId);
+      this.msg('');   // cut-in 自己有字，castMsg 留著會疊在標語上
+      FG.cutin.play(this.el.querySelector('#stageWrap'), fish, this.pending, this.cutinPlan);
+    },
+
+    // 只負責把疊層拆掉。刻意不動 this.cutinPlan——onShow 也會呼叫這個函式，
+    // 而玩家很可能在 wait 階段切走再切回來，那時 plan 已經決定好、還沒輪到播。
+    // 在這裡清掉 plan 會讓那一竿的 cut-in 整個消失。cutinPlan 由 cast() 每次覆寫。
+    clearCutin: function () {
+      if (!this.el) return;
+      FG.cutin.clear(this.el.querySelector('#stageWrap'));
     },
 
     msg: function (text) {
@@ -255,7 +283,11 @@ window.FG = window.FG || {};
           if (!this.hinted && FG.state.bonus().showHint && e > D.wait * 0.55) {
             this.hinted = true;
             const R = FG.RARITY[this.pending.rarity];
-            this.msg('聲納：偵測到「' + R.name + '」等級魚影');
+            // 傳說以上刻意「只報訊號強度、不報等級」：後面有 cut-in 負責揭曉，
+            // 這裡先講出「傳說」會把驚喜先用掉，聲納反而變成劇透器。
+            this.msg(R.order >= FG.RARITY.legend.order
+              ? '聲納：強　烈　訊　號'
+              : '聲納：偵測到「' + R.name + '」等級魚影');
           }
           if (e >= D.wait) { this.phase = 'bite'; this.t0 = now; FG.sfx.bite(); this.msg('上　鉤　了！'); }
           break;
@@ -266,7 +298,23 @@ window.FG = window.FG || {};
           sceneSt.floatSink = t;
           sceneSt.ripple = true;
           sceneSt.floatY = FLOAT_CAST.y + t * 3;
-          if (t >= 1) { this.phase = 'reel'; this.t0 = now; FG.sfx.splash(); this.msg('收　線！'); }
+          if (t >= 1) {
+            if (this.cutinPlan) { this.phase = 'cutin'; this.t0 = now; this.startCutin(); }
+            else { this.phase = 'reel'; this.t0 = now; FG.sfx.splash(); this.msg('收　線！'); }
+          }
+          break;
+        }
+
+        // cut-in 播放中。場景維持咬鉤的狀態（浮標沉著、水面有漣漪）在疊層後面走，
+        // 演出本身是 DOM + CSS，不畫進這張 canvas。
+        case 'cutin': {
+          sceneSt.floatSink = 1;
+          sceneSt.ripple = true;
+          sceneSt.floatY = FLOAT_CAST.y + 3;
+          if (e >= D.cutin) {
+            this.clearCutin();
+            this.phase = 'reel'; this.t0 = now; FG.sfx.splash(); this.msg('收　線！');
+          }
           break;
         }
 

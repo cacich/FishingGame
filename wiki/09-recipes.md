@@ -61,7 +61,7 @@
 
 ## 新增一個釣點 ★ 一次要生出一整套
 
-> **這是硬性規定。** 一個釣點不是只有地圖——**釣點、釣竿、餌料、魚種、裝備、家園裝飾，六樣要一起加。**
+> **這是硬性規定。** 一個釣點不是只有地圖——**釣點、釣竿、餌料、魚種、裝備、家園裝飾、魚王 cut-in，七樣要一起加。**
 > 少了任何一樣，那個釣點就會變成「沒有專屬東西可買」的空殼，玩家到了那裡沒有新目標。
 
 | 要加的東西 | 加在哪 | 規則 |
@@ -72,6 +72,7 @@
 | **餌料** | `data.js › FG.BAITS` | 一種主題餌，`loc: '釣點id'`。**通用**，價格插進遞增曲線 |
 | **裝備** | `data.js › FG.EQUIPS` | 一件專屬裝備，`effect.loc: '釣點id'`。**只在該釣點生效**，而且**只給一個效果** |
 | **家園裝飾** | `data.js › FG.DECOS` | 一件主題裝飾，`effect: {}`（**純裝飾**） |
+| **魚王 cut-in** | `cutin.js › KING` | 一筆，key 是魚王的 `fish.id`。六行，見下方步驟 12 |
 
 ### 為什麼三者的規則不一樣（重要）
 
@@ -121,8 +122,23 @@
         for (let i = 3; i < d.length; i += 4) if (d[i] > 0) return false; return true; });
       console.log(t, '空白圖示', blank.length); });
     ```
+12. **給新魚王一筆 cut-in 資料**。`js/cutin.js › KING` 加一列，key 是魚王的 `fish.id`：
+    ```js
+    xx_king_name: { motif: 'spiral', particle: 'burst', title: '環　世', tone: [262, 392, 523, 784, 1046] },
+    ```
+    - `motif` 四選一（`emerge` / `charge` / `spiral` / `reveal`），挑跟這位魚王的傳說最貼的那個。**同一個 motif 給兩位魚王是可以的**——主色調來自魚自己的 `colors.glow`，粒子動線與音階也不同，看起來仍然是兩場演出。
+    - `title` 是兩個字，中間放**全形空格**拉開字距（跟 `castMsg` 的「收　線！」同一套處理）。
+    - `tone` 是登場音階，3～5 個音。上行明亮、下行沉重，照這位魚王的氣質挑。
+    - **不用設顏色**，`cutin.js` 直接吃 `fish.colors.glow` 與 `colors.pattern`。
+    - 驗證（會直接播一次，不用真的釣到）：
+      ```js
+      FG.go('fishing');
+      const f = FG.fishById('xx_king_name');
+      FG.cutin.play(FG.screenFishing.el.querySelector('#stageWrap'), f, { fishId: f.id }, FG.cutin.plan(f));
+      ```
+    - **漏了不會報錯**，會退回 `KING_FALLBACK`（通用的 emerge ＋「魚　王」），症狀是「新魚王的登場演出跟別人一樣」。所以它列在這張清單裡。
 
-📝 **要更新**：[07 資料規格](07-data-schema.md) 的釣點表、配色規則表與**釣竿／餌料／裝備／裝飾四張表**、[06 像素引擎](06-pixel-engine.md) 的地形表（若加了新地形）、[10 平衡調參](10-balance-tuning.md) 的基準表與模擬腳本、[12 名詞表](12-glossary.md) 的 id 前綴與 terrain 清單、[README](README.md) 的三十秒版本。
+📝 **要更新**：[07 資料規格](07-data-schema.md) 的釣點表、配色規則表與**釣竿／餌料／裝備／裝飾四張表**、[06 像素引擎](06-pixel-engine.md) 的地形表（若加了新地形）、[10 平衡調參](10-balance-tuning.md) 的基準表與模擬腳本、[12 名詞表](12-glossary.md) 的 id 前綴與 terrain 清單、[04 釣魚循環](04-fishing-loop.md) 的魚王 cut-in 分配表、[README](README.md) 的三十秒版本。
 
 ---
 
