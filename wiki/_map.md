@@ -2,11 +2,17 @@
 
 > **改了左欄的檔案，就必須更新右欄的頁面。** 這是 [`CLAUDE.md`](../CLAUDE.md) 強制規則的執行清單。
 
+> ⚠️ **這個專案有兩個 README，兩個都要維護。** 本頁一律寫全名以免搞混：
+> - **[wiki README](README.md)** — 知識庫入口（導覽表、三十秒版本、檔案總覽含行數量級）。
+> - **[根 README](../README.md)** — 對外的專案簡介（釣點表、遊戲循環、檔案結構、數值平衡摘要）。
+>
+> 過去這頁只寫「README」，相對路徑指到 wiki 的那一份，結果**根 README 漏更新了七個釣點的份量**（2026-08-04 補齊）。凡是看到「README」兩個字都要問一句：哪一份？答案通常是「兩份」。
+
 ## 對照表
 
 | 原始碼 | 必須更新 | 視情況更新 |
 |---|---|---|
-| `index.html` | [01 架構](01-architecture.md) | [README](README.md) 檔案總覽 |
+| `index.html` | [01 架構](01-architecture.md) | [wiki README](README.md) 檔案總覽 ＋ [根 README](../README.md) 檔案結構 |
 | `styles.css` | [08 介面](08-ui-and-screens.md) | |
 | `js/util.js` | [01 架構](01-architecture.md) | [11 地雷](11-invariants-and-gotchas.md) |
 | `js/pixel.js` | [06 像素引擎](06-pixel-engine.md) | [07 資料規格](07-data-schema.md)（新增 shape/pattern/special 時）、[11 地雷](11-invariants-and-gotchas.md) |
@@ -25,7 +31,7 @@
 | `sw.js` | [13 PWA 與部署](13-pwa-and-deploy.md) | [11 地雷](11-invariants-and-gotchas.md) |
 | `manifest.webmanifest` | [13 PWA 與部署](13-pwa-and-deploy.md) | |
 | `tools/make-icons.py` · `icons/` | [13 PWA 與部署](13-pwa-and-deploy.md) | |
-| **新增任何 js 檔** | [01 架構](01-architecture.md)、[README](README.md)、**本頁補一列**，並更新 `sw.js › ASSETS` | |
+| **新增任何 js 檔** | [01 架構](01-architecture.md)、[wiki README](README.md) 檔案總覽、[根 README](../README.md) 檔案結構、**本頁補一列**，並更新 `sw.js › ASSETS` | |
 
 ## 一定要做的三件事
 
@@ -43,7 +49,7 @@
 | 動到任何影響機率／價格／成本的數值 | 跑 [10 §模擬腳本](10-balance-tuning.md#模擬腳本)，**更新基準表** |
 | 新增 shape / pattern / special / junkArt | [06](06-pixel-engine.md) 加說明 ＋ [07](07-data-schema.md) 加可用值 ＋ [12](12-glossary.md) 加清單 |
 | 新增「會往魚身體外延伸」的 special | 上面那一列全做，**再加 `buildFish()` 的 `HEAD_ROOM` 一列**（見 [11 §19](11-invariants-and-gotchas.md)） |
-| **新增釣點** | ★ **必須一次生出一整套**：釣點＋魚種＋釣竿＋餌料＋裝備＋家園裝飾＋**魚王 cut-in**，規則與理由見 [09 §新增一個釣點](09-recipes.md#新增一個釣點--一次要生出一整套)。文件要更新 [07](07-data-schema.md) 釣點表＋配色規則表＋四張裝備表、[10](10-balance-tuning.md) 基準表＋模擬腳本、[12](12-glossary.md) id 前綴、[04](04-fishing-loop.md) 魚王 cut-in 分配表、[README](README.md) 三十秒版本，並**在 320px 寬檢查 [08](08-ui-and-screens.md#會隨釣點數量成長的介面) 列的兩處** |
+| **新增釣點** | ★ **必須一次生出一整套**：釣點＋魚種＋釣竿＋餌料＋裝備＋家園裝飾＋**魚王 cut-in**，規則與理由見 [09 §新增一個釣點](09-recipes.md#新增一個釣點--一次要生出一整套)。文件要更新 [07](07-data-schema.md) 釣點表＋配色規則表＋四張裝備表、[10](10-balance-tuning.md) 基準表＋模擬腳本、[12](12-glossary.md) id 前綴、[04](04-fishing-loop.md) 魚王 cut-in 分配表、[wiki README](README.md) 三十秒版本、**[根 README](../README.md) 的釣點表（一列）＋魚種總數＋圖鑑總數＋數值平衡段的倍率鏈**，並**在 320px 寬檢查 [08](08-ui-and-screens.md#會隨釣點數量成長的介面) 列的兩處** |
 | **把釣點插在既有兩個之間**（不是接在尾巴） | 上面那一列全做，**再加**：可用的滿裝倍率窗口只有 0.02～0.05，比模擬噪音還窄，**必須用 [10 §精確版](10-balance-tuning.md#精確版不用模擬直接把期望值算出來) 的解析解校正**，理由見 [11 §28](11-invariants-and-gotchas.md#28-插隊的釣點模擬的噪音比可用的窗口還寬) |
 | **新增魚王** | `cutin.js › KING` 補一筆（`motif` / `particle` / `title` / `tone`）＋ [04](04-fishing-loop.md) 的分配表加一列。**漏了不報錯**，只是那位魚王的登場演出跟別人一樣 |
 | 改 cut-in 的長度或動畫 | `cutin.js › DUR_*` 與 `styles.css` 的 keyframes **必須一起改**（[11 §26](11-invariants-and-gotchas.md)）＋ [04 §時間軸](04-fishing-loop.md#時間軸) 的表 ＋ [08](08-ui-and-screens.md) |
@@ -56,8 +62,9 @@
 | 新增自動模式設定項 | [05](05-auto-mode.md) 狀態物件與停止條件表 ＋ [02](02-state-and-save.md) schema |
 | 改動自動模式的收藏門檻 | [05 §收藏門檻](05-auto-mode.md) 的對照表 ＋ [12](12-glossary.md) 的 `sellMode` |
 | 改存檔結構 | [02](02-state-and-save.md)；巢狀欄位要考慮 `SAVE_VER`（見 [11 §4](11-invariants-and-gotchas.md#4-存檔淺層合併)） |
-| 新增分頁 | [01](01-architecture.md)、[08](08-ui-and-screens.md)、[README](README.md)、本頁 |
-| 發現既有描述跟程式碼不符 | **當場修正 wiki**，並在 CHANGELOG 記一筆「文件修正」 |
+| 新增分頁 | [01](01-architecture.md)、[08](08-ui-and-screens.md)、[wiki README](README.md)、[根 README](../README.md)、本頁 |
+| **動到玩家看得到的「份量」**（釣點數、魚種／圖鑑總數、地形數、商店品項數、魚缸級數、稀有度階級） | **[根 README](../README.md) 一定要更新**——它是唯一寫著這些總數的地方，數字一過期整份簡介就在說謊。核對清單：釣點表、「共 N 種魚與雜物／圖鑑收錄 N 種」、遊戲循環第 4／5 點的品項數、`pixel.js` 段的地形清單、數值平衡段的倍率鏈 |
+| 發現既有描述跟程式碼不符 | **當場修正 wiki**（含兩份 README），並在 CHANGELOG 記一筆「文件修正」 |
 
 ## 反向索引：wiki 頁 → 它描述的原始碼
 
