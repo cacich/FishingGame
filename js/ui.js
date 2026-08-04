@@ -6,6 +6,11 @@ window.FG = window.FG || {};
   'use strict';
 
   const ui = FG.ui = {};
+  // 彈窗堆疊。每次開窗都 push 一個獨立的 entry 物件，close() 靠**物件識別**找自己的位置，
+  // 而不是假設「自己一定在最上層」——關閉順序並不保證後進先出：modal-foot 的按鈕是
+  // 「先跑 onClick、再自動 close()」，onClick 裡若開了新彈窗，輪到 close() 時自己已經
+  // 不是最上層了。用 pop() 會誤把新彈窗踢掉再把自己重開，症狀就是「按鈕好像沒作用，
+  // 只是把同一個視窗又叫出來一次」。
   let modalStack = [];
 
   /* ---------------- Toast ---------------- */
@@ -57,24 +62,31 @@ window.FG = window.FG || {};
     root.appendChild(wrap);
     root.classList.add('on');
 
+    const entry = { opts: opts };
+
     const handle = {
       el: wrap,
       body: body,
       close: function () {
-        modalStack.pop();
+        const i = modalStack.indexOf(entry);
+        if (i < 0) return;                       // 已經關過（或被 closeAll 清掉），重複呼叫是 no-op
+        const isTop = i === modalStack.length - 1;
+        modalStack.splice(i, 1);
+        if (opts.onClose) opts.onClose();
+        // 不是最上層 → 畫面已經被更上層的彈窗接管，只從堆疊移除，不要碰 DOM
+        if (!isTop) return;
         root.classList.remove('on');
         root.innerHTML = '';
-        if (opts.onClose) opts.onClose();
         // 若堆疊中還有上一層，重新開啟
         const prev = modalStack.pop();
-        if (prev) ui.modal(prev);
+        if (prev) ui.modal(prev.opts);
       }
     };
 
     root.onclick = function (e) {
       if (e.target === root && opts.dismissable !== false) handle.close();
     };
-    modalStack.push(opts);
+    modalStack.push(entry);
     return handle;
   };
 

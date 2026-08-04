@@ -331,6 +331,54 @@ for (let y = hz - 14; y < hz; y++) for (let x = 0; x < 200; x++)
 
 **一般化**：**當你要量的差異接近量測工具的噪音下限時，先換工具，不要加樣本數。** 把 100 萬竿加到 1000 萬只會讓噪音降到 ±0.008，還是同一個量級，而且要跑十倍久。
 
+### 29. 彈窗按鈕「先開新視窗、再自動關掉自己」，堆疊會反過來吃掉新視窗
+
+**症狀**：自動結算彈窗的「再跑一次」按下去，只是把結算視窗又叫出來一次，設定畫面完全沒出現。同一類的還有「家園擴建籌碼不足 → 跳儲值」，會退回確認框而不是儲值頁。
+
+**原因**：`ui.modal()` 的按鈕流程是 **先跑 `onClick`、`close !== false` 才自動 `close()`**。`onClick` 開了新彈窗之後，堆疊已經變成 `[自己, 新視窗]`——但初版的 `close()` 是無條件 `modalStack.pop()` 兩次：第一次把**新視窗**踢掉（以為那是自己），第二次 pop 出自己，然後「重新開啟上一層」把自己又畫回畫面。
+
+**對策**：`close()` 必須用 `indexOf(entry)` 定位自己，只有**確認自己是最上層**才清 DOM 並還原下一層；不是最上層就只從堆疊移除、不碰 DOM。細節見 [08 §為什麼 close() 不能直接 pop()](08-ui-and-screens.md#為什麼-close-不能直接-pop)。
+
+**一般化的教訓**：**堆疊只有在「關閉順序＝開啟順序的反序」時才能用 pop()。** 只要有任何一條路徑會在非最上層呼叫 close()，就必須改成按識別移除。這個專案裡「按鈕的 onClick 開新彈窗」是常見寫法，所以那條路徑一定會被走到。
+
+**驗證方式**（不用真的跑自動模式）：
+
+```js
+FG.ui.modal({ title:'A', body:'a', buttons:[
+  { label:'開B', cls:'primary', onClick: function(){ FG.ui.modal({ title:'B', body:'b' }); } }
+]});
+document.querySelector('#modalRoot .modal-foot .btn').click();
+document.querySelector('#modalRoot .modal-head').textContent;   // 必須是 'B✕'
+```
+
+### 30. 精靈是朝右畫的，`flip` ＝ 朝左
+
+**症狀**：家園魚缸裡的魚全部倒著游——往右移動卻頭朝左。
+
+**原因**：`buildFish()` 的 `x1 = x0 + bodyW` 是**頭部**，也就是精靈天生朝右；`px.drawSprite(ctx, f, x, y, scale, flip)` 的 `flip` 做的是 `ctx.scale(-1, 1)`，**打開才變成朝左**。`screen-home.js › frame()` 原本寫 `flip = sw.dir > 0`，剛好把兩者接反。這種錯不會報錯，也不會影響任何數值，只能靠看畫面發現。
+
+**對策**：「往哪個方向移動」要對應成 `flip = 速度 < 0`。釣魚頁那條躍出水面的魚是 `jx` 從 `fx+6` 走到 `fx-26`（往左），所以它寫死 `flip = true`，可以拿來當對照組。
+
+**驗證方式**（不用瞇眼看 0.3 倍縮放的小魚）：把精靈用同一條表達式畫到離屏 canvas，量「眼白像素的 x 重心」落在輪廓中線的哪一側——朝右的魚眼睛一定在中線右邊。
+
+```js
+function headSide(f, dir) {
+  const cv = FG.px.make(140, 90), g = cv.getContext('2d');
+  FG.px.drawSprite(g, f, 70, 45, 1, dir < 0);          // 與 screen-home.js 同一個表達式
+  const d = g.getImageData(0, 0, 140, 90).data;
+  let minX = 999, maxX = -1, eye = [];
+  for (let y = 0; y < 90; y++) for (let x = 0; x < 140; x++) {
+    const i = (y * 140 + x) * 4;
+    if (d[i + 3] >= 200) { minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+      if (d[i] > 225 && d[i + 1] > 230 && d[i + 2] > 235) eye.push(x); }
+  }
+  return eye.reduce((a, b) => a + b, 0) / eye.length > (minX + maxX) / 2 ? '右' : '左';
+}
+// headSide(f, 1) 必須是 '右'、headSide(f, -1) 必須是 '左'
+```
+
+眼白的判斷條件對應 `buildFish()` 的 `C.eyeWhite`（預設 `#f4f8fb`），是整條魚最亮的一撮像素。跟 §18 的輪廓遮罩一樣，這比看畫面可靠，也不會被 `fishCache`（§3）騙。
+
 ---
 
 ## 必須維持的不變式

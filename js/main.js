@@ -121,31 +121,41 @@ window.FG = window.FG || {};
     warn.style.cssText = 'background:#2a2013;color:#ffc44d;padding:7px;margin-bottom:10px;box-shadow:0 0 0 1px #5a4520;line-height:1.6';
     box.appendChild(warn);
 
-    FG.PACKS.forEach(function (p) {
-      const bought = st.data.packsBought[p.id] || 0;
-      const soldOut = p.once && bought > 0;
-      const row = FG.el('div', 'pack');
-      row.appendChild(chipStack(p));
-      const pk = FG.el('div', 'pk');
-      pk.innerHTML = '<div class="nm">' + FG.esc(p.name) + (p.once ? ' <span class="tag">限購一次</span>' : '') + '</div>' +
-        '<div class="amt">' + FG.fmt(p.chips) + ' 籌碼</div>' +
-        (p.bonus ? '<div class="bonus">加贈 ' + FG.fmt(p.bonus) + '</div>' : '') +
-        (p.note ? '<div class="bonus">' + FG.esc(p.note) + '</div>' : '');
-      row.appendChild(pk);
-      const b = FG.el('button', 'btn ' + (soldOut ? 'ghost' : 'gold'), soldOut ? '已購買' : p.price);
-      b.disabled = soldOut;
-      b.onclick = function () {
-        FG.sfx.click();
-        const r = st.buyPack(p);
-        if (r === 'ok') {
-          FG.sfx.win();
-          FG.ui.toast('已發放 ' + FG.fmt(p.chips + (p.bonus || 0)) + ' 籌碼', 'gold', 2200);
-          FG.openTopup();
-        }
-      };
-      row.appendChild(b);
-      box.appendChild(row);
-    });
+    // 買完只重畫方案列（限購方案要變成「已購買」），**不要再開一次彈窗**。
+    // 之前是買完直接呼叫 FG.openTopup()，等於在既有彈窗上又疊一層一模一樣的，
+    // 玩家得按兩次關閉才退得出去，而且標題會從「籌碼不足」退回預設的「取得籌碼」。
+    const listBox = FG.el('div');
+    box.appendChild(listBox);
+
+    function renderPacks() {
+      listBox.innerHTML = '';
+      FG.PACKS.forEach(function (p) {
+        const bought = st.data.packsBought[p.id] || 0;
+        const soldOut = p.once && bought > 0;
+        const row = FG.el('div', 'pack');
+        row.appendChild(chipStack(p));
+        const pk = FG.el('div', 'pk');
+        pk.innerHTML = '<div class="nm">' + FG.esc(p.name) + (p.once ? ' <span class="tag">限購一次</span>' : '') + '</div>' +
+          '<div class="amt">' + FG.fmt(p.chips) + ' 籌碼</div>' +
+          (p.bonus ? '<div class="bonus">加贈 ' + FG.fmt(p.bonus) + '</div>' : '') +
+          (p.note ? '<div class="bonus">' + FG.esc(p.note) + '</div>' : '');
+        row.appendChild(pk);
+        const b = FG.el('button', 'btn ' + (soldOut ? 'ghost' : 'gold'), soldOut ? '已購買' : p.price);
+        b.disabled = soldOut;
+        b.onclick = function () {
+          FG.sfx.click();
+          const r = st.buyPack(p);
+          if (r === 'ok') {
+            FG.sfx.win();
+            FG.ui.toast('已發放 ' + FG.fmt(p.chips + (p.bonus || 0)) + ' 籌碼', 'gold', 2200);
+            renderPacks();
+          }
+        };
+        row.appendChild(b);
+        listBox.appendChild(row);
+      });
+    }
+    renderPacks();
 
     FG.ui.modal({ title: title || '取得籌碼', body: box, buttons: [{ label: '關閉', cls: 'ghost' }] });
   };

@@ -211,7 +211,9 @@ window.FG = window.FG || {};
         g.beginPath();
         g.rect(T.x, T.y, T.w, T.h);
         g.clip();
-        FG.px.drawSprite(g, fish, sw.x, yy, scale, sw.dir > 0);
+        // 精靈本身是朝右畫的（buildFish 的頭在 x 大的那一端），flip 才會變成朝左。
+        // 所以往左游（dir < 0）的時候才要 flip，寫成 dir > 0 會整缸魚倒著游。
+        FG.px.drawSprite(g, fish, sw.x, yy, scale, sw.dir < 0);
         g.restore();
       }
       for (const uid in this.swimmers) if (!alive[uid]) delete this.swimmers[uid];

@@ -108,7 +108,7 @@ FG.screenXxx = {
 | `refreshBadges()` | 每日分頁的紅點，條件來自 `FG.state.dailyBadge()` |
 | `refreshTop()` | 更新頂部籌碼數字與地點名稱。綁在 `state.on('all')`，所以任何 emit 都會刷新 |
 | `FG.locationPicker()` | 頂部地點按鈕的釣點選單彈窗 |
-| `FG.openTopup(title)` | 籌碼包彈窗（測試版直接發放，未串金流） |
+| `FG.openTopup(title)` | 籌碼包彈窗（測試版直接發放，未串金流）。**購買成功只呼叫內部的 `renderPacks()` 重畫方案列，不重開彈窗**——重開等於在自己身上再疊一層，玩家要按兩次關閉才退得出去，而且 `title`（例如「籌碼不足」）會退回預設值 |
 | `FG.openSettings()` | 音效開關＋重置存檔，入口在家園分頁底部 |
 | `intro()` | 首次開啟的說明彈窗，用獨立的 localStorage key `fg_seen_intro` 記錄（**不在存檔裡**，所以重置存檔不會再跳） |
 | `loop(now)` | 主迴圈 |

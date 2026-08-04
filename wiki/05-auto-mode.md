@@ -183,6 +183,8 @@ if (fromAuto && chk.why === 'bait' && this.autoRestockBait()) { this.cast(true);
 
 按鈕：「關閉」與「再跑一次」（直接開設定畫面）。
 
+「再跑一次」的 `onClick` 直接呼叫 `autoModal()`，**不需要寫 `close: false`**：`ui.modal()` 的按鈕是先跑 `onClick`、再自動關掉自己，而 `close()` 會認出「自己已經不是最上層」而不去動 DOM。這條路徑一度是壞的（按下去只是把結算彈窗又叫出來一次），修的是 `ui.js` 的堆疊定位方式，見 [11 §29](11-invariants-and-gotchas.md#29-彈窗按鈕先開新視窗再自動關掉自己堆疊會反過來吃掉新視窗)。
+
 ## 設定畫面 · `autoModal()`
 
 用區域變數 `cfg` 收集選擇，按「開始自動」才寫回 `state.data.auto`（取消不留痕跡）。

@@ -277,7 +277,10 @@ px.sprite(f)   // fishCache[f.id]，第一次生成後永久快取
 px.sprite(f)                                  // → 1:1 的 canvas（有快取）
 px.spriteEl(f, scale)                         // → 放大好的 canvas，直接塞 DOM
 px.drawSprite(ctx, f, x, y, scale, flip)      // 畫到任意 ctx，以 (x,y) 為中心，flip 水平翻轉
+                                              // ★ 精靈天生朝右，flip=true 才是朝左（見下方警告）
 ```
+
+> ⚠️ **精靈是朝右畫的。** `buildFish()` 的 `x1 = x0 + bodyW` 是頭部，所以頭永遠在 x 大的那一端。`flip` 做的是 `ctx.scale(-1, 1)`，**打開之後才是朝左**。要讓魚「頭朝著移動方向」就得寫 `flip = 速度 < 0`——接反不會報錯，只會整缸魚倒著游（踩過一次，見 [11 §30](11-invariants-and-gotchas.md#30-精靈是朝右畫的flip--朝左)，那裡附了不靠肉眼的驗證腳本）。
 
 雜物（有 `junkArt` 欄位）走 `buildJunk()`，把字元圖置中放進同樣 96×56 的畫布，這樣圖鑑和結果卡不用分兩種排版。
 
