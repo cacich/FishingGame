@@ -88,7 +88,7 @@ GitHub Pages 回應標頭是 **`Cache-Control: max-age=600`**。也就是瀏覽�
 
 ### `VERSION` 什麼時候要加一
 
-`sw.js` 開頭的 `const VERSION = 'v3';`（`v3` 是新增 `js/cutin.js` 時加的）
+`sw.js` 開頭的 `const VERSION = 'v4';`（`v3` = 新增 `js/cutin.js`、`v4` = 新增 `js/devtools.js`）
 
 | 情況 | 要不要加一 |
 |---|---|

@@ -249,6 +249,9 @@ const r = st.buyPack(p);   // 直接發貨
 
 ## 除錯常用 snippet
 
+> 這裡大半的事情[開發者面板](14-devtools.md)都能點一點做完（**連點家園分頁鈕 10 下**打開）：必出稀有度／必出魚種／必出閃光、直接播 cut-in、給籌碼餌料、圖鑑全開、看 `bonus()` 的實際數值。
+> 面板的「必出」是包住 `rarityTable()` 做的，**體長／價值／圖鑑判定全部還是跑真正的公式**，比下面那段直接改 `rollCatch` 回傳值的 snippet 可信。下面留著是給「面板沒涵蓋到」的情況。
+
 ```js
 // 給錢
 FG.state.addChips(1000000)
@@ -261,9 +264,17 @@ FG.LOCATIONS.flatMap(l => l.fish).forEach(f => {
   const c = FG.px.spriteEl(f, 2); c.title = f.name; document.body.appendChild(c);
 })
 
-// 強制下一竿釣到指定的魚（測試演出與結果卡）
+// 強制下一竿釣到指定的魚（粗暴版；正式測試請用開發者面板，它算出來的數值是真的）
 const _orig = FG.state.rollCatch.bind(FG.state);
 FG.state.rollCatch = loc => Object.assign(_orig(loc), { fishId: 'ml_king_onde', rarity: 'king', isNew: true });
+
+// 直接播某位魚王的 cut-in（不用真的釣到）
+FG.go('fishing');
+{ const f = FG.fishById('wr_king_jormungandr');
+  FG.cutin.play(FG.screenFishing.el.querySelector('#stageWrap'), f, { fishId: f.id }, FG.cutin.plan(f)); }
+
+// 打開開發者面板（等同連點家園鈕 10 下）
+FG.dev.open()
 
 // 看目前的實際機率
 console.table(FG.state.rarityTable().map(r => ({ 稀有度: r.rarity.name, 機率: (r.pct*100).toFixed(2)+'%' })))

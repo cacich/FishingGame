@@ -23,6 +23,7 @@ window.FG = window.FG || {};
     const bar = document.getElementById('tabbar');
     SCREENS.forEach(function (s) {
       const b = FG.el('button', 'tab');
+      b.dataset.tab = s.id;   // 給外部（例如 devtools 的連點觸發）用來認出是哪一頁
       b.appendChild(FG.px.icon(s.icon, 2, '#e8f1f7', '#59a6ff'));
       b.appendChild(FG.el('span', '', s.label));
       b.onclick = function () { FG.sfx.click(); FG.go(s.id); };

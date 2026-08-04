@@ -20,6 +20,7 @@
 | `js/screen-shop.js` | [08 介面](08-ui-and-screens.md) | [07 資料規格](07-data-schema.md)（裝備圖示） |
 | `js/screen-codex.js` | [08 介面](08-ui-and-screens.md) | |
 | `js/main.js` | [01 架構](01-architecture.md) | [08 介面](08-ui-and-screens.md)（儲值／設定彈窗） |
+| `js/devtools.js` | [14 開發者面板](14-devtools.md) | [08 介面](08-ui-and-screens.md)（`.devpanel` / `#devFlag` 樣式）、[11 地雷](11-invariants-and-gotchas.md) |
 | `js/pwa.js` | [13 PWA 與部署](13-pwa-and-deploy.md) | [08 介面](08-ui-and-screens.md)（安裝提示條樣式） |
 | `sw.js` | [13 PWA 與部署](13-pwa-and-deploy.md) | [11 地雷](11-invariants-and-gotchas.md) |
 | `manifest.webmanifest` | [13 PWA 與部署](13-pwa-and-deploy.md) | |
@@ -75,3 +76,4 @@
 | [11 不變式與地雷](11-invariants-and-gotchas.md) | 跨檔案的約束與已知問題 |
 | [12 名詞表](12-glossary.md) | key 值速查 |
 | [13 PWA 與部署](13-pwa-and-deploy.md) | `manifest.webmanifest`、`sw.js`、`js/pwa.js`、`tools/make-icons.py`、GitHub Pages |
+| [14 開發者面板](14-devtools.md) | `devtools.js` 全部 |

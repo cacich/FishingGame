@@ -40,6 +40,10 @@ screen-*.js ×5   依賴以上全部。只註冊物件，不執行任何啟動�
 pwa.js           依賴 util（FG.store）＋ ui（FG.ui.toast）。註冊 Service Worker、
                  處理安裝流程。→ 詳見 13-pwa-and-deploy
   ↓
+devtools.js      隱藏的開發者面板。依賴以上全部（會包住 state 的方法）。
+                 自己掛 document 的 click 監聽，不需要 main.js 呼叫。
+                 → 詳見 14-devtools
+  ↓
 main.js          最後執行，boot() 把所有東西串起來
 ```
 
@@ -100,7 +104,7 @@ FG.screenXxx = {
 |---|---|
 | `boot()` | 初始化 state → 逐一 `build()` 五個分頁 → 建底部導覽 → 綁頂部列 → `FG.go('fishing')` → 開場說明 → 啟動 rAF 迴圈 → 綁音效解鎖 |
 | `FG.go(id, arg)` | 切換分頁：toggle `.active`、更新 tab 高亮、呼叫 `onShow(arg)`。**全域可用**，任何地方都能導頁（例：餌料不足時導去商店 `FG.go('shop','bait')`） |
-| `buildTabs()` | 依 `SCREENS` 陣列順序生成底部導覽，圖示用 `FG.px.icon()` 畫成 canvas |
+| `buildTabs()` | 依 `SCREENS` 陣列順序生成底部導覽，圖示用 `FG.px.icon()` 畫成 canvas。每顆按鈕帶 `data-tab="<screen id>"`，讓外部（例如 [14 開發者面板](14-devtools.md) 的連點觸發）能認出是哪一頁而不必靠索引或文字比對 |
 | `refreshBadges()` | 每日分頁的紅點，條件來自 `FG.state.dailyBadge()` |
 | `refreshTop()` | 更新頂部籌碼數字與地點名稱。綁在 `state.on('all')`，所以任何 emit 都會刷新 |
 | `FG.locationPicker()` | 頂部地點按鈕的釣點選單彈窗 |

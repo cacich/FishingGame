@@ -783,6 +783,47 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 .bar i { display: block; height: 100%; background: var(--green); }
 .mission .mr { font-size: 11px; color: var(--gold); text-align: right; min-width: 58px; }
 
+/* ---------- 開發者面板（js/devtools.js） ----------
+   連點家園分頁鈕 10 下才會出現，正常玩家看不到。
+   刻意沿用 .set-row / .seg-sm / .rate-tbl 這些既有語彙，只補三個新類別。
+*/
+.dev-head {
+  margin: 14px 0 8px;
+  padding-bottom: 4px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  box-shadow: inset 0 -2px 0 #2a3546;
+}
+.dev-head:first-child { margin-top: 0; }
+.devpanel .row { gap: 6px; flex-wrap: wrap; }
+.dev-select {
+  width: 100%;
+  background: #101a26;
+  color: var(--ink);
+  border: 0;
+  padding: 8px 7px;
+  font: inherit;
+  font-size: 12px;
+  box-shadow: inset -2px -2px 0 rgba(0,0,0,.4), 0 0 0 2px var(--line);
+}
+.dev-select:focus { outline: 2px solid var(--blue); outline-offset: -2px; }
+
+/* 有任何干預開著時掛在左上角。沒有這個，忘了關掉會變成查不出來的「機率壞了」 */
+#devFlag {
+  position: fixed;
+  left: 6px; top: 6px;
+  z-index: 60;
+  background: #7a2f34;
+  color: #ffd9db;
+  padding: 3px 7px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  box-shadow: 0 0 0 2px var(--line);
+  animation: devBlink 1.6s steps(2) infinite;
+}
+@keyframes devBlink { 0%, 60% { opacity: 1; } 61%, 100% { opacity: .55; } }
+
 /* ---------- Toast ---------- */
 #toastRoot {
   position: fixed; left: 0; right: 0; top: 58px;

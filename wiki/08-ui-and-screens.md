@@ -191,6 +191,7 @@ FG.ui.scrollEdges(el, axis)       // 捲動容器的邊緣漸層提示，見 §�
 | `.loc-card` | 釣點卡 |
 | `.catch-card` | 釣獲結果卡 |
 | `.cutin` ＋ `.cutin-legend` `.cutin-king` `.motif-*` `.pm-*` | 傳說／魚王的登場疊層，見下節 |
+| `.devpanel` `.dev-head` `.dev-select` `#devFlag` | 開發者面板（[14](14-devtools.md)）。刻意沿用 `.set-row` / `.seg-sm` / `.rate-tbl`，只補這三個類別 |
 
 ### 像素風的做法
 

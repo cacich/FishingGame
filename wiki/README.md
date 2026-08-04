@@ -26,6 +26,7 @@
 | **遇到怪現象／改之前先避雷** | [11 · 不變式與地雷](11-invariants-and-gotchas.md) |
 | 查名詞、對照 key | [12 · 名詞表](12-glossary.md) |
 | 處理安裝／離線／部署 | [13 · PWA 與部署](13-pwa-and-deploy.md) |
+| **快速測試某個稀有度／看某段演出** | [14 · 開發者面板](14-devtools.md) |
 | 看做過什麼變更 | [CHANGELOG](CHANGELOG.md) |
 
 ## 依「系統」找
@@ -38,6 +39,7 @@
 數值            03-economy       →  10-balance-tuning
 基礎建設        01-architecture  →  02-state-and-save  →  11-invariants
 安裝／部署      13-pwa-and-deploy →  01-architecture
+測試工具        14-devtools      →  03-economy       →  04-fishing-loop
 ```
 
 ## 三十秒版本
@@ -71,6 +73,7 @@
 | `js/screen-home.js` | 226 | 家園分頁 | [08](08-ui-and-screens.md) |
 | `js/screen-shop.js` | 260 | 商店分頁 | [08](08-ui-and-screens.md) |
 | `js/screen-codex.js` | 118 | 圖鑑分頁 | [08](08-ui-and-screens.md) |
+| `js/devtools.js` | 325 | 隱藏的開發者面板（連點家園鈕 10 下） | [14](14-devtools.md) |
 | `js/pwa.js` | 130 | Service Worker 註冊、安裝流程 | [13](13-pwa-and-deploy.md) |
 | `js/main.js` | 275 | 啟動／分頁／頂部列／儲值／主迴圈 | [01](01-architecture.md) |
 | `sw.js` | 120 | Service Worker（離線快取） | [13](13-pwa-and-deploy.md) |
