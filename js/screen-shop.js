@@ -205,13 +205,15 @@ window.FG = window.FG || {};
     // ⚠️ 這兩張色表必須跟 FG.RODS 一樣長，而且順序對齊。
     // 原本只有 5 筆、又是用 cols[idx] 直接取（沒有取餘數），加第 6 支竿就會拿到
     // undefined → 圖示整個消失。加竿子時記得同步補一組配色。
-    const idx = FG.RODS.indexOf(rod) % 13;
-    const cols = ['#8a6a3a', '#9aa86a', '#4a7a86', '#7f6a4a', '#3a3a44',
-                  '#c88fa8', '#9ab6c8', '#9ab6c8', '#6fa87f', '#3f5a6a',
-                  '#8a3a4a', '#7f6f4a', '#d8b45a'];
-    const grip = ['#5a4020', '#5f6a34', '#33505a', '#4f4028', '#22222a',
-                  '#8a5a70', '#6a8494', '#6a8494', '#3f6a50', '#243848',
-                  '#5a2430', '#4f4428', '#8f7020'];
+    const idx = FG.RODS.indexOf(rod) % 17;
+    const cols = ['#8a6a3a', '#9aa86a', '#5f8f5a', '#4a7a86', '#a89478',
+                  '#7f6a4a', '#4f7a70', '#3a3a44', '#8f7a90', '#c88fa8',
+                  '#9ab6c8', '#9ab6c8', '#6fa87f', '#3f5a6a', '#8a3a4a',
+                  '#7f6f4a', '#d8b45a'];
+    const grip = ['#5a4020', '#5f6a34', '#3a5f38', '#33505a', '#6a5c44',
+                  '#4f4028', '#2f524c', '#22222a', '#5a4a5c', '#8a5a70',
+                  '#6a8494', '#6a8494', '#3f6a50', '#243848', '#5a2430',
+                  '#4f4428', '#8f7020'];
     const cv = FG.px.make(16, 16);
     const g = cv.getContext('2d');
     for (let i = 0; i < 13; i++) {
@@ -257,6 +259,18 @@ window.FG = window.FG || {};
     eq_auger: { pal: { a: '#8fa2ad', b: '#3a4a58', c: '#dff2fa' }, map: [
       '................', '.....bbbb.......', '.....baab.......', '......aa........', '.....caac.......',
       '......aa........', '.....caac.......', '......aa........', '.......a........' ] },
+    eq_feeder: { pal: { a: '#6a6a72', b: '#c8b06a', c: '#3a3a42' }, map: [
+      '................', '.....aaaaaa.....', '....abbbbbba....', '....abbbbbba....', '.....acccca.....',
+      '......aaaa......', '.......cc.......', '......c..c......', '.....c....c.....' ] },
+    eq_creel: { pal: { a: '#3f6a8a', b: '#cfe8f4', c: '#8fb4c8' }, map: [
+      '................', '..aaaaaaaaaaaa..', '..abbbbbbbbbba..', '..abcbcbcbcbba..', '..abbcbcbcbcba..',
+      '..abcbcbcbcbba..', '..abbbbbbbbbba..', '..aaaaaaaaaaaa..', '....a......a....' ] },
+    eq_mask: { pal: { a: '#3a4a52', b: '#a8dcea', c: '#e8f4f8' }, map: [
+      '................', '..aaaaaaaaaaaa..', '..abbbbbbbbbba..', '..abcbbbbbbcba..', '..abbbbbbbbbba..',
+      '...aaaaaaaaaa...', '.....a....a.....', '......aaaa......', '.......aa.......' ] },
+    eq_raft: { pal: { a: '#8a6a44', b: '#c8a46a', c: '#9fd0d8' }, map: [
+      '................', '.....a....a.....', '.....a....a.....', '..bbbbbbbbbbbb..', '..baaaaaaaaaab..',
+      '..bbbbbbbbbbbb..', '..cccccccccccc..', '...cccccccccc...', '................' ] },
     eq_teapot: { pal: { a: '#6a5f50', b: '#c8b48f', c: '#e8dcc0' }, map: [
       '................', '.......bb.......', '...aaaaaaaaa....', '..abbbbbbbbba.a.', '..abcccccccba.a.',
       '..abbbbbbbbba.a.', '...aaaaaaaaa..a.', '....aaaaaaa..aa.', '................' ] },

@@ -19,7 +19,7 @@ python -m http.server 5177
 
 專案內附 `.claude/launch.json`，在 Claude Code 裡可用預覽工具直接啟動。
 
-**改完 JS 畫面沒變 → 強制重新整理（Ctrl+F5）。** 見 [11 地雷 §快取](11-invariants-and-gotchas.md#1-http-server-的-js-快取)。
+**改完 JS 畫面沒變 → 強制重新整理（Ctrl+F5）。** 見 [11 地雷 §快取](11-invariants-and-gotchas.md#1-httpserver-的-js-快取)。
 
 ## 五個必備心智模型
 

@@ -801,6 +801,396 @@ window.FG = window.FG || {};
   ];
 
   /* ============================================================
+     地點九：澄澈方池（castCost 700，插在晨霧湖與落霞峽灣之間）
+     識別方式跟前八個都不同：不是「什麼環境」也不是「哪條江」，而是
+     **「這裡的每一條魚都是有人養的」**。所以配色規則反過來——
+     人工選育的鮮豔色（紅白、朱、金、白）是**高階**的訊號，
+     普通階全是灰褐色的野雜魚與飼料魚（那些是自己混進來的）。
+     ============================================================ */
+  const POND_FISH = [
+    /* --- 雜物 --- */
+    { id: 'gp_coins', name: '沉底的許願硬幣', rarity: 'junk', junkArt: 'coins', value: 9, minLen: 2, maxLen: 6, unit: 'cm', desc: '有人對著這座池子許過願。銅鏽把願望黏成了一塊。' },
+    { id: 'gp_can',   name: '掉進池裡的空罐', rarity: 'junk', junkArt: 'can',   value: 6, minLen: 8, maxLen: 15, unit: 'cm', desc: '管理員每週撈一次，還是撈不完。' },
+    { id: 'gp_duckweed', name: '一把浮萍',   rarity: 'junk', junkArt: 'weed',  value: 5, minLen: 10, maxLen: 30, unit: 'cm', desc: '長得比誰都快。三天不管，整池就是綠的。' },
+
+    /* --- 普通（自己混進來的野雜魚與飼料魚，一律灰褐土色） --- */
+    { id: 'gp_feeder', name: '飼料金魚', rarity: 'common', shape: 'round', scale: .70, pattern: 'none', value: 197, minLen: 4, maxLen: 12,
+      colors: { body: '#a89a72', back: '#6a5f40', belly: '#ded4b4', fin: '#8a7c58' },
+      desc: '一整袋幾十塊錢，本來是拿來餵別的魚的。這幾條活下來了。' },
+    { id: 'gp_mosquito', name: '大肚魚', rarity: 'common', shape: 'long', scale: .56, pattern: 'none', value: 188, minLen: 2, maxLen: 6,
+      colors: { body: '#9aa4a0', back: '#5a6460', belly: '#e4e8e4', fin: '#7c8684' },
+      desc: '當初是為了吃孑孓才放的。現在牠們什麼都吃。' },
+    { id: 'gp_bitterling', name: '石鮒', rarity: 'common', shape: 'flat', scale: .60, pattern: 'band', value: 202, minLen: 3, maxLen: 9,
+      colors: { body: '#8f9488', back: '#525648', belly: '#e2e4d8', fin: '#6f7468', pattern: '#6a7a72' },
+      desc: '沒有人放過牠。大概是黏在水草上被一起搬進來的。' },
+    { id: 'gp_wakin', name: '和金', rarity: 'common', shape: 'normal', scale: .72, pattern: 'none', value: 213, minLen: 6, maxLen: 16,
+      colors: { body: '#c88a4a', back: '#8a5620', belly: '#eed8ac', fin: '#a87038' },
+      desc: '最不講究的一種金魚。廟會撈金魚撈到的就是牠，養得活的人不多。' },
+    { id: 'gp_tilapia', name: '吳郭魚苗', rarity: 'common', shape: 'flat', scale: .70, pattern: 'stripe', value: 206, minLen: 5, maxLen: 14,
+      colors: { body: '#8a8470', back: '#4e4a3a', belly: '#dcd8c0', fin: '#6a6554', pattern: '#3f3c30' },
+      desc: '不知道誰倒進來的。管理員每年撈一次，每年還是有。' },
+    { id: 'gp_paradise', name: '蓋斑鬥魚', rarity: 'common', shape: 'flat', scale: .62, pattern: 'stripe', value: 199, minLen: 3, maxLen: 8,
+      colors: { body: '#7f8a94', back: '#485058', belly: '#e0e4e8', fin: '#c07050', pattern: '#5a6a80' },
+      desc: '本來就住在這一帶的水田裡。池子蓋起來以後，牠們搬了進來。' },
+
+    /* --- 優良（開始出現「養的」——但都還是便宜的品系） --- */
+    { id: 'gp_hikoi', name: '緋鯉', rarity: 'good', shape: 'normal', scale: .86, pattern: 'none', value: 413, minLen: 18, maxLen: 42,
+      colors: { body: '#d4703a', back: '#8f3e14', belly: '#f6dcb0', fin: '#b45526' },
+      desc: '整條都是橘紅色，沒有花紋。錦鯉裡最不值錢的那一種，也是最耐活的。' },
+    { id: 'gp_ryukin', name: '琉金', rarity: 'good', shape: 'round', scale: .80, pattern: 'scale', value: 404, minLen: 8, maxLen: 20,
+      colors: { body: '#e0803a', back: '#9a4a12', belly: '#f8e0b0', fin: '#c06428', pattern: '#f0a860' },
+      desc: '背高、尾長、游得慢。牠不是為了活下去被養成這樣的。' },
+    { id: 'gp_oranda', name: '蘭壽', rarity: 'good', shape: 'round', scale: .78, pattern: 'speck', value: 420, minLen: 8, maxLen: 22,
+      colors: { body: '#e8e2d4', back: '#a89e8a', belly: '#ffffff', fin: '#cfc6b4', pattern: '#d0603a' },
+      desc: '頭上那團肉瘤要養三年才長得出來。有人為了那三年一整年不出門。' },
+    { id: 'gp_grasscarp', name: '白鯇', rarity: 'good', shape: 'wide', scale: .88, pattern: 'scale', value: 399, minLen: 25, maxLen: 55,
+      colors: { body: '#a0a688', back: '#5f6548', belly: '#e8ecd4', fin: '#7f856a', pattern: '#8a9070' },
+      desc: '放牠進來是為了吃水草。牠吃完水草，然後開始吃睡蓮。' },
+    { id: 'gp_pondcat', name: '池底鯰', rarity: 'good', shape: 'wide', scale: .84, pattern: 'speck', value: 425, minLen: 22, maxLen: 50,
+      special: ['whisker'],
+      colors: { body: '#6f6858', back: '#3d382c', belly: '#cfc8b0', fin: '#565040', pattern: '#928a76' },
+      desc: '白天貼在排水口底下。管理員知道牠在，也知道抓不到。' },
+
+    /* --- 稀有（有名字有血統的品系，配色開始「乾淨」） --- */
+    { id: 'gp_kohaku', name: '紅白錦鯉', rarity: 'rare', shape: 'normal', scale: 1.00, pattern: 'spot', value: 1654, minLen: 30, maxLen: 66,
+      special: ['whisker'],
+      colors: { body: '#f6f2ec', back: '#d0c8bc', belly: '#ffffff', fin: '#e4dcd0', pattern: '#d0392c' },
+      desc: '紅白兩色，界線要利落。這一條的界線很利落。' },
+    { id: 'gp_platinum', name: '白金鯉', rarity: 'rare', shape: 'normal', scale: 1.00, pattern: 'scale', value: 1619, minLen: 28, maxLen: 64,
+      colors: { body: '#dfe4e8', back: '#a8b0b8', belly: '#ffffff', fin: '#c4ccd4', pattern: '#f4f8fa' },
+      desc: '沒有任何花紋，整條是一片金屬白。花紋是加分，沒有花紋是另一種考試。' },
+    { id: 'gp_ranchu', name: '獅頭蘭壽', rarity: 'rare', shape: 'round', scale: .96, pattern: 'scale', value: 1595, minLen: 10, maxLen: 26,
+      colors: { body: '#e8603a', back: '#9a3410', belly: '#fbe8c8', fin: '#c04a20', pattern: '#ffa068' },
+      desc: '沒有背鰭，只能靠尾巴一晃一晃地走。比賽是從上往下看的，所以牠一輩子只被人看過背。' },
+    { id: 'gp_shubunkin', name: '朱文金', rarity: 'rare', shape: 'normal', scale: .98, pattern: 'spot', value: 1677, minLen: 14, maxLen: 34,
+      colors: { body: '#dfe6ea', back: '#98a4ac', belly: '#ffffff', fin: '#c0ccd4', pattern: '#3f6aa8' },
+      desc: '白底上灑著藍、紅、黑三種斑。每一條的花色都不會重複，所以沒辦法配對重現。' },
+
+    /* --- 史詩 --- */
+    { id: 'gp_showa', name: '昭和三色', rarity: 'epic', shape: 'normal', scale: 1.06, pattern: 'spot', value: 6627, minLen: 45, maxLen: 95,
+      special: ['whisker'],
+      colors: { body: '#2a2620', back: '#141210', belly: '#e8e0d0', fin: '#3a352c', pattern: '#d0392c' },
+      desc: '黑底上壓紅白。要三種顏色同時漂亮，養到第五年才知道成不成——不成的那些，早就被挑掉了。' },
+    { id: 'gp_butterfly', name: '蝶尾長鰭鯉', rarity: 'epic', shape: 'long', scale: 1.08, pattern: 'scale', value: 6498, minLen: 40, maxLen: 90,
+      special: ['glow'],
+      colors: { body: '#e8d8a0', back: '#a89250', belly: '#fbf4dc', fin: '#f0e4b8', pattern: '#fff0c8', glow: '#ffe8a8' },
+      desc: '鰭長到游動時像一塊布在飄。好看是好看，但在野外牠活不過一個晚上。' },
+
+    /* --- 傳說 --- */
+    { id: 'gp_ghost', name: '幽靈鯉', rarity: 'legend', shape: 'normal', scale: 1.16, pattern: 'scale', value: 17947, minLen: 60, maxLen: 120,
+      special: ['glow', 'whisker'],
+      colors: { body: '#cfd8dc', back: '#8a969c', belly: '#f6fafc', fin: '#b0bcc2', pattern: '#eef6f8', glow: '#dff0f8' },
+      legend: '普通鯉魚跟白金鯉配出來的雜種，本來被當成失敗品。牠白天沉在底下完全看不見，只有半夜燈全關掉的時候才會浮上來——整條是灰白的，在黑水裡發著一點光。管理員說他當班二十年只看過三次，三次都不是同一個地方。',
+      desc: '半夜才浮上來的那一條。' },
+    { id: 'gp_tancho', name: '丹頂', rarity: 'legend', shape: 'normal', scale: 1.14, pattern: 'none', value: 18182, minLen: 55, maxLen: 115,
+      special: ['glow', 'whisker'],
+      colors: { body: '#fbfafa', back: '#d4d0cc', belly: '#ffffff', fin: '#e8e4e0', glow: '#ffd0c8' },
+      legend: '全白的身體，額頭正中央一個正圓的紅點——那個點不能歪、不能大、不能小。育種的人可以控制紅色出現的機率，但控制不了它出現在哪裡。所以每一條丹頂都是意外，而每一個養錦鯉的人一輩子都在等那個意外。',
+      desc: '額頭上那個正圓的紅點是意外。' },
+
+    /* --- 魚王 --- */
+    { id: 'gp_king_hyaku', name: '白鱗池主「百年」', rarity: 'king', shape: 'koi', scale: 1.28, pattern: 'scale', value: 69794, minLen: 110, maxLen: 200,
+      special: ['glow', 'whisker'], cyOffset: 1,
+      colors: { body: '#e4e8ea', back: '#9aa4aa', belly: '#ffffff', fin: '#c4d0d6', pattern: '#f6fafc', glow: '#bfe4f0' },
+      legend: '這座池子是六十年前挖的，牠比池子還老——原本住在被填掉的那條野溪裡，施工時被人用網子撈起來放進來。錦鯉可以活兩百年，這件事本身不算稀奇；稀奇的是這六十年間換過十一位管理員，每一位交接時都會講同一句話：「那條白的不要餵，牠不吃你給的東西。」沒有人問過為什麼，也沒有人試過。',
+      desc: '澄澈方池之王。牠比這座池子還老。' }
+  ];
+
+  /* ============================================================
+     地點十：潮落礁灘（castCost 2,300，插在宵櫻神域與幽藍冰湖之間）
+     配色規則：礁岩的褐綠 × 濕沙的灰白。稀有以上換成**潮池裡的螢光色**
+     （海葵的桃紅、孔雀藍、鸚哥的青綠）——在一整片灰褐裡那些顏色會直接跳出來。
+     魚種的共同點是「困在水窪裡等漲潮」：耐乾、能爬、能鑽沙、能吸附。
+     ============================================================ */
+  const TIDAL_FISH = [
+    /* --- 雜物 --- */
+    { id: 'tf_shell',  name: '空的笠貝殼',   rarity: 'junk', junkArt: 'shell',  value: 28, minLen: 3,  maxLen: 9,  unit: 'cm', desc: '裡面的東西不在了。殼還牢牢吸在石頭上，被你連石頭一起撬起來。' },
+    { id: 'tf_float',  name: '卡住的浮球',   rarity: 'junk', junkArt: 'bottle', value: 24, minLen: 12, maxLen: 30, unit: 'cm', desc: '塞在礁縫裡不知道幾年，拔出來時下面壓死了一片藤壺。' },
+    { id: 'tf_kelp',   name: '乾掉的馬尾藻', rarity: 'junk', junkArt: 'weed',   value: 22, minLen: 20, maxLen: 70, unit: 'cm', desc: '退潮曬了半天，脆得一碰就碎。' },
+
+    /* --- 普通 --- */
+    { id: 'tf_skipper', name: '彈塗魚', rarity: 'common', shape: 'long', scale: .62, pattern: 'speck', value: 241, minLen: 5, maxLen: 14,
+      colors: { body: '#7f7460', back: '#453e30', belly: '#cfc6ac', fin: '#5f5748', pattern: '#3a3428' },
+      desc: '退潮以後牠不躲，牠出來。用兩隻胸鰭在泥上撐著走，看到人才慢慢挪開。' },
+    { id: 'tf_blenny', name: '岩鳚', rarity: 'common', shape: 'long', scale: .66, pattern: 'band2', value: 248, minLen: 6, maxLen: 16,
+      colors: { body: '#6f7a5a', back: '#3c4430', belly: '#d8dcc0', fin: '#54604a', pattern: '#2e3524' },
+      desc: '整條塞在石縫裡，只把頭伸出來。你走過去牠縮回去，你走遠牠又伸出來。' },
+    { id: 'tf_stickle', name: '潮池刺魚', rarity: 'common', shape: 'flat', scale: .58, pattern: 'stripe', value: 235, minLen: 3, maxLen: 8,
+      special: ['spike'],
+      colors: { body: '#9aa49c', back: '#565f58', belly: '#e8ece4', fin: '#7a847c', pattern: '#464f48' },
+      desc: '背上三根硬刺。體型跟一節手指一樣，卻會為了一個水窪跟任何東西打架。' },
+    { id: 'tf_shanny', name: '礁窟幼鮨', rarity: 'common', shape: 'round', scale: .64, pattern: 'spot', value: 254, minLen: 4, maxLen: 11,
+      colors: { body: '#8a7460', back: '#4e4034', belly: '#ded0bc', fin: '#6a5848', pattern: '#332a20' },
+      desc: '長大以後會去外海。現在牠只知道這一個水窪有多大。' },
+    { id: 'tf_sandeel', name: '玉筋魚', rarity: 'common', shape: 'long', scale: .60, pattern: 'none', value: 243, minLen: 5, maxLen: 15,
+      colors: { body: '#c0c8c4', back: '#76807c', belly: '#f6faf8', fin: '#98a29e' },
+      desc: '受驚就整條鑽進沙裡，一秒都不到。你要挖到牠，得比牠快。' },
+    { id: 'tf_clingfish', name: '吸盤魚', rarity: 'common', shape: 'round', scale: .60, pattern: 'net', value: 250, minLen: 3, maxLen: 8,
+      colors: { body: '#a88a7a', back: '#5f4a3e', belly: '#e8d8cc', fin: '#846a5c', pattern: '#6a544a' },
+      desc: '腹部整片是吸盤，浪打過來牠一動也不動。你要用鏟子才撬得下來。' },
+
+    /* --- 優良 --- */
+    { id: 'tf_rockfish', name: '礁石鮋', rarity: 'good', shape: 'flat', scale: .86, pattern: 'spot', value: 843, minLen: 14, maxLen: 32,
+      special: ['spike'],
+      colors: { body: '#8a6a52', back: '#4e3a28', belly: '#e0cbb0', fin: '#6a5040', pattern: '#2e2218' },
+      desc: '長得就是一塊石頭。每年都有人一腳踩上去，然後被抬走。' },
+    { id: 'tf_mullet', name: '灘頭鯔', rarity: 'good', shape: 'wide', scale: .90, pattern: 'none', value: 824, minLen: 22, maxLen: 48,
+      colors: { body: '#a4b0b4', back: '#5a666a', belly: '#f2f6f8', fin: '#818d92' },
+      desc: '漲潮第一批進來的就是牠們，退潮最後一批走的也是。' },
+    { id: 'tf_eelpout', name: '潮溝鰻鳚', rarity: 'good', shape: 'long', scale: .92, pattern: 'speck', value: 854, minLen: 25, maxLen: 55,
+      colors: { body: '#5f6a5a', back: '#333a2e', belly: '#c4ccb8', fin: '#485144', pattern: '#8a9480' },
+      desc: '離開水以後還能撐好幾個小時。牠不是在等你放手，牠是在等漲潮。' },
+    { id: 'tf_flounder', name: '沙潛鰈', rarity: 'good', shape: 'flat', scale: .88, pattern: 'speck', value: 811, minLen: 16, maxLen: 38,
+      colors: { body: '#a89880', back: '#5f5442', belly: '#eee4d4', fin: '#847660', pattern: '#4a4034' },
+      desc: '把自己抖進沙裡只要三下。抖完你就找不到牠了，就算你一直看著。' },
+    { id: 'tf_wrasse', name: '潮池隆頭魚', rarity: 'good', shape: 'flat', scale: .84, pattern: 'band2', value: 839, minLen: 12, maxLen: 28,
+      colors: { body: '#4f8a7a', back: '#28504a', belly: '#e0e8d8', fin: '#c07a4a', pattern: '#7fc0a8' },
+      desc: '天一黑就找個縫把自己塞進去，還會分泌一層黏膜把自己包起來睡。' },
+
+    /* --- 稀有（潮池的螢光色開始出現） --- */
+    { id: 'tf_anemonefish', name: '礁窟小丑魚', rarity: 'rare', shape: 'flat', scale: 1.00, pattern: 'band', value: 3714, minLen: 6, maxLen: 14,
+      colors: { body: '#e8843a', back: '#a04a10', belly: '#f8dcb0', fin: '#2a2620', pattern: '#fbf6ec' },
+      desc: '牠住的那顆海葵被留在退潮的水窪裡。海葵不會走，所以牠也不走。' },
+    { id: 'tf_moray', name: '石縫裸胸鱔', rarity: 'rare', shape: 'long', scale: 1.06, pattern: 'net', value: 3650, minLen: 40, maxLen: 95,
+      special: ['jaw'],
+      colors: { body: '#6a6a4a', back: '#3a3a28', belly: '#cfc8a0', fin: '#50503a', pattern: '#c8bc84', tooth: '#f6f0dc' },
+      desc: '整條在石頭底下，只有頭伸出來一開一合。那不是威嚇，牠只是在呼吸。' },
+    { id: 'tf_parrot', name: '青嘴鸚哥', rarity: 'rare', shape: 'flat', scale: 1.02, pattern: 'scale', value: 3735, minLen: 20, maxLen: 45,
+      colors: { body: '#3fa8a0', back: '#1f5f5c', belly: '#d8f0e8', fin: '#d86a8a', pattern: '#7fe0cc' },
+      desc: '嘴是一塊硬骨板，專門啃珊瑚。這片礁灘的沙有一半是牠們拉出來的。' },
+    { id: 'tf_pipefish', name: '潮池海龍', rarity: 'rare', shape: 'long', scale: 1.04, pattern: 'stripe', value: 3618, minLen: 10, maxLen: 26,
+      colors: { body: '#8f9a5a', back: '#4e5528', belly: '#e0e8c0', fin: '#6f7a40', pattern: '#c8d888' },
+      desc: '直挺挺地立在海草中間，隨著水擺。你會先看到海草有一根不太對。' },
+
+    /* --- 史詩 --- */
+    { id: 'tf_boxfish', name: '藍點箱魨', rarity: 'epic', shape: 'round', scale: 1.08, pattern: 'spot', value: 14300, minLen: 15, maxLen: 34,
+      special: ['glow'],
+      colors: { body: '#e8c84a', back: '#9a7a10', belly: '#fbf0b8', fin: '#c0a030', pattern: '#2f5fc8', glow: '#ffe07f' },
+      desc: '整條魚外面是一個硬殼盒子，只有嘴和鰭會動。被逼急了會從皮膚放毒，把整個水窪一起帶走。' },
+    { id: 'tf_frogfish', name: '擬態躄魚', rarity: 'epic', shape: 'round', scale: 1.06, pattern: 'net', value: 14172, minLen: 12, maxLen: 30,
+      special: ['lantern', 'glow'],
+      colors: { body: '#c05a4a', back: '#7a2a20', belly: '#f0c8a8', fin: '#9a3f30', pattern: '#5f1f18', glow: '#ff9a7f', lantern: '#ffd8a0' },
+      desc: '牠不游，牠用鰭在石頭上走。頭上那根是釣竿，垂下來的那一小塊在水裡看起來像一隻蝦。' },
+
+    /* --- 傳說 --- */
+    { id: 'tf_mandarin', name: '螢紋連鰭䲗', rarity: 'legend', shape: 'flat', scale: 1.14, pattern: 'net', value: 39060, minLen: 8, maxLen: 18,
+      special: ['glow'],
+      colors: { body: '#2f5fa8', back: '#16305f', belly: '#a8d0e8', fin: '#e88f3a', pattern: '#5fe0a8', glow: '#7fd8ff' },
+      legend: '牠身上的藍不是色素，是皮膚裡一層排列整齊的細胞在折射光——所以那個藍在標本上會消失，只有活著、在水裡、有光的時候才存在。潮池的水淺，太陽一斜整窪水就變成一面鏡子，那幾分鐘裡牠會亮得不像真的。看過的人回去查圖鑑，都覺得照片拍錯了。',
+      desc: '牠的藍只在活著的時候存在。' },
+    { id: 'tf_stranded', name: '擱淺者', rarity: 'legend', shape: 'long', scale: 1.20, pattern: 'none', value: 39486, minLen: 90, maxLen: 190,
+      special: ['glow'],
+      colors: { body: '#e0e8ea', back: '#98a4aa', belly: '#ffffff', fin: '#c0ccd0', glow: '#e8f4f8' },
+      legend: '大退潮的隔天早上，灘上偶爾會出現一條很長的銀色的魚，躺在一個明明裝不下牠的水窪裡。牠還活著，而且不掙扎。老一輩的說法是牠自己上來的，因為在深處看見了不該看的東西；比較新的說法是牠只是算錯了潮汐。兩種說法都解釋不了為什麼牠總是頭朝著海。',
+      desc: '躺在裝不下牠的水窪裡，頭朝著海。' },
+
+    /* --- 魚王 --- */
+    { id: 'tf_king_kotaku', name: '灘王巨彈塗「涸澤」', rarity: 'king', shape: 'skipper', scale: 1.30, pattern: 'speck', value: 159546, minLen: 80, maxLen: 170,
+      special: ['glow', 'stalkEye'], cyOffset: 1,
+      colors: { body: '#6a6046', back: '#332e20', belly: '#c8c0a0', fin: '#4e4634', pattern: '#a89a70', glow: '#ffcf7f', eyeWhite: '#f6f2e0', pupil: '#141a20' },
+      legend: '「涸澤之鮒」講的是一條困在乾掉的車轍裡的魚，等著誰給牠一斗水。這一條沒有在等。牠在灘上已經待了不知道多久，漲潮時牠不回海裡，退潮時牠也不著急——牠只是換一個水窪。有人在夜裡看過牠橫越整片灘地，用鰭撐著走，中間停下來一次，把兩顆眼睛轉過來看了那個人很久。',
+      desc: '潮落礁灘之王。牠不等漲潮。' }
+  ];
+
+  /* ============================================================
+     地點十一：懸瀑深潭（castCost 4,400，插在幽藍冰湖與煙雨蓮江之間）
+     配色規則：深潭的墨綠 × 白沫，稀有以上開始出現**婚姻色**（緋紅、青綠）。
+     魚種的共同點是「每一條都在往上」：能逆流、能跳、能吸附在垂直的岩面上。
+     這是這個釣點跟其他釣點的分界——別的地方講「住在哪」，這裡講「要去哪」。
+     ============================================================ */
+  const FALL_FISH = [
+    /* --- 雜物 --- */
+    { id: 'fp_flask', name: '凹陷的水壺',   rarity: 'junk', junkArt: 'flask', value: 52, minLen: 15, maxLen: 26, unit: 'cm', desc: '從上面掉下來的。凹的那一面告訴你它撞過幾次岩壁。' },
+    { id: 'fp_can',   name: '捲成一團的鋁罐', rarity: 'junk', junkArt: 'can',  value: 44, minLen: 6,  maxLen: 12, unit: 'cm', desc: '被水沖了很久，捲得像一朵金屬做的花。' },
+    { id: 'fp_rope',  name: '沖下來的登山繩', rarity: 'junk', junkArt: 'weed', value: 48, minLen: 40, maxLen: 120, unit: 'cm', desc: '斷面是整齊的，不是磨斷的。有人在上面切斷了它。' },
+
+    /* --- 普通 --- */
+    { id: 'fp_dace', name: '溪哥仔', rarity: 'common', shape: 'long', scale: .68, pattern: 'stripe', value: 393, minLen: 6, maxLen: 16,
+      colors: { body: '#9fb0b4', back: '#546468', belly: '#f0f6f6', fin: '#7c8c90', pattern: '#5f7480' },
+      desc: '整條溪最吵的一種。餌一落水牠們就衝過來，衝到你以為底下全是牠。' },
+    { id: 'fp_hillstream', name: '爬岩鰍', rarity: 'common', shape: 'long', scale: .62, pattern: 'speck', value: 402, minLen: 4, maxLen: 11,
+      colors: { body: '#6a6250', back: '#3a352a', belly: '#c8c0a8', fin: '#514a3c', pattern: '#8f8874' },
+      desc: '整片胸鰭腹鰭癒合成一個吸盤，吸在瀑布正下方那塊岩上。水從牠背上過，牠不動。' },
+    { id: 'fp_whitefin', name: '白甲魚', rarity: 'common', shape: 'normal', scale: .72, pattern: 'none', value: 390, minLen: 10, maxLen: 24,
+      colors: { body: '#b0bcbc', back: '#667274', belly: '#f4f8f8', fin: '#8f9c9c' },
+      desc: '嘴長在下面，橫著在石頭上刮藻。刮過的地方會留下一道一道白痕。' },
+    { id: 'fp_bullhead', name: '潭底杜父魚', rarity: 'common', shape: 'round', scale: .68, pattern: 'speck', value: 408, minLen: 5, maxLen: 13,
+      colors: { body: '#5f5f52', back: '#333330', belly: '#c0c0b0', fin: '#464638', pattern: '#8a8a74' },
+      desc: '趴在潭底的碎石堆裡，沒有魚鰾，所以牠沉得住。' },
+    { id: 'fp_stone', name: '石賓', rarity: 'common', shape: 'normal', scale: .74, pattern: 'band2', value: 395, minLen: 8, maxLen: 20,
+      colors: { body: '#8a9088', back: '#4c5250', belly: '#e4e8e0', fin: '#6a7068', pattern: '#3a4040' },
+      desc: '身上七八條淡淡的橫紋。放進水桶裡半小時，紋就淡到看不見了。' },
+    { id: 'fp_shiner', name: '苦花', rarity: 'common', shape: 'flat', scale: .70, pattern: 'none', value: 404, minLen: 8, maxLen: 22,
+      colors: { body: '#c4ccc8', back: '#7a8480', belly: '#f8fafa', fin: '#a0aaa6' },
+      desc: '翻身刮藻的那一瞬間側面會反光。整潭一起翻的時候，水底像有人在打閃。' },
+
+    /* --- 優良 --- */
+    { id: 'fp_squaliobarbus', name: '赤眼鱒', rarity: 'good', shape: 'normal', scale: .88, pattern: 'scale', value: 1407, minLen: 20, maxLen: 46,
+      colors: { body: '#a8b0a4', back: '#5c6458', belly: '#eef2ea', fin: '#848c80', pattern: '#c85a3a' },
+      desc: '眼睛上緣一抹紅。除此之外沒有任何地方引人注意，牠似乎也知道。' },
+    { id: 'fp_hemibarbus', name: '花鮕', rarity: 'good', shape: 'wide', scale: .90, pattern: 'spot', value: 1428, minLen: 22, maxLen: 50,
+      special: ['whisker'],
+      colors: { body: '#9a9078', back: '#544e3c', belly: '#e8e2cc', fin: '#78705c', pattern: '#3a3428' },
+      desc: '在急流跟緩流的交界處守著。水一慢，牠就把頭轉過去。' },
+    { id: 'fp_torrent', name: '激流吸盤鰍', rarity: 'good', shape: 'long', scale: .84, pattern: 'net', value: 1394, minLen: 12, maxLen: 28,
+      colors: { body: '#6f6a5f', back: '#3c3830', belly: '#cfc8b8', fin: '#565048', pattern: '#a09680' },
+      desc: '水流越急牠貼得越牢。把牠從石頭上撕下來，石頭上會留下一個乾淨的圓。' },
+    { id: 'fp_climber', name: '禿頭鯊', rarity: 'good', shape: 'long', scale: .86, pattern: 'speck', value: 1446, minLen: 10, maxLen: 24,
+      colors: { body: '#6a7060', back: '#3a3e34', belly: '#d0d4c4', fin: '#505648', pattern: '#8f9480' },
+      desc: '牠是從海裡游上來的，一路逆流，遇到瀑布就用腹部的吸盤一寸一寸爬上去。這座瀑布二十公尺高，牠爬上來了。' },
+    { id: 'fp_anguilla', name: '潭底鱸鰻', rarity: 'good', shape: 'long', scale: .94, pattern: 'speck', value: 1413, minLen: 40, maxLen: 90,
+      colors: { body: '#5a5f4a', back: '#2e332a', belly: '#c0c4a8', fin: '#42473a', pattern: '#8a8f70' },
+      desc: '白天塞在瀑布後面的岩洞裡。那個洞有多深，沒有人量過，因為沒有人想把手伸進去。' },
+
+    /* --- 稀有（婚姻色出現） --- */
+    { id: 'fp_landlocked', name: '陸封櫻花鉤吻鮭', rarity: 'rare', shape: 'wide', scale: 1.02, pattern: 'spot', value: 6223, minLen: 25, maxLen: 55,
+      colors: { body: '#8fa0a8', back: '#4e5c64', belly: '#f2eee2', fin: '#6e7e86', pattern: '#3a4650' },
+      desc: '牠的祖先本來要回海裡。冰河退了，路斷了，牠們就留在這一段溪裡，留了一萬年。' },
+    { id: 'fp_mahseer', name: '金鱗結魚', rarity: 'rare', shape: 'wide', scale: 1.04, pattern: 'scale', value: 6140, minLen: 35, maxLen: 80,
+      special: ['whisker'],
+      colors: { body: '#c8ac60', back: '#7f6828', belly: '#f6ecc0', fin: '#a08c40', pattern: '#e0c888' },
+      desc: '鱗片有指甲那麼大，一片一片數得出來。上鉤之後牠會直接往瀑布衝，很多人的線就是這樣斷的。' },
+    { id: 'fp_snakehead', name: '潭中鱧', rarity: 'rare', shape: 'long', scale: 1.02, pattern: 'band2', value: 6202, minLen: 30, maxLen: 70,
+      special: ['jaw'],
+      colors: { body: '#4f5a48', back: '#282e24', belly: '#c0c8ac', fin: '#3a4234', pattern: '#8f9a78', tooth: '#f0f4e0' },
+      desc: '會浮上來換氣，所以水再濁牠都活得下去。護幼的時候誰靠近牠咬誰，包括你的浮標。' },
+    { id: 'fp_bigeye', name: '深潭大眼鱒', rarity: 'rare', shape: 'normal', scale: 1.00, pattern: 'speck', value: 6150, minLen: 28, maxLen: 62,
+      colors: { body: '#5f7480', back: '#324048', belly: '#dfe8ec', fin: '#485c66', pattern: '#9fb8c4', eyeWhite: '#e8f4f8' },
+      desc: '潭底沒什麼光，所以牠的眼睛長得比別的鱒大上一號。牠看得見你，你看不見牠。' },
+
+    /* --- 史詩 --- */
+    { id: 'fp_thunder', name: '雷紋巨鱒', rarity: 'epic', shape: 'wide', scale: 1.10, pattern: 'band2', value: 24142, minLen: 70, maxLen: 150,
+      special: ['glow'],
+      colors: { body: '#5f6a7a', back: '#2e3642', belly: '#dfe6ee', fin: '#454f5c', pattern: '#8fd0e8', glow: '#9fd8ff' },
+      desc: '側線那兩道會在暗處泛光，形狀每次都不一樣。瀑布的水聲蓋掉一切聲音，所以牠上鉤的時候你只會看到竿子彎下去。' },
+    { id: 'fp_veil', name: '白沫幻鰭', rarity: 'epic', shape: 'flat', scale: 1.08, pattern: 'none', value: 23934, minLen: 40, maxLen: 90,
+      special: ['glow'],
+      colors: { body: '#eef4f4', back: '#b4c0c0', belly: '#ffffff', fin: '#d8e4e4', glow: '#f0fafa' },
+      desc: '只在落水點那一片翻湧的白沫裡出現。一游出泡沫區就看不見了——不是躲起來，是牠本來就跟泡沫一個顏色。' },
+
+    /* --- 傳說 --- */
+    { id: 'fp_curtain', name: '水簾白魚', rarity: 'legend', shape: 'flat', scale: 1.18, pattern: 'none', value: 66182, minLen: 50, maxLen: 110,
+      special: ['glow'],
+      colors: { body: '#dfe8ea', back: '#98a8ac', belly: '#ffffff', fin: '#bcc8cc', glow: '#dff2f8' },
+      legend: '瀑布後面有一段空的，寬到可以站三個人。裡面的水很靜，因為整道瀑布把它跟外面隔開了。牠住在那裡，整條半透明，貼著岩壁不動。從外面看不到裡面，從裡面看得到外面——所以第一個進去的人說，牠當時正對著水簾，像在看一場放了很久的電影。',
+      desc: '住在瀑布後面那一段。' },
+    { id: 'fp_roar', name: '轟聲巨鮠', rarity: 'legend', shape: 'long', scale: 1.20, pattern: 'speck', value: 66598, minLen: 100, maxLen: 220,
+      special: ['glow', 'whisker'],
+      colors: { body: '#4a4f4a', back: '#242824', belly: '#b4bcb0', fin: '#363a36', pattern: '#8a9284', glow: '#a8d8b0' },
+      legend: '瀑布的聲音是連續的，所以任何規律的東西都會被聽出來。潭邊的人偶爾會聽到水聲底下有一組低頻的、每隔幾秒一次的悶響——像很大的東西在很深的地方換氣。錄下來拿去分析，週期是穩定的。但只要有人下水，那個週期就停了，一整天都不會回來。',
+      desc: '你只會聽到牠，聽到那組規律的悶響。' },
+
+    /* --- 魚王 --- */
+    { id: 'fp_king_gyakuryu', name: '躍瀑巨鮭「逆流」', rarity: 'king', shape: 'leaper', scale: 1.30, pattern: 'band', value: 256404, minLen: 150, maxLen: 290,
+      special: ['glow', 'kype'], cyOffset: 1,
+      colors: { body: '#a8483a', back: '#5f1e16', belly: '#f0dcc0', fin: '#7f3024', pattern: '#3f6a5a', glow: '#ff9f6a', kype: '#8a2f22', tooth: '#f8f0dc' },
+      legend: '每年秋天牠都會來一次，在潭裡繞三圈，然後開始跳。二十公尺的瀑布，牠跳得到的高度大概是六公尺——所以牠一次都沒有成功過，而牠已經來了不知道多少年。潭邊的人不阻止牠，也不幫牠；有人試著在中段架過梯道，牠繞開了。牠要的顯然不是上去，是跳。',
+      desc: '懸瀑深潭之王。牠一次都沒成功過。' }
+  ];
+
+  /* ============================================================
+     地點十二：硫煙湯湖（castCost 9,000，插在煙雨蓮江與深淵海溝之間）
+     配色規則：玄武岩的黑紫 × 硫磺黃 × 溫泉的乳青。
+     稀有以上一律帶 glow，而且是**暖光**——這是刻意跟深淵海溝對照的：
+     那裡是「沒有光所以自己發冷光」，這裡是「太燙所以自己在發熱」。
+     兩個釣點在圖鑑裡並排時，一眼就分得出誰是哪一邊。
+     神話取自玻里尼西亞的火山女神佩蕾一系，是這個遊戲第五種文化來源。
+     ============================================================ */
+  const CALDERA_FISH = [
+    /* --- 雜物 --- */
+    { id: 'cd_brimstone', name: '硫磺結晶塊', rarity: 'junk', junkArt: 'brimstone', value: 105, minLen: 5,  maxLen: 18, unit: 'cm', desc: '拿在手上會沾一層黃粉，洗三次才洗得掉，味道洗不掉。' },
+    { id: 'cd_can',       name: '熔了一半的鐵罐', rarity: 'junk', junkArt: 'can',   value: 92, minLen: 6,  maxLen: 14, unit: 'cm', desc: '不知道掉進哪個噴氣孔又被推出來的。上半截還是罐子，下半截已經不是了。' },
+    { id: 'cd_algae',     name: '一團嗜熱藻',   rarity: 'junk', junkArt: 'weed',    value: 98, minLen: 15, maxLen: 50, unit: 'cm', desc: '在七十度的水裡活得很好。撈上來遇到冷空氣，兩分鐘就變成一團灰。' },
+
+    /* --- 普通（真的活在鹼湖與溫泉裡的魚種） --- */
+    { id: 'cd_alcolapia', name: '鹼湖麗魚', rarity: 'common', shape: 'flat', scale: .74, pattern: 'band', value: 716, minLen: 5, maxLen: 12,
+      colors: { body: '#a89858', back: '#5f5424', belly: '#e8dcae', fin: '#84763c', pattern: '#4a4220' },
+      desc: '這片水的 pH 值接近漂白水。牠不只活著，牠還在這裡產卵。' },
+    { id: 'cd_pupfish', name: '溫泉鱂', rarity: 'common', shape: 'long', scale: .58, pattern: 'speck', value: 732, minLen: 2, maxLen: 6,
+      colors: { body: '#7f8f9a', back: '#465058', belly: '#dfe8ec', fin: '#64727c', pattern: '#8fc0c8' },
+      desc: '全世界只有這一池有。整個物種加起來不到兩百條，而牠們從來沒想過要離開。' },
+    { id: 'cd_hottilapia', name: '湯口吳郭', rarity: 'common', shape: 'flat', scale: .78, pattern: 'scale', value: 710, minLen: 10, maxLen: 26,
+      colors: { body: '#8f8468', back: '#4e4634', belly: '#dcd4b8', fin: '#6c634c', pattern: '#b0a684' },
+      desc: '別的地方牠只是普通的吳郭魚。在這裡牠是唯一撐得住四十度水溫的大型魚。' },
+    { id: 'cd_mudloach', name: '泥火山鰍', rarity: 'common', shape: 'long', scale: .70, pattern: 'speck', value: 738, minLen: 6, maxLen: 18,
+      special: ['whisker'],
+      colors: { body: '#6a5f4a', back: '#3a3428', belly: '#c8c0a4', fin: '#514a38', pattern: '#948a6c' },
+      desc: '住在會冒泡的那一區。泡是硫化氫，牠聞不到，或者牠不在意。' },
+    { id: 'cd_gudgeon', name: '硫底鰕虎', rarity: 'common', shape: 'round', scale: .66, pattern: 'spot', value: 722, minLen: 3, maxLen: 9,
+      colors: { body: '#a89a5a', back: '#5f5624', belly: '#e8e0b0', fin: '#847838', pattern: '#3a3418' },
+      desc: '趴在黃色的結晶上，體色跟結晶一模一樣。撈起來以後才發現手上多了一條。' },
+    { id: 'cd_killifish', name: '蒸氣鱂', rarity: 'common', shape: 'long', scale: .60, pattern: 'stripe', value: 726, minLen: 3, maxLen: 8,
+      colors: { body: '#b0bcb8', back: '#647070', belly: '#f2f8f6', fin: '#8c9894', pattern: '#7f9490' },
+      desc: '整群貼在水面下一公分處，蒸氣從牠們背上飄過去。那是這座湖最涼的一層。' },
+
+    /* --- 優良 --- */
+    { id: 'cd_hotcarp', name: '湯鯉', rarity: 'good', shape: 'normal', scale: .88, pattern: 'scale', value: 2695, minLen: 22, maxLen: 50,
+      special: ['whisker'],
+      colors: { body: '#b09858', back: '#655324', belly: '#eee0b0', fin: '#8a7640', pattern: '#c8b078' },
+      desc: '在這種水溫裡牠長得比別處快一倍，也老得比別處快一倍。' },
+    { id: 'cd_venteel', name: '熱泉鰻', rarity: 'good', shape: 'long', scale: .94, pattern: 'none', value: 2756, minLen: 35, maxLen: 80,
+      colors: { body: '#5a4f48', back: '#2e2824', belly: '#bcb0a4', fin: '#443c36' },
+      desc: '整條纏在噴氣孔的邊上。那裡的水燙到手伸不進去，牠待了一整個晚上。' },
+    { id: 'cd_basalt', name: '玄武岩杜父魚', rarity: 'good', shape: 'round', scale: .80, pattern: 'net', value: 2675, minLen: 10, maxLen: 24,
+      special: ['spike'],
+      colors: { body: '#4a4650', back: '#26242c', belly: '#aaa4b0', fin: '#363340', pattern: '#6f6a78' },
+      desc: '黑得跟湖底的石頭一樣，連表面那些六角形的裂紋都學到了。' },
+    { id: 'cd_barb', name: '硫紋䰾', rarity: 'good', shape: 'normal', scale: .86, pattern: 'band2', value: 2727, minLen: 15, maxLen: 36,
+      colors: { body: '#c8b060', back: '#7f6a24', belly: '#f4ecc0', fin: '#a08c3c', pattern: '#4e4218' },
+      desc: '身上兩道深黃的橫帶，位置跟岸邊結晶階地的層次剛好對得上。' },
+    { id: 'cd_hotcat', name: '湯底鯰', rarity: 'good', shape: 'wide', scale: .88, pattern: 'speck', value: 2742, minLen: 25, maxLen: 55,
+      special: ['whisker'],
+      colors: { body: '#6f6350', back: '#3d3628', belly: '#cfc6a8', fin: '#565040', pattern: '#948a70' },
+      desc: '湖底最深那一層水是冷的。牠白天待在那裡，晚上才上來，上來的時候身上會冒煙。' },
+
+    /* --- 稀有（暖光開始出現） --- */
+    { id: 'cd_ember', name: '餘燼緋鱗', rarity: 'rare', shape: 'wide', scale: 1.02, pattern: 'speck', value: 11867, minLen: 30, maxLen: 70,
+      special: ['glow'],
+      colors: { body: '#c05a2a', back: '#7a2a0c', belly: '#f6d4a8', fin: '#9a4018', pattern: '#ffb45f', glow: '#ff8f3a' },
+      desc: '鱗片邊緣泛著橘紅，像一塊還沒完全熄掉的炭。摸起來是溫的——不是水的溫度，是牠自己的。' },
+    { id: 'cd_malachite', name: '孔雀石鯉', rarity: 'rare', shape: 'normal', scale: 1.00, pattern: 'scale', value: 11666, minLen: 30, maxLen: 68,
+      special: ['glow'],
+      colors: { body: '#3f9a7a', back: '#1c5040', belly: '#c8ecd8', fin: '#2c7058', pattern: '#7fe0b0', glow: '#5fd8a0' },
+      desc: '那個綠是銅的顏色。湖底的礦脈裡有銅，而牠吃湖底的東西吃了一輩子。' },
+    { id: 'cd_obsidian', name: '黑曜刀魚', rarity: 'rare', shape: 'flat', scale: 1.04, pattern: 'none', value: 11787, minLen: 35, maxLen: 80,
+      colors: { body: '#2a2630', back: '#131118', belly: '#6a6478', fin: '#1e1c24' },
+      desc: '薄、黑、邊緣鋒利。從側面看幾乎看不見牠，從正面看只有一條線。' },
+    { id: 'cd_vent', name: '噴氣孔盲魚', rarity: 'rare', shape: 'long', scale: 1.00, pattern: 'none', value: 11716, minLen: 20, maxLen: 46,
+      special: ['glow'],
+      colors: { body: '#e0d4c4', back: '#a89a86', belly: '#f8f2e8', fin: '#c4b8a4', glow: '#ffd8a8' },
+      desc: '沒有眼睛，皮膚是透明的偏白。牠靠側線感覺水溫的變化，往燙的那一邊走。' },
+
+    /* --- 史詩 --- */
+    { id: 'cd_magma', name: '熔岩紋巨鯙', rarity: 'epic', shape: 'long', scale: 1.10, pattern: 'net', value: 46262, minLen: 90, maxLen: 200,
+      special: ['glow', 'jaw'],
+      colors: { body: '#3a2a2a', back: '#1a1212', belly: '#8f7060', fin: '#282020', pattern: '#e8703a', glow: '#ff8f4f', tooth: '#f8f0dc' },
+      desc: '黑底上一條條橘紅的網紋，像冷卻中的熔岩表面那些還沒閉合的縫。牠不咬人，牠只是不肯鬆口。' },
+    { id: 'cd_geyser', name: '間歇泉躍魚', rarity: 'epic', shape: 'wide', scale: 1.08, pattern: 'band', value: 46061, minLen: 60, maxLen: 140,
+      special: ['glow'],
+      colors: { body: '#c8c0b0', back: '#787064', belly: '#f8f4ec', fin: '#a09888', pattern: '#ffb45f', glow: '#ffd8a0' },
+      desc: '間歇泉每隔四十分鐘噴一次，牠每隔四十分鐘被噴出水面一次。牠不躲，牠好像很期待那一下。' },
+
+    /* --- 傳說 --- */
+    { id: 'cd_pele', name: '佩蕾之髮', rarity: 'legend', shape: 'long', scale: 1.20, pattern: 'speck', value: 126517, minLen: 80, maxLen: 180,
+      special: ['glow', 'filaments'],
+      colors: { body: '#8f3a2a', back: '#4e1408', belly: '#e8b08f', fin: '#6a2416', pattern: '#ffb45f', glow: '#ff7f3a', filament: '#ffd8a8' },
+      legend: '火山噴發時，熔岩被風扯成極細的玻璃絲飄到很遠的地方，當地人管那個叫「佩蕾的頭髮」。這種魚身上垂著同樣的東西——不是鰭，是真正的玻璃絲，會割手。傳說佩蕾住在火山口裡，脾氣壞、記仇、談過很多次戀愛而且每一次都以災難收場。你拉起這條魚的時候，最好不要看牠的眼睛。',
+      desc: '牠身上那幾條會割手。' },
+    { id: 'cd_namaka', name: '娜瑪卡', rarity: 'legend', shape: 'wide', scale: 1.18, pattern: 'scale', value: 127120, minLen: 90, maxLen: 200,
+      special: ['glow'],
+      colors: { body: '#3f8fa8', back: '#1a4a5c', belly: '#cfeef6', fin: '#2c6d84', pattern: '#8fe0f0', glow: '#7fd8f0' },
+      legend: '娜瑪卡是海，佩蕾是火，她們是姊妹。傳說裡姊姊追著妹妹從一座島打到另一座島，每打一次就多一座火山。這座湖是她們最後一次交手的地方——火贏了，所以這裡是熱的；但水沒有走，所以這裡還是一座湖。牠在最深的那一層冷水裡，一年只上來一次，上來的那一天整座湖的溫度會降兩度。',
+      desc: '牠上來的那天，整座湖會涼兩度。' },
+
+    /* --- 魚王 --- */
+    { id: 'cd_king_yobi', name: '不滅腔棘魚「餘火」', rarity: 'king', shape: 'coelacanth', scale: 1.30, pattern: 'net', value: 461616, minLen: 190, maxLen: 360,
+      special: ['glow', 'lobeFin'], cyOffset: 1,
+      colors: { body: '#3a4a52', back: '#1a2428', belly: '#9fb0b4', fin: '#2a373d', pattern: '#e8a04a', glow: '#ff9f4f', lobe: '#5f6f74' },
+      legend: '腔棘魚應該在六千五百萬年前就跟著恐龍一起消失了，直到一九三八年有人在漁獲堆裡認出一條。牠們住在火山島的斜坡上，那裡的水又深又冷。這一條不一樣：牠在這座湯湖裡，水是溫的，而牠的鰭長在四根肉柄上，走起來像在爬。有人說牠是被火山推上來的，也有人說牠一直都在，只是這座湖比牠年輕太多，年輕到不值得牠換地方。',
+      desc: '硫煙湯湖之王。牠比這座湖老六千五百萬年。' }
+  ];
+
+  /* ============================================================
      地點列表
      ============================================================ */
   FG.LOCATIONS = [
@@ -831,6 +1221,32 @@ window.FG = window.FG || {};
         boat: '#5b3b2e', boatRim: '#7a5340', boatDark: '#3a271e'
       },
       fish: MIST_LAKE_FISH
+    },
+    {
+      id: 'garden_pond',
+      name: '澄澈方池',
+      subtitle: '庭園釣場 · 清淺',
+      desc: '有人挖的、有人砌邊的、有人每週來撈落葉的一座池子。水淺到看得見底下的方磚，魚也看得見你。這裡不會有意外，除了那條白色的。',
+      seed: 41208,
+      castCost: 700,
+      unlock: { free: true },
+      scene: {
+        terrain: 'pond',
+        horizon: 0.32,
+        // 晴天正午：這是全遊戲最亮、最沒有戲劇性的天空。人工池塘不需要氣氛，
+        // 它需要的是「什麼都看得清楚」
+        sky: ['#7fa8c8', '#a8c8dc', '#d4e4ea'],
+        hill: '#7f9a86',
+        farTree: '#5f8a52', midTree: '#3f6a3a', nearTree: '#2f5230',
+        trunk: '#5f4a30',
+        coping: '#b8b2a4', deck: '#8a6a44',
+        bed: '#c8bfa0', grout: '#9a9078', stepStone: '#a8a294', leaf: '#7f6a3a',
+        shore: '#4a4a3a',
+        waterTop: '#6fa8b4', waterBot: '#a8d4d8', waterDeep: '#4f8a94',
+        highlight: '#ffffff', highlight2: '#cfeef4',
+        boat: '#7a5c38', boatRim: '#9a7848', boatDark: '#4e3a24'
+      },
+      fish: POND_FISH
     },
     {
       id: 'sunset_fjord',
@@ -886,6 +1302,29 @@ window.FG = window.FG || {};
       fish: SHRINE_FISH
     },
     {
+      id: 'tide_flat',
+      name: '潮落礁灘',
+      subtitle: '潮間釣場 · 汐灘',
+      desc: '大退潮之後，海往後退了三百公尺，留下一整片攤開的灘地。裸露的礁石、平行的沙紋、還有數不清的積水潭。水道只剩中間那一條，船就停在那裡等漲潮。',
+      seed: 62409,
+      castCost: 2300,
+      unlock: { free: true },
+      scene: {
+        terrain: 'tidal',
+        // 地平線壓高（0.30）：這個釣點的重點全在水面以下那一大片灘地
+        horizon: 0.30,
+        sky: ['#5f7f9a', '#98b4c0', '#d8d4c0', '#f0dcb8'],
+        hill: '#5f6a70',
+        farTree: '#9a8f74', midTree: '#7f7460', nearTree: '#5f5a4c',
+        sand: '#cfc0a4', wet: '#9c907a', pool: '#6fb4c0', weedC: '#4a6a3a',
+        shore: '#7f7460',
+        waterTop: '#4a7f8a', waterBot: '#8fc0c4', waterDeep: '#2f5f6a',
+        highlight: '#fbf6ea', highlight2: '#cfe4e4',
+        boat: '#6a5238', boatRim: '#8a6c48', boatDark: '#443424'
+      },
+      fish: TIDAL_FISH
+    },
+    {
       id: 'frost_lake',
       name: '幽藍冰湖',
       subtitle: '寒帶釣場 · 冰釣',
@@ -904,6 +1343,29 @@ window.FG = window.FG || {};
         boat: '#3f4a58', boatRim: '#5a6b7c', boatDark: '#2a323c'
       },
       fish: FROST_FISH
+    },
+    {
+      id: 'fall_pool',
+      name: '懸瀑深潭',
+      subtitle: '瀑潭釣場 · 湍流',
+      desc: '一整面濕黑的岩壁，被一道二十公尺高的白水從中間切開。水砸下來的地方永遠翻著泡沫，霧散不掉，說話要用喊的。潭很深，深到聲納打下去要等一下才回來。',
+      seed: 74615,
+      castCost: 4400,
+      unlock: { free: true },
+      scene: {
+        terrain: 'waterfall',
+        horizon: 0.34,
+        sky: ['#4a5f68', '#7f959a', '#b4c8c4'],
+        hill: '#3f5052',
+        farTree: '#3a4a4c', midTree: '#2e3c3f', nearTree: '#222e30',
+        falls: '#e8f4f6', foam: '#eaf6f6', mist: '#dfeaea', moss: '#3f6a44',
+        accent: ['#4f7a4a'],
+        shore: '#1a2426',
+        waterTop: '#2a4a52', waterBot: '#5f8f94', waterDeep: '#16303a',
+        highlight: '#f4fcfc', highlight2: '#a8d8dc',
+        boat: '#4a4438', boatRim: '#6a6250', boatDark: '#2e2a22'
+      },
+      fish: FALL_FISH
     },
     {
       id: 'lotus_river',
@@ -929,6 +1391,29 @@ window.FG = window.FG || {};
         boat: '#4a3a28', boatRim: '#6b5438', boatDark: '#2e2419'
       },
       fish: LOTUS_FISH
+    },
+    {
+      id: 'caldera',
+      name: '硫煙湯湖',
+      subtitle: '火山釣場 · 溫湯',
+      desc: '破火山口積水成湖。水是溫的，越靠岸越燙；湖底泛著硫磺的黃，水面整天飄著散不掉的蒸氣。左邊那座錐子還活著，頂上那道煙從來沒有停過。',
+      seed: 85821,
+      castCost: 9000,
+      unlock: { free: true },
+      scene: {
+        terrain: 'caldera',
+        horizon: 0.38,
+        // 火山灰把天空壓成一片黃濁，最上方留一點冷色當對比
+        sky: ['#3a3040', '#6a5450', '#a8845f', '#d8b878'],
+        hill: '#4a3f48',
+        farTree: '#3f3644', midTree: '#332c3a', nearTree: '#282230',
+        sulfur: '#e0c85f', ember: '#e8703a', smoke: '#8f8a92', steam: '#e8eef0',
+        shore: '#2a2430',
+        waterTop: '#3f5a5a', waterBot: '#8fb4ac', waterDeep: '#2a4046',
+        highlight: '#fbf4dc', highlight2: '#d8c88f',
+        boat: '#4a3a34', boatRim: '#6a5448', boatDark: '#2e2420'
+      },
+      fish: CALDERA_FISH
     },
     {
       id: 'abyss', name: '深淵海溝', subtitle: '深海釣場 · 未知',
@@ -1023,9 +1508,13 @@ window.FG = window.FG || {};
   FG.RODS = [
     { id: 'rod_bamboo', name: '竹製釣竿',   price: 0,      rareMul: 1.00, sizeBonus: 0,    kingMul: 1,    loc: 'mist_lake',     desc: '祖父留下的舊竿子，堪用。' },
     { id: 'rod_reed',   name: '蘆葦手竿',   price: 900,    rareMul: 1.07, sizeBonus: 0.02, kingMul: 1,    loc: 'mist_lake',     desc: '晨霧湖岸邊割來的，輕到感覺不出手上有東西。' },
+    { id: 'rod_tenkara',name: '池畔短節竿', price: 1600,   rareMul: 1.11, sizeBonus: 0.035,kingMul: 1,    loc: 'garden_pond',   desc: '沒有捲線器，線就綁在竿尖。池子那麼小，本來也不需要放線。' },
     { id: 'rod_glass',  name: '玻纖磯竿',   price: 2400,   rareMul: 1.15, sizeBonus: 0.05, kingMul: 1,    desc: '韌性不錯，稀有魚上鉤率 +15%。' },
+    { id: 'rod_tide',   name: '趕海長竿',   price: 3400,   rareMul: 1.19, sizeBonus: 0.065,kingMul: 1,    loc: 'tide_flat',     desc: '特別長，讓你站在乾的地方就搆得到水窪。' },
     { id: 'rod_drift',  name: '浮木海竿',   price: 4800,   rareMul: 1.24, sizeBonus: 0.08, kingMul: 1,    loc: 'sunset_fjord',  desc: '峽灣漂上岸的木料削的。泡過鹹水反而更韌。' },
+    { id: 'rod_falls',  name: '逆流硬調竿', price: 7000,   rareMul: 1.30, sizeBonus: 0.10, kingMul: 1.1,  loc: 'fall_pool',     desc: '調性硬得幾乎不彎。潭裡的東西上鉤就往瀑布衝，軟竿只會被拖進去。' },
     { id: 'rod_carbon', name: '碳纖維遠投竿', price: 9800, rareMul: 1.35, sizeBonus: 0.12, kingMul: 1.2,  desc: '輕又硬，能把餌拋到魚群正中央。' },
+    { id: 'rod_pumice', name: '浮石隔熱竿', price: 13000,  rareMul: 1.39, sizeBonus: 0.14, kingMul: 1.18, loc: 'caldera',       desc: '握把裹了一層火山浮石。沒有這一層，竿子在湯湖上放十分鐘就拿不起來了。' },
     { id: 'rod_sakura', name: '櫻枝祭竿',   price: 16000,  rareMul: 1.42, sizeBonus: 0.10, kingMul: 1.15, loc: 'sakura_shrine', desc: '祭典用過的櫻枝。宮司說這種竿子不該用來賺錢。' },
     { id: 'rod_ice',    name: '冰晶短竿',   price: 26000,  rareMul: 1.48, sizeBonus: 0.16, kingMul: 1.3,  loc: 'frost_lake',    desc: '短到能在冰洞邊坐著用。竿身結著一層永不融的霜。' },
     { id: 'rod_mithril',name: '秘銀磯釣竿', price: 42000,  rareMul: 1.55, sizeBonus: 0.22, kingMul: 1.5,  desc: '導環用秘銀打造，線出得順到不可思議。' },
@@ -1044,10 +1533,14 @@ window.FG = window.FG || {};
   FG.BAITS = [
     { id: 'bait_bread', name: '麵包屑',     price: 25,   pack: 10, rareMul: 1.00, junkMul: 1.00, valueMul: 1.00, kingMul: 1,    desc: '便宜、堪用、什麼都釣得到一點。' },
     { id: 'bait_moss',  name: '湖苔團',     price: 45,   pack: 10, rareMul: 1.09, junkMul: 0.85, valueMul: 1.00, kingMul: 1,    loc: 'mist_lake',     desc: '從湖底石頭上刮下來搓成團。晨霧湖的魚從小吃這個。' },
+    { id: 'bait_pellet',name: '沉底飼料錠', price: 55,   pack: 10, rareMul: 1.13, junkMul: 0.78, valueMul: 1.00, kingMul: 1,    loc: 'garden_pond',   desc: '池子裡的魚從小吃這個長大。牠們認得袋子的聲音。' },
     { id: 'bait_worm',  name: '紅蚯蚓',     price: 70,   pack: 10, rareMul: 1.18, junkMul: 0.70, valueMul: 1.00, kingMul: 1,    desc: '萬用活餌，雜物明顯變少。' },
+    { id: 'bait_crab',  name: '碎潮蟹',     price: 95,   pack: 10, rareMul: 1.25, junkMul: 0.62, valueMul: 1.02, kingMul: 1.05, loc: 'tide_flat',     desc: '退潮時翻石頭抓的，直接連殼敲碎。腥味在水窪裡散得特別快。' },
     { id: 'bait_squid', name: '花枝切段',   price: 130,  pack: 10, rareMul: 1.32, junkMul: 0.55, valueMul: 1.05, kingMul: 1.1,  loc: 'sunset_fjord',  desc: '切得越不整齊越有效，沒有人知道為什麼。' },
+    { id: 'bait_caddis',name: '石蠶蛹',     price: 165,  pack: 10, rareMul: 1.39, junkMul: 0.47, valueMul: 1.07, kingMul: 1.15, loc: 'fall_pool',     desc: '從瀑布下的石頭底面剝下來的。逆流上來的魚一輩子只認得這個味道。' },
     { id: 'bait_shrimp',name: '活蝦',       price: 200,  pack: 10, rareMul: 1.45, junkMul: 0.40, valueMul: 1.10, kingMul: 1.2,  desc: '大魚最愛，賣價也跟著漂亮。' },
     { id: 'bait_petal', name: '鹽漬櫻餌',   price: 280,  pack: 10, rareMul: 1.55, junkMul: 0.30, valueMul: 1.08, kingMul: 1.3,  loc: 'sakura_shrine', desc: '祭典的供品，隔天用鹽醃起來。神域的魚認得這個味道。' },
+    { id: 'bait_sulfur',name: '硫泉菌毯',   price: 330,  pack: 10, rareMul: 1.62, junkMul: 0.22, valueMul: 1.09, kingMul: 1.35, loc: 'caldera',       desc: '從噴氣孔邊上刮下來的一層菌膜。湯湖裡的食物鏈最底下就是它。' },
     { id: 'bait_lure',  name: '螢光假餌',   price: 380,  pack: 10, rareMul: 1.70, junkMul: 0.15, valueMul: 1.10, kingMul: 1.4,  desc: '在暗處會發光，專門激怒掠食者。' },
     { id: 'bait_krill', name: '冰海磷蝦',   price: 520,  pack: 10, rareMul: 1.75, junkMul: 0.12, valueMul: 1.12, kingMul: 1.6,  loc: 'frost_lake',    desc: '冰層底下整片都是。撈上來要立刻用，退冰就爛了。' },
     { id: 'bait_lees',  name: '酒糟米團',   price: 680,  pack: 10, rareMul: 1.82, junkMul: 0.08, valueMul: 1.15, kingMul: 1.9,  loc: 'lotus_river',   desc: '釀酒剩下的糟捏成團。江裡的魚會醉，醉了就不掙扎。' },
@@ -1076,10 +1569,14 @@ window.FG = window.FG || {};
        （初版就是這樣做的，黃沙冥河跑出 ×3.13）。一件一個效果同時也讓
        每件裝備有自己的個性，玩家看得出「這件是幹什麼的」。 */
     { id: 'eq_mistlens', name: '晨霧偏光鏡', price: 6000,   effect: { loc: 'mist_lake',     rareMul: 1.12 },    desc: '透過霧看得見水下的影子。稀有度 +12%，只在晨霧湖生效。' },
+    { id: 'eq_feeder',   name: '自動投餌桶', price: 10000,  effect: { loc: 'garden_pond',   sizeBonus: 0.05 },  desc: '每天定時撒一次。撒久了，池裡的魚就一條比一條肥。體型 +5%，只在澄澈方池生效。' },
     { id: 'eq_tidechart', name: '潮汐圖板',  price: 14000,  effect: { loc: 'sunset_fjord',  valueMul: 1.08 },   desc: '記著峽灣每天的漲退時刻，挑對時間賣得比較好。售價 +8%，只在落霞峽灣生效。' },
     { id: 'eq_charm',    name: '神域護符',   price: 24000,  effect: { loc: 'sakura_shrine', rareMul: 1.14 },    desc: '宮司給的。他說「別跟牠們對看」。稀有度 +14%，只在宵櫻神域生效。' },
+    { id: 'eq_creel',    name: '碎冰保冷箱', price: 30000,  effect: { loc: 'tide_flat',     valueMul: 1.085 },  desc: '灘上曬四個小時，有沒有這一箱差很多。售價 +8.5%，只在潮落礁灘生效。' },
     { id: 'eq_auger',    name: '破冰鑽',     price: 38000,  effect: { loc: 'frost_lake',    costMul: 0.90 },    desc: '開洞快一倍，省下來的力氣就是省下來的錢。拋竿費 −10%，只在幽藍冰湖生效。' },
+    { id: 'eq_mask',     name: '潛水面鏡',   price: 50000,  effect: { loc: 'fall_pool',     rareMul: 1.15 },    desc: '把臉埋進去就看得見潭底有什麼。看得見，才知道要把餌放哪。稀有度 +15%，只在懸瀑深潭生效。' },
     { id: 'eq_teapot',   name: '溫酒壺',     price: 62000,  effect: { loc: 'lotus_river',   valueMul: 1.09 },   desc: '手不冷，線就穩，魚也拉得完整。售價 +9%，只在煙雨蓮江生效。' },
+    { id: 'eq_raft',     name: '溫泉浮台',   price: 95000,  effect: { loc: 'caldera',       costMul: 0.91 },    desc: '固定在湖心，省掉每次划出去的工夫。拋竿費 −9%，只在硫煙湯湖生效。' },
     { id: 'eq_winch',    name: '耐壓絞盤',   price: 120000, effect: { loc: 'abyss',         sizeBonus: 0.06 },  desc: '拉得動不該拉得動的東西。體型 +6%，只在深淵海溝生效。' },
     { id: 'eq_runeplate',name: '符文銘板',   price: 240000, effect: { loc: 'world_root',    rareMul: 1.16 },    desc: '照著石板抄下來的。抄的人說抄完手抖了三天。稀有度 +16%，只在世界樹根生效。' },
     { id: 'eq_ankh',     name: '生命之符',   price: 480000, effect: { loc: 'duat',          rareMul: 1.17 },    desc: '掛在胸前，河裡的東西就會當你已經死了。稀有度 +17%，只在黃沙冥河生效。' }
@@ -1106,6 +1603,10 @@ window.FG = window.FG || {};
     { id: 'lamp',   name: '吊燈',       price: 8000,  effect: {},              desc: '純裝飾。讓房間亮一點。' },
     // 釣點主題裝飾一律**純裝飾（effect 空）**：裝飾的效果是全域相乘且全部同時生效，
     // 跟通用裝備一樣會疊乘失控，而「家園擺設」在語意上又不適合綁定某個釣點。
+    { id: 'shishi',    name: '竹添水',     price: 9000,  effect: {}, desc: '純裝飾。澄澈方池那種庭園裡都有一支。每隔一陣子「叩」一聲，水豚每次都會醒。' },
+    { id: 'shellrack', name: '貝殼標本架', price: 14000, effect: {}, desc: '純裝飾。從潮落礁灘一趟一趟撿回來的，九個格子花了很久才填滿。' },
+    { id: 'cascade',   name: '循環水景',   price: 22000, effect: {}, desc: '純裝飾。懸瀑深潭的迷你版，水從上面的盆流到下面的盆，再被打上去。' },
+    { id: 'onsen',     name: '檜木泡湯桶', price: 34000, effect: {}, desc: '純裝飾。裝的是從硫煙湯湖運回來的水。水豚看到的第一天就跳進去了。' },
     { id: 'sarco',  name: '彩繪石棺',   price: 90000, effect: {},              desc: '純裝飾。從黃沙冥河搬回來的，裡面是空的——搬之前就是空的。' }
   ];
 

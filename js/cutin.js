@@ -11,7 +11,7 @@
       魚王自己的 colors.glow / colors.pattern。「每位魚王看起來不一樣」因此
       幾乎是免費的——換了配色就換了整場演出的色調。
 
-   3. 八位魚王不各自手刻一套動畫，而是「四種演出骨架 × 每王一筆參數」。
+   3. 十二位魚王不各自手刻一套動畫，而是「四種演出骨架 × 每王一筆參數」。
       各刻一套要 700~1000 行，而且每新增一個釣點就多一項最花時間的工作
       （加釣點本來就要生一整套周邊，見 wiki 09）。參數化之後，新的魚王
       只要在 KING 表補一筆六行的資料。
@@ -48,10 +48,14 @@ window.FG = window.FG || {};
   // 演出文字的處理一致）；tone 是音效動機的音階陣列。
   const KING = {
     ml_king_onde:        { motif: 'emerge', particle: 'up',    title: '霧　語', tone: [196, 262, 330, 392] },
+    gp_king_hyaku:       { motif: 'emerge', particle: 'up',    title: '百　年', tone: [262, 330, 392, 523] },
     fj_king_helio:       { motif: 'charge', particle: 'drift', title: '逐　日', tone: [392, 523, 659, 784] },
     sk_king_yahiro:      { motif: 'spiral', particle: 'up',    title: '神　降', tone: [330, 440, 494, 659, 880] },
+    tf_king_kotaku:      { motif: 'reveal', particle: 'drift', title: '涸　澤', tone: [349, 294, 392, 466] },
     fr_king_kold:        { motif: 'charge', particle: 'burst', title: '碎　冰', tone: [523, 466, 622, 831] },
+    fp_king_gyakuryu:    { motif: 'charge', particle: 'burst', title: '逆　流', tone: [392, 494, 587, 784] },
     lr_king_dujiang:     { motif: 'emerge', particle: 'drift', title: '渡　江', tone: [294, 349, 440, 523] },
+    cd_king_yobi:        { motif: 'spiral', particle: 'burst', title: '餘　火', tone: [277, 233, 311, 415, 523] },
     ab_king_nyx:         { motif: 'reveal', particle: 'up',    title: '深　淵', tone: [440, 349, 262, 196] },
     wr_king_jormungandr: { motif: 'spiral', particle: 'burst', title: '環　世', tone: [262, 392, 523, 784, 1046] },
     du_king_osiris:      { motif: 'reveal', particle: 'drift', title: '不　死', tone: [220, 277, 330, 440, 554] }

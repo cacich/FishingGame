@@ -226,7 +226,11 @@ window.FG = window.FG || {};
     cat:    { pal: { a: '#f2ece2', b: '#2a2a2a', c: '#d8a53a' }, map: ['..a..........a..','..aa........aa..','..aaaaaaaaaaaa..','..abaaaaaaba....','..aaaaaaaaaa....','..aaacccaaa.....','..aaaaaaaaa.....','..aaaaaaaaa.....'] },
     neon:   { pal: { a: '#59d8ff', b: '#2a5566' }, map: ['................','..aaaaaaaaaa....','..a........a....','..a........a....','..aaaaaaaaaa....','.....b..b.......','................','................'] },
     lamp:   { pal: { a: '#c9a24a', b: '#f2d98a', c: '#3a3038' }, map: ['.......c........','.......c........','.......c........','...aaaaaaaaa....','....bbbbbbb.....','.....bbbbb......','................','................'] },
-    sarco:  { pal: { a: '#b8934a', b: '#2f3a58', c: '#f2e8c8', d: '#c8a04a' }, map: ['....aaaaaa......','...abbbbbba.....','...abcbbcba.....','...abbddbba.....','...abbbbbba.....','...abddddba.....','...abbbbbba.....','....aaaaaa......'] }
+    sarco:  { pal: { a: '#b8934a', b: '#2f3a58', c: '#f2e8c8', d: '#c8a04a' }, map: ['....aaaaaa......','...abbbbbba.....','...abcbbcba.....','...abbddbba.....','...abbbbbba.....','...abddddba.....','...abbbbbba.....','....aaaaaa......'] },
+    shishi:    { pal: { a: '#a8b45f', b: '#6b5a34', c: '#7f7a70', d: '#bfe4f2' }, map: ['................','...aaaa.........','..aaaaaa........','...b...aaa......','...b......aa....','...b........d...','...b.....ccc....','...b....ccccc...'] },
+    shellrack: { pal: { a: '#7a5a38', b: '#e8dcc0', c: '#d8b8a0', d: '#c8ccd8' }, map: ['..bb..cc..dd....','.bbbb.cccc.dddd.','aaaaaaaaaaaaaaa.','..cc..dd..bb....','.cccc.dddd.bbbb.','aaaaaaaaaaaaaaa.','..dd..bb..cc....','aaaaaaaaaaaaaaa.'] },
+    cascade:   { pal: { a: '#6f6a60', b: '#dff2f8', c: '#9fd8e8' }, map: ['....aaaaaa......','....a....a......','......bb........','......cb........','......bb........','...aaaaaaaa.....','...abbbbbba.....','...aaaaaaaa.....'] },
+    onsen:     { pal: { a: '#c8a46a', b: '#7f6438', c: '#9fd0d8', d: '#eef4f6' }, map: ['...d....d.......','....d..d........','..aaaaaaaaaa....','..acccccccca....','..bbbbbbbbbb....','..aaaaaaaaaa....','..bbbbbbbbbb....','..aaaaaaaaaa....'] }
   };
   function decoIcon(d) {
     const def = DECO_ART[d.id];

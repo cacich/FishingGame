@@ -44,6 +44,7 @@
 | 新增 shape / pattern / special / junkArt | [06](06-pixel-engine.md) 加說明 ＋ [07](07-data-schema.md) 加可用值 ＋ [12](12-glossary.md) 加清單 |
 | 新增「會往魚身體外延伸」的 special | 上面那一列全做，**再加 `buildFish()` 的 `HEAD_ROOM` 一列**（見 [11 §19](11-invariants-and-gotchas.md)） |
 | **新增釣點** | ★ **必須一次生出一整套**：釣點＋魚種＋釣竿＋餌料＋裝備＋家園裝飾＋**魚王 cut-in**，規則與理由見 [09 §新增一個釣點](09-recipes.md#新增一個釣點--一次要生出一整套)。文件要更新 [07](07-data-schema.md) 釣點表＋配色規則表＋四張裝備表、[10](10-balance-tuning.md) 基準表＋模擬腳本、[12](12-glossary.md) id 前綴、[04](04-fishing-loop.md) 魚王 cut-in 分配表、[README](README.md) 三十秒版本，並**在 320px 寬檢查 [08](08-ui-and-screens.md#會隨釣點數量成長的介面) 列的兩處** |
+| **把釣點插在既有兩個之間**（不是接在尾巴） | 上面那一列全做，**再加**：可用的滿裝倍率窗口只有 0.02～0.05，比模擬噪音還窄，**必須用 [10 §精確版](10-balance-tuning.md#精確版不用模擬直接把期望值算出來) 的解析解校正**，理由見 [11 §28](11-invariants-and-gotchas.md#28-插隊的釣點模擬的噪音比可用的窗口還寬) |
 | **新增魚王** | `cutin.js › KING` 補一筆（`motif` / `particle` / `title` / `tone`）＋ [04](04-fishing-loop.md) 的分配表加一列。**漏了不報錯**，只是那位魚王的登場演出跟別人一樣 |
 | 改 cut-in 的長度或動畫 | `cutin.js › DUR_*` 與 `styles.css` 的 keyframes **必須一起改**（[11 §26](11-invariants-and-gotchas.md)）＋ [04 §時間軸](04-fishing-loop.md#時間軸) 的表 ＋ [08](08-ui-and-screens.md) |
 | 新增釣竿／餌料 | [07](07-data-schema.md) 的表；**維持 price 遞增**；`screen-shop.js › rodIcon()` 的色表要同步加長（[11 §24](11-invariants-and-gotchas.md)） |

@@ -50,14 +50,14 @@
 
 | 欄位 | 可用值 |
 |---|---|
-| `shape` | 一般：`normal` `long` `round` `flat` `wide` `ray`／魚王專屬：`catfish` `tuna` `dragon` `pike` `abyss` `paddle` `serpent` `lungfish` |
+| `shape` | 一般：`normal` `long` `round` `flat` `wide` `ray`／魚王專屬：`catfish` `tuna` `dragon` `pike` `abyss` `paddle` `serpent` `lungfish` `koi` `skipper` `leaper` `coelacanth` |
 | `pattern` | `none` `stripe` `band` `band2` `spot` `speck` `net` `scale` |
-| `special[]` | `glow` `spike` `whisker` `scar` `horn` `jaw` `lantern` `finlet` `mane` `frost` `rostrum` `forkTongue` `filaments` |
-| `junkArt` | `boot` `can` `weed` `bottle` `ice` `bone` `ema` `porcelain` `shield` `ostracon` |
-| `scene.terrain` | `forest` `cliff` `shrine` `ice` `karst` `night` `yggdrasil` `desert` |
-| `colors` | `body`(必填) `back` `belly` `fin` `pattern` `glow` `hornColor` `scar` `tooth` `frost` `lantern` `mane` `rostrum` `tongue` `filament` `eyeWhite` `pupil` |
+| `special[]` | `glow` `spike` `whisker` `scar` `horn` `jaw` `lantern` `finlet` `mane` `frost` `rostrum` `forkTongue` `filaments` `stalkEye` `kype` `lobeFin` |
+| `junkArt` | `boot` `can` `weed` `bottle` `ice` `bone` `ema` `porcelain` `shield` `ostracon` `coins` `shell` `flask` `brimstone` |
+| `scene.terrain` | `forest` `pond` `cliff` `shrine` `tidal` `ice` `waterfall` `karst` `caldera` `night` `yggdrasil` `desert` |
+| `colors` | `body`(必填) `back` `belly` `fin` `pattern` `glow` `hornColor` `scar` `tooth` `frost` `lantern` `mane` `rostrum` `tongue` `filament` `kype` `lobe` `eyeWhite` `pupil` |
 
-會觸發 `headRoom`（吻端前方預留空間）的 special：`whisker`(12px)、`forkTongue`(12px)、`rostrum`(24px)。
+會觸發 `headRoom`（吻端前方預留空間）的 special：`whisker`(12px)、`forkTongue`(12px)、`kype`(10px)、`rostrum`(24px)。
 
 ## 狀態機階段
 
@@ -78,7 +78,7 @@
 | `motif` | `legend`／魚王四選一：`emerge` `charge` `spiral` `reveal` |
 | `particle` | 粒子動線：`up` 上浮／`burst` 四散／`drift` 橫流 |
 
-八位魚王的分配表在 [04 §cut-in](04-fishing-loop.md#cut-in--傳說以上的登場演出)。
+十二位魚王的分配表在 [04 §cut-in](04-fishing-loop.md#cut-in--傳說以上的登場演出)（四種 `motif` 目前各 3 位，刻意維持平均）。
 
 ## 事件名
 
@@ -107,10 +107,14 @@
 | 前綴 | 用於 |
 |---|---|
 | `ml_` | 晨霧湖的魚 |
+| `gp_` | 澄澈方池的魚 |
 | `fj_` | 落霞峽灣的魚 |
 | `sk_` | 宵櫻神域的魚 |
+| `tf_` | 潮落礁灘的魚 |
 | `fr_` | 幽藍冰湖的魚 |
+| `fp_` | 懸瀑深潭的魚 |
 | `lr_` | 煙雨蓮江的魚 |
+| `cd_` | 硫煙湯湖的魚 |
 | `ab_` | 深淵海溝的魚 |
 | `wr_` | 世界樹根的魚 |
 | `du_` | 黃沙冥河的魚 |

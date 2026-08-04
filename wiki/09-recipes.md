@@ -9,14 +9,14 @@
 
 ## 新增一種魚
 
-1. 打開 `js/data.js`，找到目標釣點的魚陣列（`MIST_LAKE_FISH` / `FJORD_FISH` / `SHRINE_FISH` / `FROST_FISH` / `ABYSS_FISH`）。
+1. 打開 `js/data.js`，找到目標釣點的魚陣列（`MIST_LAKE_FISH` / `POND_FISH` / `FJORD_FISH` / `SHRINE_FISH` / `TIDAL_FISH` / `FROST_FISH` / `FALL_FISH` / `LOTUS_FISH` / `CALDERA_FISH` / `ABYSS_FISH` / `WORLD_ROOT_FISH` / `DUAT_FISH`）。
 2. 依稀有度插到對應的 `/* --- 稀有度 --- */` 區塊，欄位規格見 [07 §魚](07-data-schema.md#魚--locationfish)：
    ```js
    { id: 'ml_newfish', name: '新魚', rarity: 'rare', shape: 'flat', scale: 1.0,
      pattern: 'spot', value: 1200, minLen: 30, maxLen: 65,
      colors: { body: '#xxxxxx' }, desc: '一句描述' }
    ```
-3. `id` 必須全域唯一，用釣點前綴（對照表見 [07 §釣點](07-data-schema.md#目前的五個釣點)）。
+3. `id` 必須全域唯一，用釣點前綴（對照表見 [07 §釣點](07-data-schema.md#目前的十二個釣點)）。
 4. **`value` 要貼近該階級現有魚的水準**（差距抓 ±10% 內）。理由見 [11 §14](11-invariants-and-gotchas.md#14-加魚不改機率但會改期望值)：加魚不改變階級機率，但會直接改變該階級的期望價值。想放一條特別值錢的，**升它一階**，不要在階級內做價差。
 5. 顏色照該釣點的調色規則走（[07 §各釣點的配色規則](07-data-schema.md#各釣點的配色規則)）。深淵海溝的魚幾乎都要帶 `special: ['glow']`，否則在極暗底色下整格是一團黑。
 6. 重新整理頁面，去圖鑑看剪影對不對；想直接看成品，在 console 跑：
@@ -53,7 +53,8 @@
 2. **每一次寫入都要分別檢查 `x` 和 `y` 邊界**——那一段是直接寫 `col[]`，沒有 `put()` 的保護（[11 §5](11-invariants-and-gotchas.md#5-canvas-平面索引忘記檢查-x-邊界)）。
 3. 顏色從 `f.colors` 讀，一律給預設值：`const c = C.新色 || '#xxxxxx';`
 4. 三條經驗：細節**畫在身體像素上不要外凸**、弧線**取樣要密到步距 < 1px**、點狀特徵**要有形狀且數量要少**。理由見 [06 §特殊特徵](06-pixel-engine.md#特殊特徵--special)。
-5. 若特徵會往**身體輪廓外**延伸（鬍鬚、燈籠竿），確認畫布邊緣夠不夠；不夠就要納入 `headRoom`（[11 §19](11-invariants-and-gotchas.md#19-吻端沒留空間鬍鬚會被切光)）。
+5. 若特徵會往**身體輪廓外**延伸（鬍鬚、燈籠竿、鉤吻），確認畫布邊緣夠不夠；不夠就要納入 `headRoom`（[11 §19](11-invariants-and-gotchas.md#19-吻端沒留空間鬍鬚會被切光)）。
+   > ⚠️ **納入 `headRoom` 的 special 不能用「像素數有沒有變多」來驗。** 它會讓整條魚縮小，實測 `kype` 加上去之後總像素**少了 382 個**，但鉤吻確實有畫出來。要看吻端前方那一段的遮罩，不要看總數。
 
 📝 **要更新**：[06 像素引擎](06-pixel-engine.md)（輪廓表／special 表加一列）、[07 資料規格](07-data-schema.md)（`shape` / `special` 的可用值與 `colors` 欄位）、[12 名詞表](12-glossary.md)（可用值清單）。
 
@@ -94,6 +95,7 @@
 1. `js/data.js` 的 `FG.LOCATIONS` 加一筆，欄位見 [07 §釣點](07-data-schema.md#釣點--fglocations)。
 2. 先把 `fish: []` 留空、`comingSoon: true`，確認選單、圖鑑、縮圖都正常。
 3. 選 `scene.terrain`。**不要沿用既有釣點的地形**——每個釣點一種是這個專案的原則，理由見 [06 §地形系統](06-pixel-engine.md#三之二--地形系統--terrain)。要新增地形照那一節的四個步驟做（記得補 `locThumb()` 的 `switch` case）。
+   > 到第十二種為止，好用的辨識手段幾乎被分完了。**動手畫之前先看 [06 §十二種地形各自佔了哪一條辨識軸](06-pixel-engine.md#十二種地形各自佔了哪一條辨識軸)，挑一條還空著的。** 撞到既有的那一條，做出來就等於白做。
 4. 調 `scene` 調色盤。快速預覽：
    ```js
    document.body.appendChild(FG.px.locThumb(FG.locById('new_spot'), 200, 130))
@@ -104,16 +106,19 @@
    - 每個釣點至少配一件**專屬的雜物美術**（`pixel.js › JUNK_MAPS` 加一筆），其餘可以沿用既有的圖只換名字。
 6. 設 `castCost`，`unlock` 填 `{ free: true }`（現行釣點都免費，門檻靠拋竿費）。**在 `FG.LOCATIONS` 裡的位置要跟 `castCost` 遞增一致**——那個順序同時是各處 UI 的顯示順序與玩家讀到的進程順序。插隊是安全的（所有參照都用 `loc.id`）。
    各階級 `value` 用 [10 §加新釣點的抓法](10-balance-tuning.md#加新釣點的抓法) 的係數表——**係數會隨 `castCost` 遞減，不要套用固定倍數，也不要在欄位之間內插**。castCost 超出表格範圍時用**差分外插**（看最後三欄的變化率再延伸一格），那比內插可靠。
-7. 拿掉 `comingSoon`，用 [10 §模擬腳本](10-balance-tuning.md#模擬腳本) 驗證：
+7. 拿掉 `comingSoon`，驗證平衡：
    - **滿裝倍率必須維持整條進程的單調遞增**（不能比前面的釣點低，也不能比後面的釣點高）。這是唯一真正要驗的事，比「落在某個區間」更重要。
-   - 跑 **100 萬竿以上、跑兩次**。30 萬竿的噪音有 ±2%，會讓你追著雜訊調數值。
+   - **接在最後面**：用 [10 §模擬腳本](10-balance-tuning.md#模擬腳本) 就夠了。跑 **100 萬竿以上、跑兩次**；30 萬竿的噪音有 ±2%，會讓你追著雜訊調數值。
+   - **插在中間**：模擬不夠用。可用的倍率窗口只有 0.02～0.05，**比 100 萬竿的噪音還窄**，必須改用 [10 §精確版](10-balance-tuning.md#精確版不用模擬直接把期望值算出來) 的解析解來瞄準，再用模擬交叉驗證。理由見 [11 §28](11-invariants-and-gotchas.md#28-插隊的釣點模擬的噪音比可用的窗口還寬)。
+   - 校正方式是把該釣點**所有非雜物的 `value` 整批乘上一個係數**（雜物不動）。
    - 回頭更新基準表與係數表。
 8. **如果新釣點接在最後面**：檢查原本最後一名的 `desc` 有沒有寫死「最深」「最後」這類字眼。
 9. **加那一整套周邊**（釣竿／餌料／裝備／家園裝飾），照上面的規則表。三件事別漏：
-   - `FG.RODS` 與 `FG.BAITS` 必須維持 **price 遞增**（那個順序就是圖示配色順序）。
-   - **`screen-shop.js › rodIcon()` 的兩張色表要跟 `FG.RODS` 一樣長**，它是 `cols[idx]` 直接取值、沒有取餘數，漏補就整個圖示消失（[11 §24](11-invariants-and-gotchas.md)）。
+   - `FG.RODS` 與 `FG.BAITS` 必須維持 **price 遞增**（那個順序就是圖示配色順序）。竿與餌的 `rareMul` / `sizeBonus` / `kingMul` 也要順著插進前後鄰居之間，不要跳號。
+   - **`screen-shop.js › rodIcon()` 的兩張色表要跟 `FG.RODS` 一樣長**（目前 17 筆），它是 `cols[idx]` 直接取值，漏補就整個圖示消失（[11 §24](11-invariants-and-gotchas.md)）。
    - 新裝備要在 `screen-shop.js › EQUIP_ART` 補圖、新裝飾要在 `screen-home.js › DECO_ART` 補圖**並且**在 `pixel.js › drawRoom()` 補繪製碼。
-10. **檢查窄螢幕的介面**。把視窗縮到 320px，看圖鑑的釣點切換列與釣點選單彈窗（[08 §會隨釣點數量成長的介面](08-ui-and-screens.md#會隨釣點數量成長的介面)）。`name` 建議 4 個字以內、`subtitle` 8 個字以內。
+   - **裝飾如果是「靠動作定義的物件」**（水景、添水、冒汽的東西），`drawRoom()` 裡一定要讓它動——靜態剪影跟其他家具分不出來，見 [06 §家園房間](06-pixel-engine.md#四--家園房間)。
+10. **檢查窄螢幕的介面**。把視窗縮到 320px，看圖鑑的釣點切換列與釣點選單彈窗（[08 §會隨釣點數量成長的介面](08-ui-and-screens.md#會隨釣點數量成長的介面)）。`name` 建議 4 個字以內、`subtitle` 8 個字以內。12 個釣點時實測按鈕仍是 33px 高、無折行。
 11. **檢查商店三個分頁每一列都有圖示**（一行 console 就能掃）：
     ```js
     ['rod','bait','equip'].forEach(t => { FG.screenShop.tab = t; FG.screenShop.render();
