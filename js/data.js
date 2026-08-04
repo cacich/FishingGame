@@ -1354,14 +1354,25 @@ window.FG = window.FG || {};
       unlock: { free: true },
       scene: {
         terrain: 'waterfall',
-        horizon: 0.34,
-        sky: ['#4a5f68', '#7f959a', '#b4c8c4'],
-        hill: '#3f5052',
-        farTree: '#3a4a4c', midTree: '#2e3c3f', nearTree: '#222e30',
-        falls: '#e8f4f6', foam: '#eaf6f6', mist: '#dfeaea', moss: '#3f6a44',
-        accent: ['#4f7a4a'],
-        shore: '#1a2426',
-        waterTop: '#2a4a52', waterBot: '#5f8f94', waterDeep: '#16303a',
+        // 地平線壓到 0.44：這個場景的主角是岩壁與瀑布，水面只要夠放船就好。
+        // 其他釣點多半在 0.30～0.38，這裡刻意讓陸地佔掉四成四
+        horizon: 0.44,
+        // 峽谷裡看到的是「被岩壁夾住的一線天」，所以天空只留很窄一段，
+        // 而且要夠亮——瀑布後方的逆光全靠它撐
+        sky: ['#6a8894', '#9fbcbe', '#cfe2dc', '#eaf4ec'],
+        hill: '#4f6462',
+        // 三層岩壁由遠而近**由亮而暗**（空氣透視）。每一層再各自展開六階明度，
+        // 見 pixel.js › TERRAIN.waterfall 的 shades()。
+        // 整體刻意調亮：初版壓得太暗，六階明度展開之後最暗的兩階會糊成一團黑
+        farTree: '#6f8480', midTree: '#4e6360', nearTree: '#2e3f3d',
+        falls: '#f4fcfc', foam: '#eaf8f4', mist: '#dfeeea',
+        sun: '#fff4c8',
+        // 植被分三階：背光的深綠 → 主體 → 受光的亮綠。垂藤另給一個偏黃的綠
+        moss: '#4a7a48', leaf: '#5fa055', leafLit: '#a8d878', canopy: '#2a4a24',
+        vine: '#6f9a48',
+        accent: ['#5fa055'],
+        shore: '#2a3a38',
+        waterTop: '#3f8f88', waterBot: '#8fd8c4', waterDeep: '#1e5a52',
         highlight: '#f4fcfc', highlight2: '#a8d8dc',
         boat: '#4a4438', boatRim: '#6a6250', boatDark: '#2e2a22'
       },
