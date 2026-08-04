@@ -175,7 +175,10 @@ window.FG = window.FG || {};
     // 真蛇：**幾乎沒有鰭**，尾巴收成一點（不是尾鰭）。
     // e = .30 讓剖面接近矩形＝粗細均勻的管子，這是「蛇」跟 dragon 那種帶狀魚身最大的差別；
     // dragon 有 tailH .95 的大尾扇與高聳的鬃，serpent 兩者都沒有
-    serpent: { bodyLen: .78, bodyH: .21, gamma: 1.30, e: .30, tailLen: .07, tailH: .14, fork: .00, dorsal: .05, dorsalAt: [.10, .80], anal: .04, analAt: [.10, .60] }
+    serpent: { bodyLen: .78, bodyH: .21, gamma: 1.30, e: .30, tailLen: .07, tailH: .14, fork: .00, dorsal: .05, dorsalAt: [.10, .80], anal: .04, analAt: [.10, .60] },
+    // 肺魚：鰻形身體，但**後半段的背鰭與臀鰭拉得又長又低**，跟圓鈍的小尾扇連成
+    // 一圈連續的鰭緣。這是它跟 serpent（完全無鰭）與 long（鰭短而集中）的分界
+    lungfish: { bodyLen: .72, bodyH: .24, gamma: 1.40, e: .45, tailLen: .10, tailH: .34, fork: .00, dorsal: .30, dorsalAt: [.02, .58], anal: .26, analAt: [.02, .48] }
   };
 
   const SPR_W = 96, SPR_H = 56, MARGIN = 4;
@@ -460,6 +463,23 @@ window.FG = window.FG || {};
           col[y * W + x] = y === y0 ? back : (y === y1 ? FG.shade(rc, 0.22) : rc);
         }
       }
+    }
+    // --- 絲狀四肢（肺魚的胸鰭與腹鰭退化成細絲）---
+    // 四條往後下方飄的細絲。刻意**斜著往尾部飄而不是垂直往下垂**：
+    // 垂直的細線在這個尺寸會被讀成雨絲（地形系統與 mane 都踩過同一個坑）。
+    if (sp.indexOf('filaments') >= 0) {
+      const fl = C.filament || FG.shade(finC, 0.25);
+      [[0.66, 1], [0.66, -1], [0.36, 1], [0.36, -1]].forEach(function (s) {
+        const t = s[0], side = s[1];
+        const bx = Math.round(x0 + bodyW * t);
+        const by = Math.round(cy + side * profile(t) * 0.68);
+        for (let k = 1; k <= 9; k++) {
+          const x = bx - Math.round(k * 0.9);                       // 往尾部（左）飄
+          const y = by + side * Math.round(k * 0.42 + Math.sin(k * 0.7) * 1.1);
+          if (x < 0 || x >= W || y < 0 || y >= H) break;
+          if (!col[y * W + x]) col[y * W + x] = fl;
+        }
+      });
     }
     // --- 分叉的蛇舌 ---
     // 在 serpent 這種沒有鰭、沒有尾扇的輪廓上，舌頭是唯一能把「蛇」跟「鰻」分開的訊號。
@@ -761,6 +781,24 @@ window.FG = window.FG || {};
         '.XwrrrrX.wX.',
         '..XwwwX.....',
         '...XXX......'
+      ]
+    },
+    // 冥河用：刻字陶片（ostracon，古埃及拿破陶片當便條紙）。
+    // 辨識重點是「不規則的多邊形輪廓 + 上面幾行橫向刻痕」——
+    // 規則的方形會被讀成木板或磚，一定要缺角
+    ostracon: {
+      pal: { X: '#6b4f2a', c: '#c8a86a', l: '#e0c48f', k: '#3a2a14' },
+      map: [
+        '...XXXXX..',
+        '..XllllcX.',
+        '.XlkkklcXX',
+        'XlkllkkkcX',
+        'XlkkkllkcX',
+        'XlkllkkccX',
+        'XccllkkcX.',
+        '.XccccccX.',
+        '..XXcccX..',
+        '....XXX...'
       ]
     },
     // 深淵用：辨識不出物種的魚骨。頭在左、脊椎往右、肋骨是垂直短線
@@ -1418,6 +1456,122 @@ window.FG = window.FG || {};
     }
   };
 
+  // 八 · 沙漠冥河：沙丘 + 大金字塔 + 方尖碑 + 棕櫚，半淹的石柱與紙莎草在水面（黃沙冥河）
+  //   金字塔本來是「尖三角」的高風險輪廓（§16 說尖三角一律被讀成針葉樹），
+  //   靠三件事把它救回來：**尺寸夠大**（70×46，是針葉樹的 4 倍）、
+  //   **左右兩面明暗分明**（垂直中線一分為二，樹沒有這個）、
+  //   **底邊坐在平坦的沙丘線上**（樹是插在起伏的林線裡）。
+  TERRAIN.desert = {
+    above: function (T) {
+      const { P, R, W, horizon, rect } = T;
+
+      // --- 沙丘：平滑的 sin 稜線，不是隨機遊走 ---
+      // 沙丘的識別特徵是「迎風面長而緩、背風面短而陡」，所以每一層都畫成
+      // 不對稱的曲線，並在背風側壓一道暗面
+      function dune(baseY, amp, freq, ph, color, lit) {
+        for (let x = 0; x < W; x++) {
+          const u = x * freq + ph;
+          // sin 疊一個半頻，做出不對稱的稜線
+          const h = amp * (0.55 + 0.45 * Math.sin(u)) + amp * 0.22 * Math.sin(u * 0.5 + 1.1);
+          const top = baseY - h;
+          rect(x, top, 1, baseY - top + 2, color);
+          rect(x, top, 1, 2, lit);                                 // 稜線受光
+          // 背風面（稜線右側往下）壓暗
+          const slope = Math.cos(u);
+          if (slope < -0.3) rect(x, top + 2, 1, h * 0.5, FG.shade(color, -0.22));
+        }
+      }
+      // ★ 保底沙地：先鋪一條實心沙帶接到岸線。
+      // sin 曲線的波谷高度可能趨近 0，只靠沙丘曲線的話波谷處會露出一條天空色的縫
+      // （初版就是這樣，地平線上方有 10px 的假天空）。有這條保底帶就跟曲線參數無關了。
+      // 上緣要蓋過遠沙丘的 baseY（horizon-14），否則波谷處的 y=124~125 還是會漏
+      rect(0, horizon - 17, W, 21, P.midTree);
+
+      // 遠沙丘先畫；近沙丘要**最後**才畫，才能把金字塔與方尖碑的底部遮住做出景深
+      dune(horizon - 14, 20, 0.030, 0.4, P.farTree, FG.shade(P.sandLit || '#e8c88f', 0.1));
+
+      // --- 大金字塔（＋後方一座小的）---
+      function pyramid(cx, base, h, half) {
+        const lit = FG.shade(P.pyramid || '#c0975a', 0.22);
+        const dark = FG.shade(P.pyramid || '#c0975a', -0.26);
+        for (let k = 0; k < h; k++) {
+          const w = Math.round(half * 2 * (1 - k / h));
+          const x0p = cx - w / 2;
+          // 垂直中線一分為二：左受光、右陰影。這是把它跟樹分開的關鍵
+          rect(x0p, base - k, w / 2, 1, lit);
+          rect(cx, base - k, w / 2, 1, dark);
+          if (k % 6 === 0) rect(x0p, base - k, w, 1, FG.shade(P.pyramid || '#c0975a', -0.1));  // 層階
+        }
+        rect(cx - 1, base - h, 2, 2, FG.shade(P.pyramid || '#c0975a', 0.4));    // 頂石
+      }
+      pyramid(64, horizon - 14, 44, 36);
+      pyramid(116, horizon - 16, 26, 21);
+
+      // --- 方尖碑：高瘦筆直 + 頂端的小角錐 ---
+      // 跟 yggdrasil 的符文石刻意分開：那個矮、歪、有刻痕；這個高、正、頂端收尖
+      [[152, 30], [168, 22]].forEach(function (o) {
+        const ox = o[0], oh = o[1];
+        const st = P.stone || '#b8a478';
+        rect(ox - 2, horizon - oh, 5, oh, st);
+        rect(ox - 2, horizon - oh, 1, oh, FG.shade(st, 0.24));
+        for (let k = 0; k < 4; k++) rect(ox - 2 + k * 0.6, horizon - oh - 4 + k, 5 - k * 1.2, 1, FG.shade(st, 0.12));
+      });
+
+      // 近沙丘：蓋住金字塔與方尖碑的底部
+      dune(horizon + 1, 16, 0.045, 2.2, P.midTree, P.sandLit || '#e8c88f');
+
+      // --- 棕櫚：彎曲的細幹 + 往四周下垂的葉。跟針葉樹（三角）、櫻花（圓冠）都不同 ---
+      [[24, 26, 0.16], [190, 22, -0.2], [138, 18, 0.1]].forEach(function (p) {
+        const px0 = p[0], ph = p[1], lean = p[2];
+        for (let k = 0; k < ph; k++) rect(px0 + k * lean, horizon - 1 - k, 2, 1, P.trunk || '#5f4a2a');
+        const tipX = px0 + ph * lean, tipY = horizon - 1 - ph;
+        for (let a = 0; a < 7; a++) {
+          const ang = Math.PI * (0.08 + a * 0.14);                 // 只往上半圈張開
+          for (let k = 0; k < 8; k++) {
+            const fx = tipX + Math.cos(ang) * k;
+            // 葉子往下垂：k 越大越往下彎（k² 項）
+            const fy = tipY - Math.sin(ang) * k * 0.55 + k * k * 0.055;
+            rect(fx, fy, 1, 1, a % 2 ? P.palm || '#6f7a3a' : FG.shade(P.palm || '#6f7a3a', 0.18));
+          }
+        }
+      });
+    },
+    below: function (T) {
+      const { P, R, W, H, horizon, rect } = T;
+
+      // --- 半淹的石柱 ---
+      // 有柱頭（比柱身寬）才讀得出是「柱子」而不是一根樁。避開船（x 34~158、y 212~270）
+      const st = P.stone || '#b8a478';
+      [[18, 30], [46, 22], [178, 26]].forEach(function (c) {
+        const cx = c[0], ch = c[1];
+        const baseY = horizon + 34;
+        rect(cx - 4, baseY - ch, 9, ch, st);
+        rect(cx - 4, baseY - ch, 2, ch, FG.shade(st, 0.2));
+        rect(cx - 6, baseY - ch - 3, 13, 3, FG.shade(st, 0.1));          // 柱頭
+        rect(cx - 6, baseY - ch - 4, 13, 1, FG.shade(st, 0.3));
+        // 柱身的凹槽
+        for (let k = 2; k < 8; k += 3) rect(cx - 4 + k, baseY - ch + 2, 1, ch - 2, FG.shade(st, -0.16));
+      });
+
+      // --- 紙莎草：細桿 + 頂端放射狀的傘形花序 ---
+      // 基部 y 要夠低：桿頂是 y-h，如果 y 設得離岸線太近，花序會長到地平線**上面**
+      // 去（初版 y = horizon+6、h 最長 24，桿頂落在 horizon-18，變成長在沙丘上）
+      for (let i = 0; i < 16; i++) {
+        const x = Math.round(R() * W);
+        if (x > 30 && x < 162) continue;                                 // 中央留給船
+        const y = horizon + 24 + R() * 18;
+        const h = 10 + R() * 10;
+        rect(x, y - h, 1, h, FG.shade(P.papyrus || '#8f9a4a', -0.2));
+        for (let a = 0; a < 8; a++) {
+          const ang = Math.PI * (0.1 + a * 0.1);
+          for (let k = 1; k < 5; k++) {
+            rect(x + Math.cos(ang) * k, y - h - Math.sin(ang) * k * 0.8 + k * 0.18, 1, 1, P.papyrus || '#8f9a4a');
+          }
+        }
+      }
+    }
+  };
+
   function buildBackground(loc) {
     const P = loc.scene;
     const W = SCENE_W, H = SCENE_H;
@@ -1781,6 +1935,24 @@ window.FG = window.FG || {};
         break;
       }
 
+      case 'desert': {
+        // 沙丘稜線 + 一座兩面明暗分明的金字塔。縮圖放不下方尖碑與棕櫚
+        for (let x = 0; x < W; x++) {
+          const h = 5 * S * (0.55 + 0.45 * Math.sin(x * 0.09 + 1.2));
+          fill(x, hz - h, 1, h + 2, P.midTree);
+          fill(x, hz - h, 1, 1, P.sandLit || '#e8c88f');
+        }
+        const pcx = W * 0.42, ph = 13 * S, phalf = 11 * S;
+        const lit = FG.shade(P.pyramid || '#c0975a', 0.22);
+        const dark = FG.shade(P.pyramid || '#c0975a', -0.26);
+        for (let k = 0; k < ph; k++) {
+          const w = phalf * 2 * (1 - k / ph);
+          fill(pcx - w / 2, hz - 2 * S - k, w / 2, 1, lit);
+          fill(pcx, hz - 2 * S - k, w / 2, 1, dark);
+        }
+        break;
+      }
+
       default:
         for (let i = 0; i < 40; i++) {
           const x = Math.floor(R() * W), hgt = 4 + R() * 8;
@@ -1939,6 +2111,22 @@ window.FG = window.FG || {};
       rect(132, 54, 2, 12, c);
       rect(104, 64, 30, 2, c);
       if (on) { g.globalAlpha = 0.12; rect(98, 48, 42, 24, '#59d8ff'); g.globalAlpha = 1; }
+    }
+    if (deco.sarco) {
+      // 彩繪石棺：靠牆立著。上寬下窄的梯形外框 + 交叉的裹布帶 + 頂端的面具臉，
+      // 面具是識別重點——少了它就只是一塊直立的木板
+      const sx = 14, sy = floorY - 46, sw = 18, sh = 48;
+      rect(sx, sy, sw, sh, '#b8934a');
+      rect(sx, sy, 2, sh, '#d8b46a');
+      rect(sx + sw - 2, sy, 2, sh, '#8a6a2a');
+      rect(sx + 2, sy + 2, sw - 4, 12, '#2f3a58');            // 頭冠底色
+      rect(sx + 5, sy + 5, 3, 2, '#f2e8c8');                  // 眼
+      rect(sx + 10, sy + 5, 3, 2, '#f2e8c8');
+      rect(sx + 6, sy + 9, 6, 2, '#c8a04a');                  // 口／假鬍
+      for (let i = 0; i < 4; i++) {                           // 裹布帶
+        rect(sx + 2, sy + 18 + i * 7, sw - 4, 2, '#2f3a58');
+        rect(sx + 2, sy + 21 + i * 7, sw - 4, 1, '#c8a04a');
+      }
     }
     if (deco.cat) {
       const wave = Math.sin(time * 0.005) > 0 ? 0 : 1;

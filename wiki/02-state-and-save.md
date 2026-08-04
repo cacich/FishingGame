@@ -111,13 +111,17 @@ FG.state.emit(evt, payload);
 | `baitCount(id?)` | 餌料剩餘數，省略 id 則查目前選用的 |
 | `loc()` | 釣點**物件** |
 
-### 加成彙總 · `bonus()`
+### 加成彙總 · `bonus(loc?)`
 
 把**釣竿 + 裝備 + 家園裝飾**的效果乘算成一包：
 
 ```js
 { rareMul, valueMul, costMul, sizeBonus, kingMul, showHint }
 ```
+
+**`loc` 參數是必要的**：裝備可以是「釣點專屬」（`effect.loc`），只在該釣點生效，所以彙總時必須知道在算哪個釣點。接受釣點物件或 id 字串，**省略時退回 `data.loc`**（目前所在釣點），所以既有呼叫端不用全部改。
+
+呼叫端一律要把 loc 傳進去：`castCost(loc)` / `rarityTable(loc)` / `rollCatch(loc)` 內部都是 `this.bonus(loc)`。漏傳的症狀是「在 A 釣點看到 B 釣點專屬裝備的加成」——不會報錯，只會數字不對。
 
 > ⚠️ **餌料的加成不在 `bonus()` 裡。** 餌料是「每次消耗」的東西，效果在 `rarityTable()` 與 `rollCatch()` 裡另外乘上去。要計算實際總加成，必須自己 `bonus().rareMul * bait().rareMul`。這個不對稱是刻意的（餌料可即時切換、其他是持久狀態），但很容易寫錯。
 

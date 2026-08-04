@@ -711,7 +711,7 @@ window.FG = window.FG || {};
       });
       box.appendChild(tbl);
 
-      const b = st.bonus();
+      const b = st.bonus(loc);
       const note = FG.el('div', 'tiny mute');
       note.style.cssText = 'margin-top:10px;line-height:1.8';
       note.innerHTML =
@@ -731,7 +731,10 @@ window.FG = window.FG || {};
     const cv = FG.px.make(16, 16);
     const g = cv.getContext('2d');
     const R = FG.seeded(FG.px.hashStr(b.id));
-    const cols = ['#c8a86a', '#b4544a', '#e2a0a0', '#6fd8c8', '#ffd24a'];
+    // 有取餘數，所以加餌料不會壞掉；13 筆是為了讓相鄰的餌料顏色不重複
+    const cols = ['#c8a86a', '#6f9a5a', '#b4544a', '#a86f8f', '#e2a0a0',
+                  '#e8b0c8', '#6fd8c8', '#8fd8ee', '#c8b46a', '#ffd24a',
+                  '#5fe0a8', '#d8b45f', '#8f6fd8'];
     const c = cols[FG.BAITS.indexOf(b) % cols.length];
     for (let i = 0; i < 26; i++) {
       const x = 2 + Math.floor(R() * 12), y = 2 + Math.floor(R() * 12);

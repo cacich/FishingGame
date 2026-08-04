@@ -64,8 +64,12 @@ window.FG = window.FG || {};
         row.appendChild(th);
 
         const info = FG.el('div', 'info');
+        // 釣竿的 loc 只是**主題標籤**，竿子在哪都能用（跟裝備的「專屬」不同），
+        // 所以標籤文字刻意用「主題」而不是「專屬」
         info.innerHTML =
-          '<div class="nm">' + FG.esc(rod.name) + (using ? ' <span class="tag" style="color:#5fd08a">使用中</span>' : '') + '</div>' +
+          '<div class="nm">' + FG.esc(rod.name) +
+          (rod.loc ? ' <span class="tag">' + FG.esc(FG.locById(rod.loc).name) + '主題</span>' : '') +
+          (using ? ' <span class="tag" style="color:#5fd08a">使用中</span>' : '') + '</div>' +
           '<div class="ds">' + FG.esc(rod.desc) + '<br>稀有 ×' + rod.rareMul.toFixed(2) +
           '　體型 +' + Math.round(rod.sizeBonus * 100) + '%' +
           (rod.kingMul > 1 ? '　魚王 ×' + rod.kingMul.toFixed(1) : '') + '</div>';
@@ -113,6 +117,7 @@ window.FG = window.FG || {};
         const info = FG.el('div', 'info');
         info.innerHTML =
           '<div class="nm">' + FG.esc(b.name) + ' <span class="tag">庫存 ' + have + '</span>' +
+          (b.loc ? ' <span class="tag">' + FG.esc(FG.locById(b.loc).name) + '主題</span>' : '') +
           (using ? ' <span class="tag" style="color:#5fd08a">使用中</span>' : '') + '</div>' +
           '<div class="ds">' + FG.esc(b.desc) + '<br>稀有 ×' + b.rareMul.toFixed(2) +
           '　雜物 ×' + b.junkMul.toFixed(2) +
@@ -149,8 +154,11 @@ window.FG = window.FG || {};
       const st = FG.state;
       const p = FG.el('div', 'panel');
       p.appendChild(FG.el('div', 'panel-title', '裝備 <span class="sub">永久生效，可同時持有</span>'));
+      const curLoc = st.data.loc;
       FG.EQUIPS.forEach(function (e) {
         const owned = st.data.equips.indexOf(e.id) >= 0;
+        const only = e.effect && e.effect.loc;
+        const active = !only || only === curLoc;
         const row = FG.el('div', 'item' + (owned ? ' owned' : ''));
 
         const th = FG.el('div', 'thumb');
@@ -158,9 +166,17 @@ window.FG = window.FG || {};
         row.appendChild(th);
 
         const info = FG.el('div', 'info');
-        info.innerHTML = '<div class="nm">' + FG.esc(e.name) +
+        // 專屬裝備要標出釣點，並在「目前不在那個釣點」時明講沒生效，
+        // 否則玩家會以為買了沒用（這是買了就永久生效的裝備列裡唯一的例外）
+        const locTag = only
+          ? ' <span class="tag" style="color:' + (active ? '#5fd08a' : '#94a7bb') + '">' +
+            FG.esc(FG.locById(only).name) + '專屬</span>'
+          : '';
+        info.innerHTML = '<div class="nm">' + FG.esc(e.name) + locTag +
           (owned ? ' <span class="tag" style="color:#5fd08a">已持有</span>' : '') + '</div>' +
-          '<div class="ds">' + FG.esc(e.desc) + '</div>';
+          '<div class="ds">' + FG.esc(e.desc) +
+          (owned && only && !active ? '<br><span style="color:#ff9a5f">目前不在該釣點，效果未生效。</span>' : '') +
+          '</div>';
         row.appendChild(info);
 
         const act = FG.el('div', 'act');
@@ -186,9 +202,16 @@ window.FG = window.FG || {};
 
   /* ---------------- 小圖示 ---------------- */
   function rodIcon(rod) {
-    const idx = FG.RODS.indexOf(rod);
-    const cols = ['#8a6a3a', '#4a7a86', '#3a3a44', '#9ab6c8', '#8a3a4a'];
-    const grip = ['#5a4020', '#33505a', '#22222a', '#6a8494', '#5a2430'];
+    // ⚠️ 這兩張色表必須跟 FG.RODS 一樣長，而且順序對齊。
+    // 原本只有 5 筆、又是用 cols[idx] 直接取（沒有取餘數），加第 6 支竿就會拿到
+    // undefined → 圖示整個消失。加竿子時記得同步補一組配色。
+    const idx = FG.RODS.indexOf(rod) % 13;
+    const cols = ['#8a6a3a', '#9aa86a', '#4a7a86', '#7f6a4a', '#3a3a44',
+                  '#c88fa8', '#9ab6c8', '#9ab6c8', '#6fa87f', '#3f5a6a',
+                  '#8a3a4a', '#7f6f4a', '#d8b45a'];
+    const grip = ['#5a4020', '#5f6a34', '#33505a', '#4f4028', '#22222a',
+                  '#8a5a70', '#6a8494', '#6a8494', '#3f6a50', '#243848',
+                  '#5a2430', '#4f4428', '#8f7020'];
     const cv = FG.px.make(16, 16);
     const g = cv.getContext('2d');
     for (let i = 0; i < 13; i++) {
@@ -219,7 +242,33 @@ window.FG = window.FG || {};
       '...aaaa.aaaa....', '...acca.acca....', '....aa..aa......', '......bb........' ] },
     eq_sonar: { pal: { a: '#3a4a58', b: '#59d8ff', c: '#8fa2ad' }, map: [
       '................', '...cccccccccc...', '..caaaaaaaaaac..', '..caabbbbbbaac..', '..caab....baac..',
-      '..caab.bb.baac..', '..caabbbbbbaac..', '..caaaaaaaaaac..', '...cccccccccc...' ] }
+      '..caab.bb.baac..', '..caabbbbbbaac..', '..caaaaaaaaaac..', '...cccccccccc...' ] },
+
+    /* --- 釣點專屬裝備 --- */
+    eq_mistlens: { pal: { a: '#4a5a68', b: '#9fd8e8', c: '#dff2fa' }, map: [
+      '................', '..aaaa....aaaa..', '.abbbba..abbbba.', '.abcbbba abbbcba', '.abbbbba.abbbbba',
+      '.abbbba..abbbba.', '..aaaa.aa.aaaa..', '................', '................' ] },
+    eq_tidechart: { pal: { a: '#7f6a4a', b: '#e8dcc0', c: '#3f7a9a' }, map: [
+      '................', '..aaaaaaaaaaaa..', '..abbbbbbbbbba..', '..abcc.cc.ccba..', '..abc.c.c.c.ba..',
+      '..abbcbbbcbbba..', '..abbbbbbbbbba..', '..aaaaaaaaaaaa..', '................' ] },
+    eq_charm: { pal: { a: '#c8442f', b: '#f0e2c8', c: '#3a2630' }, map: [
+      '................', '......aa........', '.....aaaa.......', '....abbbba......', '....abccba......',
+      '....abcbba......', '....abbbba......', '.....aaaa.......', '......cc........' ] },
+    eq_auger: { pal: { a: '#8fa2ad', b: '#3a4a58', c: '#dff2fa' }, map: [
+      '................', '.....bbbb.......', '.....baab.......', '......aa........', '.....caac.......',
+      '......aa........', '.....caac.......', '......aa........', '.......a........' ] },
+    eq_teapot: { pal: { a: '#6a5f50', b: '#c8b48f', c: '#e8dcc0' }, map: [
+      '................', '.......bb.......', '...aaaaaaaaa....', '..abbbbbbbbba.a.', '..abcccccccba.a.',
+      '..abbbbbbbbba.a.', '...aaaaaaaaa..a.', '....aaaaaaa..aa.', '................' ] },
+    eq_winch: { pal: { a: '#3f5a6a', b: '#8fa2ad', c: '#c8d8e0' }, map: [
+      '................', '...bbbbbbbbbb...', '..baaaaaaaaaab..', '..bacccccccab...', '..bacbbbbbcab...',
+      '..bacccccccab...', '..baaaaaaaaaab..', '...bbbbbbbbbb...', '.....b....b.....' ] },
+    eq_runeplate: { pal: { a: '#6f6a78', b: '#d8c08f', c: '#3a3742' }, map: [
+      '................', '..aaaaaaaaaaaa..', '..acbb.b.bbca...', '..ab.b.bb.b.ba..', '..abb.b.b.bbba..',
+      '..ab.bb.b.b.ba..', '..acb.b.bb.bca..', '..aaaaaaaaaaaa..', '................' ] },
+    eq_ankh: { pal: { a: '#d8b45a', b: '#fbf0c0', c: '#8f6a18' }, map: [
+      '................', '.....abba.......', '....ab..ba......', '....ab..ba......', '..aaabbabaaa....',
+      '.....abba.......', '......bb........', '......bb........', '......cc........' ] }
   };
 
   function equipIcon(e) {

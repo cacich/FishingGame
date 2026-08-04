@@ -42,28 +42,38 @@
 
 | 來源 | 提供什麼 | 進入路徑 |
 |---|---|---|
-| 釣竿 | `rareMul` `sizeBonus` `kingMul` | `bonus()` |
-| 裝備 | `rareMul` `valueMul` `costMul` `sizeBonus` `showHint` | `bonus()` |
-| 家園裝飾 | `rareMul` `valueMul` | `bonus()` |
-| **餌料** | `rareMul` `junkMul` `valueMul` `kingMul` | **不經過 `bonus()`**，在 `rarityTable()` / `rollCatch()` 直接讀 `state.bait()` |
+| 釣竿 | `rareMul` `sizeBonus` `kingMul` | `bonus(loc)`，同時只有 1 支生效 |
+| 裝備（通用） | `rareMul` `valueMul` `costMul` `sizeBonus` `showHint` | `bonus(loc)`，**全部同時生效、相乘** |
+| 裝備（釣點專屬，`effect.loc`） | 同上 | `bonus(loc)`，**只在該釣點生效**，其他釣點直接跳過 |
+| 家園裝飾 | `rareMul` `valueMul` | `bonus(loc)`，**全部同時生效、相乘** |
+| **餌料** | `rareMul` `junkMul` `valueMul` `kingMul` | **不經過 `bonus()`**，在 `rarityTable()` / `rollCatch()` 直接讀 `state.bait()`。同時只有 1 種生效 |
 
-同類加成**相乘**（不是相加）。餌料獨立於 `bonus()` 是刻意的：餌料是消耗品、可隨時切換，其他是持久狀態。但這造成一個常見錯誤——算實際稀有度倍率必須寫 `bonus().rareMul * bait().rareMul`。
+同類加成**相乘**（不是相加）。餌料獨立於 `bonus()` 是刻意的：餌料是消耗品、可隨時切換，其他是持久狀態。但這造成一個常見錯誤——算實際稀有度倍率必須寫 `bonus(loc).rareMul * bait().rareMul`。
+
+### 哪些加成來源會疊乘（決定了新增內容的規則）
+
+| 來源 | 同時生效 | 加東西會推高倍率嗎 |
+|---|---|---|
+| 釣竿 · 餌料 | **各 1** | 不會 |
+| 裝備 · 家園裝飾 | **全部** | **會，而且相乘** |
+
+所以**新增釣竿與餌料是安全的，新增裝備／裝飾不是**。`effect.loc` 就是為了把裝備拉回「同時只有 1 件」而存在的機制。規則表見 [09 §新增一個釣點](09-recipes.md#為什麼三者的規則不一樣重要)，事故紀錄見 [10 §調參歷史](10-balance-tuning.md#調參歷史與教訓)。
 
 ## 拋竿成本
 
 ```js
-castCost(loc) = round(loc.castCost * bonus().costMul)
+castCost(loc) = round(loc.castCost * bonus(loc).costMul)
 ```
 
-只有「防水背心」提供 `costMul: 0.85`。**餌料成本不含在裡面**，是另外扣一份庫存（買的時候就付過錢了）。所以一次拋竿的真實成本 = `castCost()` + 該份餌料的單價。
+提供 `costMul` 的有「防水背心」`0.85`（通用）與「破冰鑽」`0.90`（**只在幽藍冰湖**）。**餌料成本不含在裡面**，是另外扣一份庫存（買的時候就付過錢了）。所以一次拋竿的真實成本 = `castCost()` + 該份餌料的單價。
 
 ## 稀有度權重表 · `rarityTable(loc)`
 
 這是抽獎的核心，也直接餵給 UI 的「中獎機率」費率表（所以玩家看到的機率一定跟實際一致，不會有兩份邏輯）。
 
 ```js
-M = bonus().rareMul * bait().rareMul     // 稀有度總加權
-K = bonus().kingMul * bait().kingMul     // 魚王專屬加權
+M = bonus(loc).rareMul * bait().rareMul     // 稀有度總加權
+K = bonus(loc).kingMul * bait().kingMul     // 魚王專屬加權
 
 for 每個「該釣點實際有魚的」稀有度:
   w = RARITY[key].weight
@@ -108,7 +118,7 @@ for 每個「該釣點實際有魚的」稀有度:
      shiny = 非雜物 && random < 0.03
 7. 價值
      value = fish.value * (len / avgLen)^2.0
-     非雜物 → *= bonus().valueMul * bait().valueMul
+     非雜物 → *= bonus(loc).valueMul * bait().valueMul
      shiny  → *= 3
 ```
 

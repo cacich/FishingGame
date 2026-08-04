@@ -41,19 +41,21 @@
 | `costMul` | 拋竿費用倍率 | 裝備 |
 | `sizeBonus` | 體型加成（加法累計） | 釣竿／裝備 |
 | `showHint` | 咬鉤前顯示稀有度提示 | 裝備（聲納） |
-| `M` | `bonus().rareMul × bait().rareMul`，`rarityTable()` 內的區域變數 | — |
-| `K` | `bonus().kingMul × bait().kingMul` | — |
+| `M` | `bonus(loc).rareMul × bait().rareMul`，`rarityTable()` 內的區域變數 | — |
+| `K` | `bonus(loc).kingMul × bait().kingMul` | — |
+| `effect.loc` | **釣點專屬裝備**：只在該 id 的釣點生效，其他釣點完全不計 | 裝備 |
+| `rod.loc` / `bait.loc` | 只是**主題標籤**（商店顯示「○○主題」），竿與餌在哪都能用 | 釣竿／餌料 |
 
 ## 魚的美術參數
 
 | 欄位 | 可用值 |
 |---|---|
-| `shape` | 一般：`normal` `long` `round` `flat` `wide` `ray`／魚王專屬：`catfish` `tuna` `dragon` `pike` `abyss` `paddle` `serpent` |
+| `shape` | 一般：`normal` `long` `round` `flat` `wide` `ray`／魚王專屬：`catfish` `tuna` `dragon` `pike` `abyss` `paddle` `serpent` `lungfish` |
 | `pattern` | `none` `stripe` `band` `band2` `spot` `speck` `net` `scale` |
-| `special[]` | `glow` `spike` `whisker` `scar` `horn` `jaw` `lantern` `finlet` `mane` `frost` `rostrum` `forkTongue` |
-| `junkArt` | `boot` `can` `weed` `bottle` `ice` `bone` `ema` `porcelain` `shield` |
-| `scene.terrain` | `forest` `cliff` `shrine` `ice` `karst` `night` `yggdrasil` |
-| `colors` | `body`(必填) `back` `belly` `fin` `pattern` `glow` `hornColor` `scar` `tooth` `frost` `lantern` `mane` `rostrum` `tongue` `eyeWhite` `pupil` |
+| `special[]` | `glow` `spike` `whisker` `scar` `horn` `jaw` `lantern` `finlet` `mane` `frost` `rostrum` `forkTongue` `filaments` |
+| `junkArt` | `boot` `can` `weed` `bottle` `ice` `bone` `ema` `porcelain` `shield` `ostracon` |
+| `scene.terrain` | `forest` `cliff` `shrine` `ice` `karst` `night` `yggdrasil` `desert` |
+| `colors` | `body`(必填) `back` `belly` `fin` `pattern` `glow` `hornColor` `scar` `tooth` `frost` `lantern` `mane` `rostrum` `tongue` `filament` `eyeWhite` `pupil` |
 
 會觸發 `headRoom`（吻端前方預留空間）的 special：`whisker`(12px)、`forkTongue`(12px)、`rostrum`(24px)。
 
@@ -100,6 +102,7 @@
 | `lr_` | 煙雨蓮江的魚 |
 | `ab_` | 深淵海溝的魚 |
 | `wr_` | 世界樹根的魚 |
+| `du_` | 黃沙冥河的魚 |
 | `rod_` `bait_` `eq_` | 釣竿／餌料／裝備 |
 | `FG.screenXxx` | 分頁模組 |
 | `px.` | `FG.px` 像素引擎命名空間 |

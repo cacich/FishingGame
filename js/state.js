@@ -85,8 +85,15 @@ window.FG = window.FG || {};
     baitCount: function (id) { return this.data.baits[id || this.data.bait] || 0; },
     loc: function () { return FG.locById(this.data.loc); },
 
-    // 彙總所有裝備 / 裝飾加成
-    bonus: function () {
+    // 彙總所有裝備 / 裝飾加成。
+    //
+    // ★ 有 loc 參數：裝備可以是「釣點專屬」（effect.loc），只在該釣點生效。
+    //   為什麼需要這個機制：裝備效果是**全部相乘**且買了就永久生效，所以每加一件
+    //   通用裝備都會把所有釣點的倍率一起推高（[10] 記錄過一次倍率疊乘失控）。
+    //   改成一釣點一件專屬裝備之後，同一時間只有一件生效，加多少件都只多一個乘數。
+    //   locId 省略時退回目前所在釣點，這樣既有呼叫端不用全部改。
+    bonus: function (loc) {
+      const locId = (loc && loc.id) || (typeof loc === 'string' ? loc : this.data.loc);
       const b = { rareMul: 1, valueMul: 1, costMul: 1, sizeBonus: 0, kingMul: 1, showHint: false };
       const rod = this.rod();
       b.rareMul *= rod.rareMul; b.sizeBonus += rod.sizeBonus; b.kingMul *= rod.kingMul || 1;
@@ -96,6 +103,7 @@ window.FG = window.FG || {};
         const e = findById(FG.EQUIPS, d.equips[i]);
         if (!e) continue;
         const f = e.effect || {};
+        if (f.loc && f.loc !== locId) continue;      // 專屬裝備：不在它的釣點就完全不計
         if (f.rareMul) b.rareMul *= f.rareMul;
         if (f.valueMul) b.valueMul *= f.valueMul;
         if (f.costMul) b.costMul *= f.costMul;
@@ -114,13 +122,13 @@ window.FG = window.FG || {};
 
     castCost: function (loc) {
       loc = loc || this.loc();
-      return Math.round(loc.castCost * this.bonus().costMul);
+      return Math.round(loc.castCost * this.bonus(loc).costMul);
     },
 
     /* ---------- 稀有度權重（同時給抽獎與費率表使用） ---------- */
     rarityTable: function (loc) {
       loc = loc || this.loc();
-      const b = this.bonus();
+      const b = this.bonus(loc);
       const bait = this.bait();
       const pool = {};
       loc.fish.forEach(function (f) { (pool[f.rarity] = pool[f.rarity] || []).push(f); });
@@ -152,7 +160,7 @@ window.FG = window.FG || {};
     /* ---------- 抽一次漁獲 ---------- */
     rollCatch: function (loc) {
       loc = loc || this.loc();
-      const b = this.bonus();
+      const b = this.bonus(loc);
       const bait = this.bait();
       const rows = this.rarityTable(loc);
 

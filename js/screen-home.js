@@ -225,7 +225,8 @@ window.FG = window.FG || {};
     trophy: { pal: { a: '#e0b64a', b: '#f5db8a', c: '#7a5a38' }, map: ['...bbbbbb.......','...aaaaaa.......','...aaaaaa.......','....aaaa........','.....aa.........','....cccc........','...cccccc.......','................'] },
     cat:    { pal: { a: '#f2ece2', b: '#2a2a2a', c: '#d8a53a' }, map: ['..a..........a..','..aa........aa..','..aaaaaaaaaaaa..','..abaaaaaaba....','..aaaaaaaaaa....','..aaacccaaa.....','..aaaaaaaaa.....','..aaaaaaaaa.....'] },
     neon:   { pal: { a: '#59d8ff', b: '#2a5566' }, map: ['................','..aaaaaaaaaa....','..a........a....','..a........a....','..aaaaaaaaaa....','.....b..b.......','................','................'] },
-    lamp:   { pal: { a: '#c9a24a', b: '#f2d98a', c: '#3a3038' }, map: ['.......c........','.......c........','.......c........','...aaaaaaaaa....','....bbbbbbb.....','.....bbbbb......','................','................'] }
+    lamp:   { pal: { a: '#c9a24a', b: '#f2d98a', c: '#3a3038' }, map: ['.......c........','.......c........','.......c........','...aaaaaaaaa....','....bbbbbbb.....','.....bbbbb......','................','................'] },
+    sarco:  { pal: { a: '#b8934a', b: '#2f3a58', c: '#f2e8c8', d: '#c8a04a' }, map: ['....aaaaaa......','...abbbbbba.....','...abcbbcba.....','...abbddbba.....','...abbbbbba.....','...abddddba.....','...abbbbbba.....','....aaaaaa......'] }
   };
   function decoIcon(d) {
     const def = DECO_ART[d.id];

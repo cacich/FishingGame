@@ -44,7 +44,9 @@
 
 玩家付**籌碼**＋消耗一份**餌料**拋竿 → 系統立刻抽好結果（[03](03-economy.md)）→ 播 4 段演出（[04](04-fishing-loop.md)）→ 玩家選擇**賣掉換籌碼**或**收藏進家園魚缸**。籌碼再拿去買釣竿／餌料／裝備／家園擴建，這些又回頭拉高稀有魚與魚王的機率，形成循環。
 
-**七個釣點全部開放且免費切換**：晨霧湖 → 落霞峽灣 → 宵櫻神域 → 幽藍冰湖 → 煙雨蓮江 → 深淵海溝 → 世界樹根，各 23～24 種魚（圖鑑分母 20～21）、各一位魚王（**一王一種專屬體型**）、**各一種地形**（森林／崖壁／神域／冰原／峰林水鄉／夜海／世界樹）。進程門檻由拋竿費（400 → 24,000）承擔，不收解鎖費。
+**八個釣點全部開放且免費切換**：晨霧湖 → 落霞峽灣 → 宵櫻神域 → 幽藍冰湖 → 煙雨蓮江 → 深淵海溝 → 世界樹根 → 黃沙冥河，各 23～24 種魚（圖鑑分母 20～21）、各一位魚王（**一王一種專屬體型**）、**各一種地形**（森林／崖壁／神域／冰原／峰林水鄉／夜海／世界樹／沙漠）。進程門檻由拋竿費（400 → 48,000）承擔，不收解鎖費。
+
+**每個釣點都配一整套專屬周邊**：主題釣竿、主題餌料、**釣點專屬裝備**、主題家園裝飾。加新釣點時這六樣要一起加——規則與（很重要的）「為什麼竿／餌可以通用但裝備必須綁釣點」見 [09 §新增一個釣點](09-recipes.md#新增一個釣點--一次要生出一整套)。
 
 美術**沒有任何圖檔**，全部由 canvas 在低解析度上程序化生成再放大（[06](06-pixel-engine.md)）。
 狀態全部集中在 `FG.state.data`，存 localStorage（[02](02-state-and-save.md)）。
@@ -57,14 +59,14 @@
 | `index.html` | 40 | 骨架＋script 載入順序 | [01](01-architecture.md) |
 | `styles.css` | 580 | 全部樣式 | [08](08-ui-and-screens.md) |
 | `js/util.js` | 140 | 亂數／色彩／格式化／DOM／存取／音效 | [01](01-architecture.md) |
-| `js/pixel.js` | 1700 | 像素美術引擎（含地形系統） | [06](06-pixel-engine.md) |
-| `js/data.js` | 900 | 所有資料表 | [07](07-data-schema.md) |
+| `js/pixel.js` | 1860 | 像素美術引擎（含地形系統） | [06](06-pixel-engine.md) |
+| `js/data.js` | 1070 | 所有資料表 | [07](07-data-schema.md) |
 | `js/state.js` | 370 | 存檔／經濟／抽獎 | [02](02-state-and-save.md)、[03](03-economy.md) |
 | `js/ui.js` | 120 | Toast／彈窗／捲動邊緣提示 | [08](08-ui-and-screens.md) |
 | `js/screen-fishing.js` | 640 | 釣魚分頁＋自動模式 | [04](04-fishing-loop.md)、[05](05-auto-mode.md) |
 | `js/screen-daily.js` | 120 | 每日分頁 | [08](08-ui-and-screens.md) |
 | `js/screen-home.js` | 226 | 家園分頁 | [08](08-ui-and-screens.md) |
-| `js/screen-shop.js` | 216 | 商店分頁 | [08](08-ui-and-screens.md) |
+| `js/screen-shop.js` | 260 | 商店分頁 | [08](08-ui-and-screens.md) |
 | `js/screen-codex.js` | 118 | 圖鑑分頁 | [08](08-ui-and-screens.md) |
 | `js/pwa.js` | 130 | Service Worker 註冊、安裝流程 | [13](13-pwa-and-deploy.md) |
 | `js/main.js` | 275 | 啟動／分頁／頂部列／儲值／主迴圈 | [01](01-architecture.md) |

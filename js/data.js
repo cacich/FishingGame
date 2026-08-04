@@ -698,6 +698,109 @@ window.FG = window.FG || {};
   ];
 
   /* ============================================================
+     地點八：黃沙冥河
+     配色規則：**日落沙漠的暖色域**——赭黃、砂金、落日橘，陰影壓成紫褐。
+     這是全遊戲唯一「整片暖色」的釣點（其他七個都偏冷或偏灰），
+     所以冷色（青金石藍、綠松石）反過來成為稀有以上的訊號。
+     魚種取自尼羅河的真實物種，稀有以上換成古埃及神話。
+     ============================================================ */
+  const DUAT_FISH = [
+    /* --- 雜物 --- */
+    { id: 'du_shard',  name: '刻字陶片',     rarity: 'junk', junkArt: 'ostracon', value: 560, minLen: 6,  maxLen: 18, unit: 'cm', desc: '上面寫了字。看得懂的人早就不在了。' },
+    { id: 'du_can',    name: '空的卡諾卜罐', rarity: 'junk', junkArt: 'can',      value: 480, minLen: 10, maxLen: 24, unit: 'cm', desc: '本來該裝內臟的。裡面只有沙。' },
+    { id: 'du_reed',   name: '腐爛的莎草束', rarity: 'junk', junkArt: 'weed',     value: 520, minLen: 30, maxLen: 90, unit: 'cm', desc: '捆得很整齊。捆的人大概以為自己還會回來拿。' },
+
+    /* --- 普通（尼羅河的真實魚種，全部走赭黃砂金） --- */
+    { id: 'du_tilapia', name: '尼羅口孵魚', rarity: 'common', shape: 'flat', scale: .76, pattern: 'scale', value: 3600, minLen: 15, maxLen: 35,
+      colors: { body: '#b4945a', back: '#6e5528', belly: '#f0e2b8', fin: '#8f7038', pattern: '#d8bc7a' },
+      desc: '把卵含在嘴裡孵。壁畫上畫的就是牠，畫了三千年。' },
+    { id: 'du_mormyrus', name: '象鼻長頜魚', rarity: 'common', shape: 'long', scale: .8, pattern: 'none', value: 3700, minLen: 20, maxLen: 45,
+      colors: { body: '#8f7f6a', back: '#4e4436', belly: '#ded0b4', fin: '#6b5f4e' },
+      desc: '用微弱的電流在濁水裡認路。牠的世界沒有形狀，只有訊號。' },
+    { id: 'du_barbel',  name: '沙底鬚䰾', rarity: 'common', shape: 'normal', scale: .78, pattern: 'speck', value: 3520, minLen: 14, maxLen: 32,
+      special: ['whisker'],
+      colors: { body: '#a89060', back: '#605030', belly: '#e8dcbc', fin: '#84703f', pattern: '#c8b284' },
+      desc: '整天用鬍鬚在沙裡撥。撥到什麼吃什麼。' },
+    { id: 'du_elephant', name: '皺鰭象魚', rarity: 'common', shape: 'round', scale: .72, pattern: 'net', value: 3800, minLen: 10, maxLen: 26,
+      colors: { body: '#9a8468', back: '#544636', belly: '#dccfb0', fin: '#75634c', pattern: '#bfa982' },
+      desc: '游起來像一片被風吹著的葉子，但轉向比誰都快。' },
+    { id: 'du_catlet',  name: '河床小鯰', rarity: 'common', shape: 'long', scale: .74, pattern: 'speck', value: 3580, minLen: 12, maxLen: 30,
+      special: ['whisker'],
+      colors: { body: '#7f6f58', back: '#453b2c', belly: '#cfc0a0', fin: '#5f5240', pattern: '#a89478' },
+      desc: '白天埋在泥裡，晚上整條河床都是牠們。' },
+    { id: 'du_puffer',  name: '尼羅河魨', rarity: 'common', shape: 'round', scale: .7, pattern: 'spot', value: 3660, minLen: 8, maxLen: 20,
+      special: ['spike'],
+      colors: { body: '#c8a860', back: '#7f6428', belly: '#f4ecc8', fin: '#a08840', pattern: '#4a3c20' },
+      desc: '被抓起來會鼓成一顆球。鼓完就不肯消，只能等牠自己想通。' },
+
+    /* --- 優良 --- */
+    { id: 'du_perch',   name: '尼羅河鱸', rarity: 'good', shape: 'wide', scale: .96, pattern: 'none', value: 13800, minLen: 40, maxLen: 100,
+      colors: { body: '#b0a888', back: '#5f5a44', belly: '#f2eed8', fin: '#8a8368' },
+      desc: '這條河最大的普通魚。牠不需要傳說，牠光是重量就夠嚇人。' },
+    { id: 'du_bichir',  name: '多鰭蘆魚', rarity: 'good', shape: 'long', scale: .98, pattern: 'net', value: 14100, minLen: 35, maxLen: 80,
+      special: ['spike'],
+      colors: { body: '#7a7048', back: '#413b22', belly: '#cfc898', fin: '#5c5434', pattern: '#a89c68' },
+      desc: '背上一排各自分開的小旗。這個設計比恐龍更早。' },
+    { id: 'du_synodontis', name: '倒游鯰', rarity: 'good', shape: 'wide', scale: .9, pattern: 'spot', value: 13500, minLen: 20, maxLen: 48,
+      special: ['whisker'],
+      colors: { body: '#6a5f50', back: '#3a332a', belly: '#c8bca4', fin: '#4e4538', pattern: '#241f18' },
+      desc: '習慣肚子朝上游。牠不覺得有問題，是你的方向反了。' },
+    { id: 'du_tigerfish', name: '虎齒魚', rarity: 'good', shape: 'long', scale: 1.0, pattern: 'band2', value: 14400, minLen: 30, maxLen: 70,
+      special: ['jaw'],
+      colors: { body: '#c0b490', back: '#6e6444', belly: '#f4f0dc', fin: '#948a66', pattern: '#5f5638', tooth: '#fbf6e0' },
+      desc: '牙齒閉起來的時候會露在唇外。漁夫不用手取鉤。' },
+    { id: 'du_lates',   name: '金鱗巨鱸', rarity: 'good', shape: 'wide', scale: 1.02, pattern: 'scale', value: 13950, minLen: 45, maxLen: 110,
+      colors: { body: '#c8b070', back: '#7f6a30', belly: '#f8f0cc', fin: '#a08c48', pattern: '#e4d09a' },
+      desc: '出水的那一秒鱗片會反光，整條船的人都會安靜一下。' },
+
+    /* --- 稀有 --- */
+    { id: 'du_electric', name: '雷紋電鯰', rarity: 'rare', shape: 'wide', scale: 1.06, pattern: 'speck', value: 60500, minLen: 40, maxLen: 100,
+      special: ['whisker', 'glow'],
+      colors: { body: '#5f5a4a', back: '#332f26', belly: '#b8b09a', fin: '#464032', pattern: '#8fd8e8', glow: '#7fc8e0' },
+      desc: '醫生曾經拿牠治頭痛。做法是叫病人把手放進水裡。' },
+    { id: 'du_lapis',   name: '青金石鯉', rarity: 'rare', shape: 'round', scale: 1.0, pattern: 'scale', value: 59400, minLen: 30, maxLen: 70,
+      special: ['glow'],
+      colors: { body: '#3a5a9a', back: '#1c2c58', belly: '#c0d0ea', fin: '#2a4478', pattern: '#7f9fd8', glow: '#6f8fd0' },
+      desc: '整條魚是青金石的顏色。那種藍在這條河的兩岸都挖不到。' },
+    { id: 'du_ray',     name: '沙埋魟', rarity: 'rare', shape: 'ray', scale: 1.04, pattern: 'speck', value: 61200, minLen: 45, maxLen: 110,
+      colors: { body: '#b49a68', back: '#6e5c34', belly: '#eee0bc', fin: '#8f7a48', pattern: '#7f6c40' },
+      desc: '埋在沙裡只露出兩顆眼睛。踩到牠的人會記住一輩子。' },
+    { id: 'du_moon',    name: '月影銀刀', rarity: 'rare', shape: 'flat', scale: 1.02, pattern: 'none', value: 58900, minLen: 35, maxLen: 85,
+      special: ['glow'],
+      colors: { body: '#dce4ea', back: '#8f9aa4', belly: '#ffffff', fin: '#b4c0ca', glow: '#e8f0f8' },
+      desc: '薄到能透光。滿月的夜裡整群浮上來，遠看像水面裂了一道縫。' },
+
+    /* --- 史詩（換成神話生物） --- */
+    { id: 'du_ammit',   name: '吞心獸魚', rarity: 'epic', shape: 'wide', scale: 1.08, pattern: 'net', value: 237000, minLen: 90, maxLen: 200,
+      special: ['glow', 'jaw'],
+      colors: { body: '#4a3a2e', back: '#241b14', belly: '#a89078', fin: '#33281e', pattern: '#c8a05f', glow: '#ffb45f', tooth: '#f8f0d8' },
+      desc: '天秤那一頭如果比較重，心就歸牠。牠在河底等，等的不是魚。' },
+    { id: 'du_bennu',   name: '貝努鷺鰭魚', rarity: 'epic', shape: 'flat', scale: 1.1, pattern: 'band', value: 240000, minLen: 70, maxLen: 160,
+      special: ['glow', 'finlet'],
+      colors: { body: '#d88f4a', back: '#8a4a18', belly: '#f8dcac', fin: '#b06a28', pattern: '#ffd88f', glow: '#ff9f4f' },
+      desc: '每隔很久燒起來一次，燒完從灰裡再游出來。沒有人算得準週期。' },
+
+    /* --- 傳說 --- */
+    { id: 'du_sobek',   name: '鱗甲河神「索貝克」', rarity: 'legend', shape: 'long', scale: 1.22, pattern: 'net', value: 656000, minLen: 120, maxLen: 260,
+      special: ['glow', 'jaw', 'spike'],
+      colors: { body: '#5f7a4a', back: '#2c3a20', belly: '#c8d4a8', fin: '#44583a', pattern: '#9fbc70', glow: '#8fd85f', tooth: '#f4f8e0' },
+      legend: '牠既是保護的神也是吞噬的神，同一座廟裡兩種祭品都要放。船夫下水前會對著水面說一句話，內容各家不同，但每一家都有一句。牠不一定會聽，但沒說過的人，據說就沒再上過船。',
+      desc: '同一位神，兩種祭品。' },
+    { id: 'du_wadjet',  name: '聖眼金鱗「瓦吉特」', rarity: 'legend', shape: 'wide', scale: 1.18, pattern: 'spot', value: 663000, minLen: 100, maxLen: 220,
+      special: ['glow', 'horn'],
+      colors: { body: '#e0c05f', back: '#8f6a18', belly: '#fbf0c0', fin: '#b8963a', pattern: '#2f4a8a', glow: '#ffe08f', hornColor: '#fff8d8' },
+      legend: '牠側身上的那一圈紋路是一隻眼睛，而且會跟著你移動——不是錯覺，換個角度它還是看著你。捕到牠的人通常會放回去。不是因為敬畏，是因為被那樣看著沒辦法動手。',
+      desc: '身上那隻眼睛會跟著你。' },
+
+    /* --- 魚王 --- */
+    { id: 'du_king_osiris', name: '不死肺魚「歐西里斯」', rarity: 'king', shape: 'lungfish', scale: 1.3, pattern: 'speck', value: 2280000, minLen: 300, maxLen: 620,
+      special: ['glow', 'filaments'],
+      colors: { body: '#6a6a4a', back: '#332f1e', belly: '#c0bc90', fin: '#4a4830', pattern: '#c8a05f', glow: '#ffd07f', filament: '#e0c88f' },
+      legend: '旱季來的時候河會整條乾掉，乾到裂開、乾到看不出這裡曾經有水。牠就埋在裂縫底下，把自己包起來，心跳降到一年幾次。然後洪水回來，牠從泥裡出來，跟去年一模一樣。牠被切成十四塊丟到各處的那次也是這樣回來的——所以這條河的人不太相信「死」這個字。',
+      desc: '黃沙冥河之王。河乾了牠也還在。' }
+  ];
+
+  /* ============================================================
      地點列表
      ============================================================ */
   FG.LOCATIONS = [
@@ -868,6 +971,30 @@ window.FG = window.FG || {};
         boat: '#4a3a2a', boatRim: '#6b5440', boatDark: '#2e2419'
       },
       fish: WORLD_ROOT_FISH
+    },
+    {
+      id: 'duat',
+      name: '黃沙冥河',
+      subtitle: '冥界釣場 · 日沒',
+      desc: '沙漠底下有一條河，太陽每天晚上從這裡通過。岸上是金字塔、方尖碑與幾株撐著的棕櫚，水裡插著半淹的石柱。白天這裡什麼都沒有，日落之後水面才會出現。',
+      seed: 13072, castCost: 48000,
+      unlock: { free: true },
+      scene: {
+        terrain: 'desert',
+        horizon: 0.40,
+        // 全遊戲唯一整片暖色的天空：日沒的赭紫 → 落日橘 → 砂金
+        sky: ['#2e1e3a', '#5f2f42', '#a8543a', '#d88f4a', '#f0c87f'],
+        hill: '#8f6a44',
+        farTree: '#c8a068', midTree: '#a87f4a', nearTree: '#7f5c34',
+        sandLit: '#e8c88f',
+        pyramid: '#c0975a', stone: '#b8a478', palm: '#6f7a3a', trunk: '#5f4a2a',
+        papyrus: '#8f9a4a',
+        shore: '#4a3620',
+        waterTop: '#4a3a3a', waterBot: '#a8785a', waterDeep: '#2e2020',
+        highlight: '#ffe8bc', highlight2: '#d8a06a',
+        boat: '#5a4028', boatRim: '#7f5c38', boatDark: '#38281a'
+      },
+      fish: DUAT_FISH
     }
   ];
 
@@ -887,28 +1014,75 @@ window.FG = window.FG || {};
      商店：釣竿 / 餌料 / 裝備
      ============================================================ */
 
+  /* ------------------------------------------------------------
+     釣竿：**同一時間只有一支生效**，所以加竿子不會讓倍率疊乘失控。
+     陣列依 price 遞增排列（= 圖示配色順序，見 screen-shop.js › rodIcon）。
+     每個釣點各有一支「主題竿」，價格落在該釣點的門檻附近；
+     原本的五支通用竿保留，插在主題竿之間，構成 13 段的細緻曲線。
+     ------------------------------------------------------------ */
   FG.RODS = [
-    { id: 'rod_bamboo', name: '竹製釣竿',   price: 0,      rareMul: 1.00, sizeBonus: 0,    kingMul: 1, desc: '祖父留下的舊竿子，堪用。' },
-    { id: 'rod_glass',  name: '玻纖磯竿',   price: 2400,   rareMul: 1.15, sizeBonus: 0.05, kingMul: 1, desc: '韌性不錯，稀有魚上鉤率 +15%。' },
-    { id: 'rod_carbon', name: '碳纖維遠投竿', price: 9800, rareMul: 1.35, sizeBonus: 0.12, kingMul: 1.2, desc: '輕又硬，能把餌拋到魚群正中央。' },
-    { id: 'rod_mithril',name: '秘銀磯釣竿', price: 42000,  rareMul: 1.55, sizeBonus: 0.22, kingMul: 1.5, desc: '導環用秘銀打造，線出得順到不可思議。' },
-    { id: 'rod_dragon', name: '龍骨釣竿',   price: 180000, rareMul: 1.80, sizeBonus: 0.35, kingMul: 2.0, desc: '取自某條不該被釣起的東西的脊骨。' }
+    { id: 'rod_bamboo', name: '竹製釣竿',   price: 0,      rareMul: 1.00, sizeBonus: 0,    kingMul: 1,    loc: 'mist_lake',     desc: '祖父留下的舊竿子，堪用。' },
+    { id: 'rod_reed',   name: '蘆葦手竿',   price: 900,    rareMul: 1.07, sizeBonus: 0.02, kingMul: 1,    loc: 'mist_lake',     desc: '晨霧湖岸邊割來的，輕到感覺不出手上有東西。' },
+    { id: 'rod_glass',  name: '玻纖磯竿',   price: 2400,   rareMul: 1.15, sizeBonus: 0.05, kingMul: 1,    desc: '韌性不錯，稀有魚上鉤率 +15%。' },
+    { id: 'rod_drift',  name: '浮木海竿',   price: 4800,   rareMul: 1.24, sizeBonus: 0.08, kingMul: 1,    loc: 'sunset_fjord',  desc: '峽灣漂上岸的木料削的。泡過鹹水反而更韌。' },
+    { id: 'rod_carbon', name: '碳纖維遠投竿', price: 9800, rareMul: 1.35, sizeBonus: 0.12, kingMul: 1.2,  desc: '輕又硬，能把餌拋到魚群正中央。' },
+    { id: 'rod_sakura', name: '櫻枝祭竿',   price: 16000,  rareMul: 1.42, sizeBonus: 0.10, kingMul: 1.15, loc: 'sakura_shrine', desc: '祭典用過的櫻枝。宮司說這種竿子不該用來賺錢。' },
+    { id: 'rod_ice',    name: '冰晶短竿',   price: 26000,  rareMul: 1.48, sizeBonus: 0.16, kingMul: 1.3,  loc: 'frost_lake',    desc: '短到能在冰洞邊坐著用。竿身結著一層永不融的霜。' },
+    { id: 'rod_mithril',name: '秘銀磯釣竿', price: 42000,  rareMul: 1.55, sizeBonus: 0.22, kingMul: 1.5,  desc: '導環用秘銀打造，線出得順到不可思議。' },
+    { id: 'rod_jade',   name: '碧玉竹竿',   price: 68000,  rareMul: 1.62, sizeBonus: 0.25, kingMul: 1.4,  loc: 'lotus_river',   desc: '整支竿只有一節竹子，節與節之間沒有接痕。' },
+    { id: 'rod_winch',  name: '深海絞盤竿', price: 110000, rareMul: 1.70, sizeBonus: 0.30, kingMul: 1.7,  loc: 'abyss',         desc: '不是用來甩的，是用來把東西從很深的地方搖上來的。' },
+    { id: 'rod_dragon', name: '龍骨釣竿',   price: 180000, rareMul: 1.80, sizeBonus: 0.35, kingMul: 2.0,  desc: '取自某條不該被釣起的東西的脊骨。' },
+    { id: 'rod_ash',    name: '世界樹枝竿', price: 320000, rareMul: 1.83, sizeBonus: 0.36, kingMul: 2.02, loc: 'world_root',    desc: '一根掉下來的枝。它到現在還在長。' },
+    { id: 'rod_sceptre',name: '黃金權杖竿', price: 780000, rareMul: 1.86, sizeBonus: 0.36, kingMul: 2.05, loc: 'duat',          desc: '陪葬品。原本的用途不是釣魚，但它顯然不介意。' }
   ];
 
+  /* ------------------------------------------------------------
+     餌料：**同一時間只有一種生效**，同樣不會疊乘。
+     `price` 是單價，`pack` 是一次購買的數量。
+     一釣點一種主題餌，插在原本五種通用餌之間。
+     ------------------------------------------------------------ */
   FG.BAITS = [
-    { id: 'bait_bread', name: '麵包屑',     price: 25,   pack: 10, rareMul: 1.00, junkMul: 1.00, valueMul: 1.00, kingMul: 1, desc: '便宜、堪用、什麼都釣得到一點。' },
-    { id: 'bait_worm',  name: '紅蚯蚓',     price: 70,   pack: 10, rareMul: 1.18, junkMul: 0.70, valueMul: 1.00, kingMul: 1, desc: '萬用活餌，雜物明顯變少。' },
-    { id: 'bait_shrimp',name: '活蝦',       price: 200,  pack: 10, rareMul: 1.45, junkMul: 0.40, valueMul: 1.10, kingMul: 1.2, desc: '大魚最愛，賣價也跟著漂亮。' },
-    { id: 'bait_lure',  name: '螢光假餌',   price: 380,  pack: 10, rareMul: 1.70, junkMul: 0.15, valueMul: 1.10, kingMul: 1.4, desc: '在暗處會發光，專門激怒掠食者。' },
-    { id: 'bait_king',  name: '魚王秘餌',   price: 900,  pack: 5,  rareMul: 1.90, junkMul: 0.00, valueMul: 1.20, kingMul: 3.0, desc: '配方不明。魚王等級的傢伙聞到就會失去理智。' }
+    { id: 'bait_bread', name: '麵包屑',     price: 25,   pack: 10, rareMul: 1.00, junkMul: 1.00, valueMul: 1.00, kingMul: 1,    desc: '便宜、堪用、什麼都釣得到一點。' },
+    { id: 'bait_moss',  name: '湖苔團',     price: 45,   pack: 10, rareMul: 1.09, junkMul: 0.85, valueMul: 1.00, kingMul: 1,    loc: 'mist_lake',     desc: '從湖底石頭上刮下來搓成團。晨霧湖的魚從小吃這個。' },
+    { id: 'bait_worm',  name: '紅蚯蚓',     price: 70,   pack: 10, rareMul: 1.18, junkMul: 0.70, valueMul: 1.00, kingMul: 1,    desc: '萬用活餌，雜物明顯變少。' },
+    { id: 'bait_squid', name: '花枝切段',   price: 130,  pack: 10, rareMul: 1.32, junkMul: 0.55, valueMul: 1.05, kingMul: 1.1,  loc: 'sunset_fjord',  desc: '切得越不整齊越有效，沒有人知道為什麼。' },
+    { id: 'bait_shrimp',name: '活蝦',       price: 200,  pack: 10, rareMul: 1.45, junkMul: 0.40, valueMul: 1.10, kingMul: 1.2,  desc: '大魚最愛，賣價也跟著漂亮。' },
+    { id: 'bait_petal', name: '鹽漬櫻餌',   price: 280,  pack: 10, rareMul: 1.55, junkMul: 0.30, valueMul: 1.08, kingMul: 1.3,  loc: 'sakura_shrine', desc: '祭典的供品，隔天用鹽醃起來。神域的魚認得這個味道。' },
+    { id: 'bait_lure',  name: '螢光假餌',   price: 380,  pack: 10, rareMul: 1.70, junkMul: 0.15, valueMul: 1.10, kingMul: 1.4,  desc: '在暗處會發光，專門激怒掠食者。' },
+    { id: 'bait_krill', name: '冰海磷蝦',   price: 520,  pack: 10, rareMul: 1.75, junkMul: 0.12, valueMul: 1.12, kingMul: 1.6,  loc: 'frost_lake',    desc: '冰層底下整片都是。撈上來要立刻用，退冰就爛了。' },
+    { id: 'bait_lees',  name: '酒糟米團',   price: 680,  pack: 10, rareMul: 1.82, junkMul: 0.08, valueMul: 1.15, kingMul: 1.9,  loc: 'lotus_river',   desc: '釀酒剩下的糟捏成團。江裡的魚會醉，醉了就不掙扎。' },
+    { id: 'bait_king',  name: '魚王秘餌',   price: 900,  pack: 5,  rareMul: 1.90, junkMul: 0.00, valueMul: 1.20, kingMul: 3.0,  desc: '配方不明。魚王等級的傢伙聞到就會失去理智。' },
+    { id: 'bait_glow',  name: '深海發光蟲', price: 1300, pack: 5,  rareMul: 1.92, junkMul: 0.00, valueMul: 1.21, kingMul: 3.05, loc: 'abyss',         desc: '拿上船之後還會亮三天。三天後就只是一團灰。' },
+    { id: 'bait_mead',  name: '蜜酒浸餌',   price: 1800, pack: 5,  rareMul: 1.93, junkMul: 0.00, valueMul: 1.21, kingMul: 3.05, loc: 'world_root',    desc: '泡過那桶酒的餌。連不該上鉤的東西都會來看一眼。' },
+    { id: 'bait_scarab',name: '聖甲蟲餌',   price: 2600, pack: 5,  rareMul: 1.94, junkMul: 0.00, valueMul: 1.22, kingMul: 3.1,  loc: 'duat',          desc: '從石棺裡拿出來的。它在你手上動了一下。' }
   ];
 
+  /* ------------------------------------------------------------
+     裝備：買了就永久生效、效果**全部相乘**，所以這裡是唯一會疊乘失控的地方
+     （[10 平衡調參] 記錄過一次倍率疊乘失控的事故）。
+     原本五件是通用的；**每個釣點的專屬裝備一律加 `effect.loc`**，
+     只在該釣點生效。這樣一釣點一件、加多少件都只多一個乘數。
+     ------------------------------------------------------------ */
   FG.EQUIPS = [
     { id: 'eq_hat',    name: '漁夫帽',     price: 4000,   effect: { valueMul: 1.10 }, desc: '賣魚價格 +10%。看起來也比較像樣。' },
-    { id: 'eq_vest',   name: '防水背心',   price: 11000,  effect: { costMul: 0.85 },  desc: '拋竿費用 −15%。' },
     { id: 'eq_basket', name: '大型魚簍',   price: 7000,   effect: { sizeBonus: 0.08 },desc: '釣到的魚體型 +8%。' },
+    { id: 'eq_vest',   name: '防水背心',   price: 11000,  effect: { costMul: 0.85 },  desc: '拋竿費用 −15%。' },
     { id: 'eq_clover', name: '幸運四葉草', price: 22000,  effect: { rareMul: 1.20 },  desc: '稀有度加權 +20%。' },
-    { id: 'eq_sonar',  name: '聲納探測器', price: 60000,  effect: { rareMul: 1.15, showHint: true }, desc: '咬鉤前顯示魚影提示，並提升稀有度 +15%。' }
+    { id: 'eq_sonar',  name: '聲納探測器', price: 60000,  effect: { rareMul: 1.15, showHint: true }, desc: '咬鉤前顯示魚影提示，並提升稀有度 +15%。' },
+
+    /* --- 釣點專屬（只在對應釣點生效） ---
+       ★ **每件只給一個有意義的效果**，不要 rareMul 又 valueMul。
+       兩個乘數疊在同一件裝備上，八件加完就是把整條倍率曲線往上推兩成
+       （初版就是這樣做的，黃沙冥河跑出 ×3.13）。一件一個效果同時也讓
+       每件裝備有自己的個性，玩家看得出「這件是幹什麼的」。 */
+    { id: 'eq_mistlens', name: '晨霧偏光鏡', price: 6000,   effect: { loc: 'mist_lake',     rareMul: 1.12 },    desc: '透過霧看得見水下的影子。稀有度 +12%，只在晨霧湖生效。' },
+    { id: 'eq_tidechart', name: '潮汐圖板',  price: 14000,  effect: { loc: 'sunset_fjord',  valueMul: 1.08 },   desc: '記著峽灣每天的漲退時刻，挑對時間賣得比較好。售價 +8%，只在落霞峽灣生效。' },
+    { id: 'eq_charm',    name: '神域護符',   price: 24000,  effect: { loc: 'sakura_shrine', rareMul: 1.14 },    desc: '宮司給的。他說「別跟牠們對看」。稀有度 +14%，只在宵櫻神域生效。' },
+    { id: 'eq_auger',    name: '破冰鑽',     price: 38000,  effect: { loc: 'frost_lake',    costMul: 0.90 },    desc: '開洞快一倍，省下來的力氣就是省下來的錢。拋竿費 −10%，只在幽藍冰湖生效。' },
+    { id: 'eq_teapot',   name: '溫酒壺',     price: 62000,  effect: { loc: 'lotus_river',   valueMul: 1.09 },   desc: '手不冷，線就穩，魚也拉得完整。售價 +9%，只在煙雨蓮江生效。' },
+    { id: 'eq_winch',    name: '耐壓絞盤',   price: 120000, effect: { loc: 'abyss',         sizeBonus: 0.06 },  desc: '拉得動不該拉得動的東西。體型 +6%，只在深淵海溝生效。' },
+    { id: 'eq_runeplate',name: '符文銘板',   price: 240000, effect: { loc: 'world_root',    rareMul: 1.16 },    desc: '照著石板抄下來的。抄的人說抄完手抖了三天。稀有度 +16%，只在世界樹根生效。' },
+    { id: 'eq_ankh',     name: '生命之符',   price: 480000, effect: { loc: 'duat',          rareMul: 1.17 },    desc: '掛在胸前，河裡的東西就會當你已經死了。稀有度 +17%，只在黃沙冥河生效。' }
   ];
 
   /* ============================================================
@@ -929,7 +1103,10 @@ window.FG = window.FG || {};
     { id: 'trophy', name: '獎盃層架',   price: 18000, effect: { rareMul: 1.05 },desc: '展示戰績，稀有度 +5%。' },
     { id: 'cat',    name: '招財貓',     price: 26000, effect: { valueMul: 1.06 },desc: '賣魚價格 +6%。' },
     { id: 'neon',   name: '霓虹燈管',   price: 12000, effect: {},              desc: '純裝飾。深夜的房間需要一點顏色。' },
-    { id: 'lamp',   name: '吊燈',       price: 8000,  effect: {},              desc: '純裝飾。讓房間亮一點。' }
+    { id: 'lamp',   name: '吊燈',       price: 8000,  effect: {},              desc: '純裝飾。讓房間亮一點。' },
+    // 釣點主題裝飾一律**純裝飾（effect 空）**：裝飾的效果是全域相乘且全部同時生效，
+    // 跟通用裝備一樣會疊乘失控，而「家園擺設」在語意上又不適合綁定某個釣點。
+    { id: 'sarco',  name: '彩繪石棺',   price: 90000, effect: {},              desc: '純裝飾。從黃沙冥河搬回來的，裡面是空的——搬之前就是空的。' }
   ];
 
   /* ============================================================

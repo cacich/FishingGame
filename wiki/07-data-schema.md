@@ -37,8 +37,11 @@
 | `lotus_river` | 煙雨蓮江 | `karst` | 6,000 | `free` | 23 | 20 | `lr_` |
 | `abyss` | 深淵海溝 | `night` | 12,000 | `free` | 23 | 20 | `ab_` |
 | `world_root` | 世界樹根 | `yggdrasil` | 24,000 | `free` | 23 | 20 | `wr_` |
+| `duat` | 黃沙冥河 | `desert` | 48,000 | `free` | 23 | 20 | `du_` |
 
-**陣列順序 = 進程順序 = 各處 UI 的顯示順序**，並且刻意跟 `castCost` 遞增一致（400 → 1,100 → 1,800 → 3,000 → 6,000 → 12,000 → 24,000）。煙雨蓮江是後來插在冰湖與深淵之間的，補掉原本 3,000 → 12,000 那個 4 倍跳躍；世界樹根是接在最後面的新終點。插隊與接尾都是安全的：所有跨檔案的參照都用 `loc.id`（`data.loc`、`unlocked[]`、`bgCache`、魚的 id 前綴），沒有任何地方用索引記住釣點。唯一的索引是 `screen-codex.js › locIdx`，那是每次 `onShow()` 由 `data.loc` 重算的暫存值。
+> ★ **每個釣點都必須有一整套專屬周邊**：主題釣竿、主題餌料、專屬裝備、主題家園裝飾。對照表與（很重要的）三者規則差異見 [09 §新增一個釣點](09-recipes.md#新增一個釣點--一次要生出一整套)。
+
+**陣列順序 = 進程順序 = 各處 UI 的顯示順序**，並且刻意跟 `castCost` 遞增一致（400 → 1,100 → 1,800 → 3,000 → 6,000 → 12,000 → 24,000 → 48,000）。煙雨蓮江是後來插在冰湖與深淵之間的，補掉原本 3,000 → 12,000 那個 4 倍跳躍；世界樹根是接在最後面的新終點。插隊與接尾都是安全的：所有跨檔案的參照都用 `loc.id`（`data.loc`、`unlocked[]`、`bgCache`、魚的 id 前綴），沒有任何地方用索引記住釣點。唯一的索引是 `screen-codex.js › locIdx`，那是每次 `onShow()` 由 `data.loc` 重算的暫存值。
 
 > **深淵海溝不再是最後一個釣場了。** 它的 `desc` 沒有宣稱自己是終點（只說「光線到不了的地方」），所以不需要改；但**未來再加釣點時要檢查最後一名的文案有沒有寫死「最深」「最後」這類字眼**。
 
@@ -99,6 +102,12 @@
 | `rune` | `yggdrasil` | 符文石的刻痕與水面上的符文光 |
 | `stone` | `yggdrasil` | 符文石板（與 `shrine` 的石燈籠共用同一個 key） |
 | `star` | `yggdrasil` | 星星（與 `night` 共用同一個 key） |
+| `sandLit` | `desert` | 沙丘稜線的受光色 |
+| `pyramid` | `desert` | 金字塔（受光／陰影兩面由它 `shade(±)` 推導） |
+| `palm` | `desert` | 棕櫚葉 |
+| `papyrus` | `desert` | 紙莎草 |
+| `stone` | `desert` | 方尖碑與半淹的石柱（第三個共用這個 key 的地形） |
+| `trunk` | `desert` | 棕櫚樹幹（第三個共用這個 key 的地形） |
 
 > ⚠️ **`karst` 的白牆（`wall`）與霧帶（`mist`）不會有倒影。** 倒影只保留亮度 ≤ 150 的像素（見 [06 §為什麼倒影用 getImageData](06-pixel-engine.md#為什麼倒影用-getimagedata)），這兩個色都遠高於門檻。這是刻意接受的：白牆在水裡鏡射會亮到蓋掉水面，霧本來也不該有倒影。要讓某個新地形物件有倒影，它的顏色就必須壓在 150 以下。
 
@@ -116,16 +125,16 @@
   name:    '黑鱸',
   rarity:  'good',         // junk|common|good|rare|epic|legend|king
   shape:   'normal',       // normal|long|round|flat|wide|ray
-                           // 魚王專屬：catfish|tuna|dragon|pike|abyss|paddle|serpent
+                           // 魚王專屬：catfish|tuna|dragon|pike|abyss|paddle|serpent|lungfish
   scale:   0.9,            // 在精靈框中的佔比，魚王建議 1.25～1.35
   pattern: 'band',         // none|stripe|band|band2|spot|speck|net|scale
   special: ['glow'],       // 選用：glow|spike|whisker|scar|horn|jaw|lantern
-                           //       finlet|mane|frost|rostrum|forkTongue
+                           //       finlet|mane|frost|rostrum|forkTongue|filaments
   cyOffset: 1,             // 選用：垂直微調（像素）
   value:   330,            // 基礎估價（實際售價依體長平方縮放）
   minLen:  25, maxLen: 50, // 體長範圍（cm）
   colors:  { body, back, belly, fin, pattern, glow, hornColor,
-             scar, tooth, frost, lantern, mane, rostrum, tongue,  // 各 special 的專屬色，省略有預設值
+             scar, tooth, frost, lantern, mane, rostrum, tongue, filament,  // 各 special 的專屬色，省略有預設值
              eyeWhite, pupil },
   desc:    '一句描述',
   legend:  '長篇傳說文字'    // 選用。有的話結果卡與圖鑑會用琥珀色框強調
@@ -163,6 +172,7 @@
 | 江神白鱘「渡江」 | 煙雨蓮江 | `paddle` | `net` | `glow` `rostrum` `spike` | 佔體長近半的劍狀長吻＋背部骨板 |
 | 深淵之顎「尼克斯」 | 深淵海溝 | `abyss` | `net` | `glow` `jaw` `lantern` | 巨頭小尾＋獠牙＋頭頂發光燈籠 |
 | 世界蛇「耶夢加得」 | 世界樹根 | `serpent` | `scale` | `glow` `forkTongue` | **完全沒有鰭**的均勻長管＋分叉蛇舌 |
+| 不死肺魚「歐西里斯」 | 黃沙冥河 | `lungfish` | `speck` | `glow` `filaments` | 鰻形身體＋後半段**連續的鰭緣**＋四條絲狀肢 |
 
 > **`serpent` 與 `dragon` 是刻意區分開的兩種「長條形」。** `dragon`（八尋）有 `tailH .95` 的大尾扇與 `mane` 的高聳鬃毛，是「帶狀的魚」；`serpent`（耶夢加得）`tailH .14`、`dorsal .05`、`e .30`，是「粗細均勻、沒有鰭、尾巴收成一點」的真蛇。兩者放在一起不會被認成同一條。
 
@@ -203,6 +213,7 @@
 | 煙雨蓮江 | **水墨色域**：墨青、灰藍、青瓷綠 | 暖色（朱紅、胭脂、金）只給稀有以上。整片灰綠打底，所以一條胭脂魚或金鯉會非常突出 |
 | 深淵海溝 | **底色壓到接近黑** | 辨識度全靠 `special: ['glow']` 與冷光 `pattern`；沒有陽光的地方不會有保護色，所以幾乎每種都帶生物發光 |
 | 世界樹根 | 極夜的深藍黑，**唯一亮色來源是極光**（青綠 × 紫） | 用「**魚種性質**」而不是配色分界：普通～優良是北大西洋真實冷水魚、一律銀白灰；史詩以上換成神話生物、帶 `glow` 並吃極光的青綠紫金 |
+| 黃沙冥河 | **全遊戲唯一整片暖色**：赭黃、砂金、落日橘 | 其他七個釣點都偏冷或偏灰，所以這裡反過來——**冷色（青金石藍、綠松石、月銀）成為稀有以上的訊號**。同樣用「真實尼羅河魚種 → 古埃及神話」做史詩以上的分界 |
 
 ### 世界樹根的分界線就是它的識別方式
 
@@ -226,53 +237,93 @@
 ## 釣竿 · `FG.RODS`
 
 ```js
-{ id, name, price, rareMul, sizeBonus, kingMul, desc }
+{ id, name, price, rareMul, sizeBonus, kingMul, loc?, desc }
 ```
 
-| id | 售價 | rareMul | sizeBonus | kingMul |
-|---|---|---|---|---|
-| `rod_bamboo` | 0（初始） | 1.00 | 0 | 1 |
-| `rod_glass` | 2,400 | 1.15 | 0.05 | 1 |
-| `rod_carbon` | 9,800 | 1.35 | 0.12 | 1.2 |
-| `rod_mithril` | 42,000 | 1.55 | 0.22 | 1.5 |
-| `rod_dragon` | 180,000 | 1.80 | 0.35 | 2.0 |
+`loc` 是**主題標籤**：標示這支竿是哪個釣點的專屬周邊。**竿子本身在哪個釣點都能用**，`loc` 不影響數值，只用來在商店顯示「○○主題」。
 
-**陣列順序 = 圖示配色順序**（`screen-shop.js › rodIcon()` 用 index 取色），插隊會讓圖示錯位。
+| id | 主題釣點 | 售價 | rareMul | sizeBonus | kingMul |
+|---|---|---|---|---|---|
+| `rod_bamboo` | 晨霧湖 | 0（初始） | 1.00 | 0 | 1 |
+| `rod_reed` | 晨霧湖 | 900 | 1.07 | 0.02 | 1 |
+| `rod_glass` | （通用） | 2,400 | 1.15 | 0.05 | 1 |
+| `rod_drift` | 落霞峽灣 | 4,800 | 1.24 | 0.08 | 1 |
+| `rod_carbon` | （通用） | 9,800 | 1.35 | 0.12 | 1.2 |
+| `rod_sakura` | 宵櫻神域 | 16,000 | 1.42 | 0.10 | 1.15 |
+| `rod_ice` | 幽藍冰湖 | 26,000 | 1.48 | 0.16 | 1.3 |
+| `rod_mithril` | （通用） | 42,000 | 1.55 | 0.22 | 1.5 |
+| `rod_jade` | 煙雨蓮江 | 68,000 | 1.62 | 0.25 | 1.4 |
+| `rod_winch` | 深淵海溝 | 110,000 | 1.70 | 0.30 | 1.7 |
+| `rod_dragon` | （通用） | 180,000 | 1.80 | 0.35 | 2.0 |
+| `rod_ash` | 世界樹根 | 320,000 | 1.83 | 0.36 | 2.02 |
+| `rod_sceptre` | 黃沙冥河 | 780,000 | 1.86 | 0.36 | 2.05 |
+
+**陣列順序 = price 遞增 = 圖示配色順序**（`screen-shop.js › rodIcon()` 用 index 取色），插隊會讓圖示錯位。
+
+> ⚠️ **`rodIcon()` 的兩張色表必須跟這張表一樣長。** 它是 `cols[idx]` 直接取值（有取 `% 13`，但表只有 13 筆），**加第 14 支竿沒補配色就會拿到 undefined、圖示整個消失**。見 [11 §24](11-invariants-and-gotchas.md)。
+
+**加釣竿不會讓倍率疊乘**，因為同一時間只有一支生效。頂端刻意只比 `rod_dragon` 高一點（1.80 → 1.86），避免把所有釣點的倍率一起往上推。
 
 ## 餌料 · `FG.BAITS`
 
 ```js
-{ id, name, price, pack, rareMul, junkMul, valueMul, kingMul, desc }
+{ id, name, price, pack, rareMul, junkMul, valueMul, kingMul, loc?, desc }
 ```
 
-`price` 是**單價**，`pack` 是一次購買的數量，所以商店按鈕顯示的金額是 `price × pack`。
+`price` 是**單價**，`pack` 是一次購買的數量，所以商店按鈕顯示的金額是 `price × pack`。`loc` 同樣只是主題標籤，餌料在哪都能用。
 
-| id | 單價 | 包量 | rareMul | junkMul | valueMul | kingMul |
-|---|---|---|---|---|---|---|
-| `bait_bread` | 25 | 10 | 1.00 | 1.00 | 1.00 | 1 |
-| `bait_worm` | 70 | 10 | 1.18 | 0.70 | 1.00 | 1 |
-| `bait_shrimp` | 200 | 10 | 1.45 | 0.40 | 1.10 | 1.2 |
-| `bait_lure` | 380 | 10 | 1.70 | 0.15 | 1.10 | 1.4 |
-| `bait_king` | 900 | 5 | 1.90 | 0.00 | 1.20 | 3.0 |
+| id | 主題釣點 | 單價 | 包量 | rareMul | junkMul | valueMul | kingMul |
+|---|---|---|---|---|---|---|---|
+| `bait_bread` | （通用） | 25 | 10 | 1.00 | 1.00 | 1.00 | 1 |
+| `bait_moss` | 晨霧湖 | 45 | 10 | 1.09 | 0.85 | 1.00 | 1 |
+| `bait_worm` | （通用） | 70 | 10 | 1.18 | 0.70 | 1.00 | 1 |
+| `bait_squid` | 落霞峽灣 | 130 | 10 | 1.32 | 0.55 | 1.05 | 1.1 |
+| `bait_shrimp` | （通用） | 200 | 10 | 1.45 | 0.40 | 1.10 | 1.2 |
+| `bait_petal` | 宵櫻神域 | 280 | 10 | 1.55 | 0.30 | 1.08 | 1.3 |
+| `bait_lure` | （通用） | 380 | 10 | 1.70 | 0.15 | 1.10 | 1.4 |
+| `bait_krill` | 幽藍冰湖 | 520 | 10 | 1.75 | 0.12 | 1.12 | 1.6 |
+| `bait_lees` | 煙雨蓮江 | 680 | 10 | 1.82 | 0.08 | 1.15 | 1.9 |
+| `bait_king` | （通用） | 900 | 5 | 1.90 | 0.00 | 1.20 | 3.0 |
+| `bait_glow` | 深淵海溝 | 1,300 | 5 | 1.92 | 0.00 | 1.21 | 3.05 |
+| `bait_mead` | 世界樹根 | 1,800 | 5 | 1.93 | 0.00 | 1.21 | 3.05 |
+| `bait_scarab` | 黃沙冥河 | 2,600 | 5 | 1.94 | 0.00 | 1.22 | 3.1 |
 
-同樣**陣列順序 = 圖示配色**（`screen-fishing.js › baitIcon()`）。
+同樣**陣列順序 = 圖示配色**（`screen-fishing.js › baitIcon()`，那邊有取餘數所以不會壞，13 筆只是為了讓相鄰餌料不同色）。
+
+**加餌料也不會疊乘**（一次只用一種）。但要注意**貴餌在便宜釣點是虧的**——`bait_scarab` 在晨霧湖會把倍率壓到 ×0.85，這是正確的行為，不是 bug。
 
 ## 裝備 · `FG.EQUIPS`
 
 ```js
-{ id, name, price, effect: { ... }, desc }
+{ id, name, price, effect: { loc?, rareMul?, valueMul?, costMul?, sizeBonus?, showHint? }, desc }
 ```
 
-`effect` 支援的 key：`rareMul` `valueMul` `costMul` `sizeBonus` `showHint`。
-**買了就永久生效，沒有裝備欄位／上限概念**，全部效果相乘。
+**買了就永久生效，沒有裝備欄位／上限概念，全部效果相乘。** 這是這個專案唯一真正會倍率失控的地方。
 
-| id | 售價 | 效果 |
-|---|---|---|
-| `eq_hat` | 4,000 | `valueMul: 1.10` |
-| `eq_vest` | 11,000 | `costMul: 0.85` |
-| `eq_basket` | 7,000 | `sizeBonus: 0.08` |
-| `eq_clover` | 22,000 | `rareMul: 1.20` |
-| `eq_sonar` | 60,000 | `rareMul: 1.15` ＋ `showHint: true` |
+`effect.loc` = **釣點專屬**：只在該釣點生效，其他釣點完全不計（`state.js › bonus(loc)` 直接 `continue`）。
+
+| id | 售價 | 效果 | 專屬釣點 |
+|---|---|---|---|
+| `eq_hat` | 4,000 | `valueMul: 1.10` | — |
+| `eq_basket` | 7,000 | `sizeBonus: 0.08` | — |
+| `eq_vest` | 11,000 | `costMul: 0.85` | — |
+| `eq_clover` | 22,000 | `rareMul: 1.20` | — |
+| `eq_sonar` | 60,000 | `rareMul: 1.15` ＋ `showHint: true` | — |
+| `eq_mistlens` | 6,000 | `rareMul: 1.12` | 晨霧湖 |
+| `eq_tidechart` | 14,000 | `valueMul: 1.08` | 落霞峽灣 |
+| `eq_charm` | 24,000 | `rareMul: 1.14` | 宵櫻神域 |
+| `eq_auger` | 38,000 | `costMul: 0.90` | 幽藍冰湖 |
+| `eq_teapot` | 62,000 | `valueMul: 1.09` | 煙雨蓮江 |
+| `eq_winch` | 120,000 | `sizeBonus: 0.06` | 深淵海溝 |
+| `eq_runeplate` | 240,000 | `rareMul: 1.16` | 世界樹根 |
+| `eq_ankh` | 480,000 | `rareMul: 1.17` | 黃沙冥河 |
+
+> **陣列刻意分成兩段**（通用五件在前、專屬八件在後），所以整體 price **不是**遞增的。這沒有影響——`equipIcon()` 是用 `EQUIP_ART[e.id]` 查表，不吃 index。
+
+**兩條硬規則**：
+
+1. **釣點專屬裝備一律綁 `effect.loc`。** 沒綁的話每加一件就把所有釣點的倍率一起乘上去，八件就是兩成。理由與事故紀錄見 [09 §為什麼三者的規則不一樣](09-recipes.md#為什麼三者的規則不一樣重要)。
+2. **每件專屬裝備只給一個效果。** 初版給了 `rareMul` + `valueMul` 兩個，黃沙冥河的倍率跑到 ×3.13。
 
 > 新增裝備要**同時**在 `screen-shop.js › EQUIP_ART` 加一張 16×9 字元圖，否則圖示是空白。
 
@@ -307,8 +358,13 @@
 | `rug` `plant` `neon` `lamp` | 3,500 / 5,000 / 12,000 / 8,000 | 純裝飾 |
 | `trophy` | 18,000 | `rareMul: 1.05` |
 | `cat` | 26,000 | `valueMul: 1.06` |
+| `sarco`（彩繪石棺·黃沙冥河主題） | 90,000 | 純裝飾 |
 
-> 新增裝飾要動**三處**：`data.js › FG.DECOS`、`pixel.js › drawRoom()` 的繪製碼、`screen-home.js › DECO_ART` 的圖示。
+**裝飾的效果跟裝備一樣是全域相乘、而且全部同時生效**，所以會有同一個疊乘問題。因此：
+
+> ⚠️ **釣點主題的裝飾一律 `effect: {}`（純裝飾）。** 裝飾在語意上是「家園擺設」，綁 `effect.loc`（某個釣點才生效）講不通；而給它全域加成又會疊乘。純裝飾是唯一乾淨的選擇——反正裝飾的價值本來就在家園畫面上看得到。
+
+> 新增裝飾要動**三處**：`data.js › FG.DECOS`、`pixel.js › drawRoom()` 的繪製碼、`screen-home.js › DECO_ART` 的圖示。漏掉繪製碼不會報錯，只是家園畫面上什麼都沒出現。
 
 ---
 

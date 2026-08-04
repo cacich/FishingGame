@@ -59,7 +59,36 @@
 
 ---
 
-## 新增一個釣點
+## 新增一個釣點 ★ 一次要生出一整套
+
+> **這是硬性規定。** 一個釣點不是只有地圖——**釣點、釣竿、餌料、魚種、裝備、家園裝飾，六樣要一起加。**
+> 少了任何一樣，那個釣點就會變成「沒有專屬東西可買」的空殼，玩家到了那裡沒有新目標。
+
+| 要加的東西 | 加在哪 | 規則 |
+|---|---|---|
+| **釣點** | `data.js › FG.LOCATIONS` | 專屬 `scene.terrain`（不共用），順序跟 `castCost` 遞增一致 |
+| **魚種** | 同一個檔案的 `XXX_FISH` 陣列 | 23～24 種，七個階級都要有，圖鑑分母 ≥ 20 |
+| **釣竿** | `data.js › FG.RODS` | 一支主題竿，`loc: '釣點id'`。**通用**（哪裡都能用），價格插進遞增曲線 |
+| **餌料** | `data.js › FG.BAITS` | 一種主題餌，`loc: '釣點id'`。**通用**，價格插進遞增曲線 |
+| **裝備** | `data.js › FG.EQUIPS` | 一件專屬裝備，`effect.loc: '釣點id'`。**只在該釣點生效**，而且**只給一個效果** |
+| **家園裝飾** | `data.js › FG.DECOS` | 一件主題裝飾，`effect: {}`（**純裝飾**） |
+
+### 為什麼三者的規則不一樣（重要）
+
+這不是隨便訂的，是**倍率會不會疊乘**決定的：
+
+| | 同時生效幾件 | 加東西會不會推高倍率 | 所以 |
+|---|---|---|---|
+| 釣竿 | **1 支** | 不會 | 可以通用，放心加 |
+| 餌料 | **1 種** | 不會 | 可以通用，放心加 |
+| 裝備 | **全部** | **會，而且是相乘** | **必須綁 `effect.loc`** |
+| 家園裝飾 | **全部** | **會，而且是相乘** | **必須純裝飾** |
+
+裝備那一欄是這個專案唯一真正的地雷（[10 §稀有度倍率的疊乘失控](10-balance-tuning.md#調參歷史與教訓) 有一次事故紀錄）。綁上 `effect.loc` 之後，八件專屬裝備同一時間只有一件生效，**加到第一百件也只多一個乘數**。
+
+> ⚠️ **專屬裝備只給一個效果。** 初版給了 `rareMul` + `valueMul` 兩個，八件加完把整條倍率曲線推高兩成，黃沙冥河跑出 ×3.13（[10](10-balance-tuning.md) 記過一次 ×3.25 的印鈔機事故）。一件一個效果，順便也讓每件裝備有自己的個性。
+
+### 步驟
 
 1. `js/data.js` 的 `FG.LOCATIONS` 加一筆，欄位見 [07 §釣點](07-data-schema.md#釣點--fglocations)。
 2. 先把 `fish: []` 留空、`comingSoon: true`，確認選單、圖鑑、縮圖都正常。
@@ -79,9 +108,21 @@
    - 跑 **100 萬竿以上、跑兩次**。30 萬竿的噪音有 ±2%，會讓你追著雜訊調數值。
    - 回頭更新基準表與係數表。
 8. **如果新釣點接在最後面**：檢查原本最後一名的 `desc` 有沒有寫死「最深」「最後」這類字眼。
-9. **檢查窄螢幕的介面**。把視窗縮到 320px，看圖鑑的釣點切換列與釣點選單彈窗（[08 §會隨釣點數量成長的介面](08-ui-and-screens.md#會隨釣點數量成長的介面)）。`name` 建議 4 個字以內、`subtitle` 8 個字以內。
+9. **加那一整套周邊**（釣竿／餌料／裝備／家園裝飾），照上面的規則表。三件事別漏：
+   - `FG.RODS` 與 `FG.BAITS` 必須維持 **price 遞增**（那個順序就是圖示配色順序）。
+   - **`screen-shop.js › rodIcon()` 的兩張色表要跟 `FG.RODS` 一樣長**，它是 `cols[idx]` 直接取值、沒有取餘數，漏補就整個圖示消失（[11 §24](11-invariants-and-gotchas.md)）。
+   - 新裝備要在 `screen-shop.js › EQUIP_ART` 補圖、新裝飾要在 `screen-home.js › DECO_ART` 補圖**並且**在 `pixel.js › drawRoom()` 補繪製碼。
+10. **檢查窄螢幕的介面**。把視窗縮到 320px，看圖鑑的釣點切換列與釣點選單彈窗（[08 §會隨釣點數量成長的介面](08-ui-and-screens.md#會隨釣點數量成長的介面)）。`name` 建議 4 個字以內、`subtitle` 8 個字以內。
+11. **檢查商店三個分頁每一列都有圖示**（一行 console 就能掃）：
+    ```js
+    ['rod','bait','equip'].forEach(t => { FG.screenShop.tab = t; FG.screenShop.render();
+      const blank = [...document.querySelectorAll('#shopList .item canvas')].filter(c => {
+        const d = c.getContext('2d').getImageData(0,0,c.width,c.height).data;
+        for (let i = 3; i < d.length; i += 4) if (d[i] > 0) return false; return true; });
+      console.log(t, '空白圖示', blank.length); });
+    ```
 
-📝 **要更新**：[07 資料規格](07-data-schema.md) 的釣點表與配色規則表、[06 像素引擎](06-pixel-engine.md) 的地形表（若加了新地形）、[10 平衡調參](10-balance-tuning.md) 的基準表與模擬腳本、[12 名詞表](12-glossary.md) 的 id 前綴與 terrain 清單、[README](README.md) 的三十秒版本。
+📝 **要更新**：[07 資料規格](07-data-schema.md) 的釣點表、配色規則表與**釣竿／餌料／裝備／裝飾四張表**、[06 像素引擎](06-pixel-engine.md) 的地形表（若加了新地形）、[10 平衡調參](10-balance-tuning.md) 的基準表與模擬腳本、[12 名詞表](12-glossary.md) 的 id 前綴與 terrain 清單、[README](README.md) 的三十秒版本。
 
 ---
 

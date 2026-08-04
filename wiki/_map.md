@@ -41,7 +41,10 @@
 | 動到任何影響機率／價格／成本的數值 | 跑 [10 §模擬腳本](10-balance-tuning.md#模擬腳本)，**更新基準表** |
 | 新增 shape / pattern / special / junkArt | [06](06-pixel-engine.md) 加說明 ＋ [07](07-data-schema.md) 加可用值 ＋ [12](12-glossary.md) 加清單 |
 | 新增「會往魚身體外延伸」的 special | 上面那一列全做，**再加 `buildFish()` 的 `HEAD_ROOM` 一列**（見 [11 §19](11-invariants-and-gotchas.md)） |
-| **新增釣點** | [07](07-data-schema.md) 釣點表＋配色規則表、[10](10-balance-tuning.md) 基準表＋模擬腳本、[12](12-glossary.md) id 前綴、[README](README.md) 三十秒版本，並**在 320px 寬檢查 [08 §會隨釣點數量成長的介面](08-ui-and-screens.md#會隨釣點數量成長的介面) 列的兩處** |
+| **新增釣點** | ★ **必須一次生出一整套**：釣點＋魚種＋釣竿＋餌料＋裝備＋家園裝飾，規則與理由見 [09 §新增一個釣點](09-recipes.md#新增一個釣點--一次要生出一整套)。文件要更新 [07](07-data-schema.md) 釣點表＋配色規則表＋四張裝備表、[10](10-balance-tuning.md) 基準表＋模擬腳本、[12](12-glossary.md) id 前綴、[README](README.md) 三十秒版本，並**在 320px 寬檢查 [08](08-ui-and-screens.md#會隨釣點數量成長的介面) 列的兩處** |
+| 新增釣竿／餌料 | [07](07-data-schema.md) 的表；**維持 price 遞增**；`screen-shop.js › rodIcon()` 的色表要同步加長（[11 §24](11-invariants-and-gotchas.md)） |
+| 新增**裝備** | [07](07-data-schema.md) 的表 ＋ `screen-shop.js › EQUIP_ART` 圖示。**釣點專屬的一律綁 `effect.loc` 且只給一個效果**，否則倍率會疊乘失控（[10](10-balance-tuning.md)） |
+| 新增**家園裝飾** | [07](07-data-schema.md) 的表 ＋ `screen-home.js › DECO_ART` 圖示 ＋ `pixel.js › drawRoom()` 繪製碼。**釣點主題的一律純裝飾**（`effect: {}`） |
 | 新增選項數量會成長的橫向列 | 用 `.seg.seg-scroll`（**不要用 `.seg`**）＋ [08](08-ui-and-screens.md) 設計語彙表加一列。步驟見 [09](09-recipes.md) |
 | **新增 `TERRAIN` 地形** | [06 §地形系統](06-pixel-engine.md) 加一列 ＋ [07](07-data-schema.md) 的 scene 表與釣點表 ＋ [12](12-glossary.md) 加清單，**並補 `locThumb()` 的 switch case** |
 | 新增裝備／裝飾／餌料／釣竿 | [07](07-data-schema.md) 更新表格；裝備要記得加圖示（[09](09-recipes.md) 有步驟） |
