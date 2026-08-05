@@ -11,7 +11,7 @@
       魚王自己的 colors.glow / colors.pattern。「每位魚王看起來不一樣」因此
       幾乎是免費的——換了配色就換了整場演出的色調。
 
-   3. 十二位魚王不各自手刻一套動畫，而是「四種演出骨架 × 每王一筆參數」。
+   3. 十五位魚王不各自手刻一套動畫，而是「四種演出骨架 × 每王一筆參數」。
       各刻一套要 700~1000 行，而且每新增一個釣點就多一項最花時間的工作
       （加釣點本來就要生一整套周邊，見 wiki 09）。參數化之後，新的魚王
       只要在 KING 表補一筆六行的資料。
@@ -58,7 +58,10 @@ window.FG = window.FG || {};
     cd_king_yobi:        { motif: 'spiral', particle: 'burst', title: '餘　火', tone: [277, 233, 311, 415, 523] },
     ab_king_nyx:         { motif: 'reveal', particle: 'up',    title: '深　淵', tone: [440, 349, 262, 196] },
     wr_king_jormungandr: { motif: 'spiral', particle: 'burst', title: '環　世', tone: [262, 392, 523, 784, 1046] },
-    du_king_osiris:      { motif: 'reveal', particle: 'drift', title: '不　死', tone: [220, 277, 330, 440, 554] }
+    du_king_osiris:      { motif: 'reveal', particle: 'drift', title: '不　死', tone: [220, 277, 330, 440, 554] },
+    rp_king_fuseki:      { motif: 'reveal', particle: 'drift', title: '伏　石', tone: [294, 247, 330, 392] },
+    cr_king_ruri:        { motif: 'spiral', particle: 'burst', title: '琉　璃', tone: [392, 494, 659, 880, 1046] },
+    cv_king_chosoku:     { motif: 'emerge', particle: 'up',    title: '長　息', tone: [175, 220, 262, 330] }
   };
 
   // 新增的魚王忘了補 KING 表時用這個。刻意不報錯——少一筆資料不該讓玩家

@@ -9,14 +9,14 @@
 
 ## 新增一種魚
 
-1. 打開 `js/data.js`，找到目標釣點的魚陣列（`MIST_LAKE_FISH` / `POND_FISH` / `FJORD_FISH` / `SHRINE_FISH` / `TIDAL_FISH` / `FROST_FISH` / `FALL_FISH` / `LOTUS_FISH` / `CALDERA_FISH` / `ABYSS_FISH` / `WORLD_ROOT_FISH` / `DUAT_FISH`）。
+1. 打開 `js/data.js`，找到目標釣點的魚陣列（`MIST_LAKE_FISH` / `POND_FISH` / `RAPIDS_FISH` / `FJORD_FISH` / `CORAL_FISH` / `SHRINE_FISH` / `TIDAL_FISH` / `FROST_FISH` / `FALL_FISH` / `LOTUS_FISH` / `CALDERA_FISH` / `ABYSS_FISH` / `WORLD_ROOT_FISH` / `DUAT_FISH` / `CAVERN_FISH`）。
 2. 依稀有度插到對應的 `/* --- 稀有度 --- */` 區塊，欄位規格見 [07 §魚](07-data-schema.md#魚--locationfish)：
    ```js
    { id: 'ml_newfish', name: '新魚', rarity: 'rare', shape: 'flat', scale: 1.0,
      pattern: 'spot', value: 1200, minLen: 30, maxLen: 65,
      colors: { body: '#xxxxxx' }, desc: '一句描述' }
    ```
-3. `id` 必須全域唯一，用釣點前綴（對照表見 [07 §釣點](07-data-schema.md#目前的十二個釣點)）。
+3. `id` 必須全域唯一，用釣點前綴（對照表見 [07 §釣點](07-data-schema.md#目前的十五個釣點)）。
 4. **`value` 要貼近該階級現有魚的水準**（差距抓 ±10% 內）。理由見 [11 §14](11-invariants-and-gotchas.md#14-加魚不改機率但會改期望值)：加魚不改變階級機率，但會直接改變該階級的期望價值。想放一條特別值錢的，**升它一階**，不要在階級內做價差。
 5. 顏色照該釣點的調色規則走（[07 §各釣點的配色規則](07-data-schema.md#各釣點的配色規則)）。深淵海溝的魚幾乎都要帶 `special: ['glow']`，否則在極暗底色下整格是一團黑。
 6. 重新整理頁面，去圖鑑看剪影對不對；想直接看成品，在 console 跑：
@@ -95,7 +95,11 @@
 1. `js/data.js` 的 `FG.LOCATIONS` 加一筆，欄位見 [07 §釣點](07-data-schema.md#釣點--fglocations)。
 2. 先把 `fish: []` 留空、`comingSoon: true`，確認選單、圖鑑、縮圖都正常。
 3. 選 `scene.terrain`。**不要沿用既有釣點的地形**——每個釣點一種是這個專案的原則，理由見 [06 §地形系統](06-pixel-engine.md#三之二--地形系統--terrain)。要新增地形照那一節的四個步驟做（記得補 `locThumb()` 的 `switch` case）。
-   > 到第十二種為止，好用的辨識手段幾乎被分完了。**動手畫之前先看 [06 §十二種地形各自佔了哪一條辨識軸](06-pixel-engine.md#十二種地形各自佔了哪一條辨識軸)，挑一條還空著的。** 撞到既有的那一條，做出來就等於白做。
+   > 到第十五種為止，好用的辨識手段幾乎被分完了。**動手畫之前先看 [06 §十五種地形各自佔了哪一條辨識軸](06-pixel-engine.md#十五種地形各自佔了哪一條辨識軸)，挑一條還空著的。** 撞到既有的那一條，做出來就等於白做。
+   >
+   > **軸不一定要在天際線上。** 2026-08-05 的三種地形示範了另外三個方向：把識別放在**水面**（`rapids` 的斜向流線與尾流）、放在**水下**（`reef` 的側視礁體）、或者**把天空整片拿掉**（`cavern`）。天際線的形狀已經被佔了九種，往這三個方向找比較容易找到空位。
+   >
+   > ⚠️ **只要新地形要在水面上放東西，先想「它站在什麼上面」。** 這一版的水面是一整片平塗漸層，沒有任何東西可以讓物件站上去，所以物件必須自己帶著水下的體積（`rapids` 的石頭帶一塊深色橢圓、`reef` 的珊瑚長在礁丘上）。這一條連續兩個地形都踩到，見 [11 §31](11-invariants-and-gotchas.md)。
 4. 調 `scene` 調色盤。快速預覽：
    ```js
    document.body.appendChild(FG.px.locThumb(FG.locById('new_spot'), 200, 130))
@@ -115,10 +119,10 @@
 8. **如果新釣點接在最後面**：檢查原本最後一名的 `desc` 有沒有寫死「最深」「最後」這類字眼。
 9. **加那一整套周邊**（釣竿／餌料／裝備／家園裝飾），照上面的規則表。三件事別漏：
    - `FG.RODS` 與 `FG.BAITS` 必須維持 **price 遞增**（那個順序就是圖示配色順序）。竿與餌的 `rareMul` / `sizeBonus` / `kingMul` 也要順著插進前後鄰居之間，不要跳號。
-   - **`screen-shop.js › rodIcon()` 的兩張色表要跟 `FG.RODS` 一樣長**（目前 17 筆），它是 `cols[idx]` 直接取值，漏補就整個圖示消失（[11 §24](11-invariants-and-gotchas.md)）。
+   - **`screen-shop.js › rodIcon()` 的兩張色表要跟 `FG.RODS` 一樣長**（目前 20 筆），它是 `cols[idx]` 直接取值，漏補就整個圖示消失（[11 §24](11-invariants-and-gotchas.md)）。**竿子插在中間的話，配色也要插在同一格**，只往表尾補會讓後面所有竿子的圖示顏色整排位移。
    - 新裝備要在 `screen-shop.js › EQUIP_ART` 補圖、新裝飾要在 `screen-home.js › DECO_ART` 補圖**並且**在 `pixel.js › drawRoom()` 補繪製碼。
    - **裝飾如果是「靠動作定義的物件」**（水景、添水、冒汽的東西），`drawRoom()` 裡一定要讓它動——靜態剪影跟其他家具分不出來，見 [06 §家園房間](06-pixel-engine.md#四--家園房間)。
-10. **檢查窄螢幕的介面**。把視窗縮到 320px，看圖鑑的釣點切換列與釣點選單彈窗（[08 §會隨釣點數量成長的介面](08-ui-and-screens.md#會隨釣點數量成長的介面)）。`name` 建議 4 個字以內、`subtitle` 8 個字以內。12 個釣點時實測按鈕仍是 33px 高、無折行。
+10. **檢查窄螢幕的介面**。把視窗縮到 320px，看圖鑑的釣點切換列與釣點選單彈窗（[08 §會隨釣點數量成長的介面](08-ui-and-screens.md#會隨釣點數量成長的介面)）。`name` 建議 4 個字以內、`subtitle` 8 個字以內。15 個釣點時實測按鈕仍是 33px 高、無折行。
 11. **檢查商店三個分頁每一列都有圖示**（一行 console 就能掃）：
     ```js
     ['rod','bait','equip'].forEach(t => { FG.screenShop.tab = t; FG.screenShop.render();

@@ -1191,6 +1191,313 @@ window.FG = window.FG || {};
   ];
 
   /* ============================================================
+     地點十三：亂石急湍（castCost 900，插在澄澈方池與落霞峽灣之間）
+     配色規則：溪石的灰白 × 苔綠，稀有以上開始出現**虹彩**——
+     急流裡整天都是翻捲的白水，只有金屬般的反光才閃得出來，色素在這裡沒有用。
+     魚種的共同點是「**每一條都佔著一個位置**」：石頭背後的靜水、石頭的迎水面、
+     水舌正下方的坑、堆水的白線後面。懸瀑深潭講的是「要去哪」（往上溯），
+     這裡講的是「待在哪」——所以每一則 desc 都先說牠站在哪一格。
+     ============================================================ */
+  const RAPIDS_FISH = [
+    /* --- 雜物 --- */
+    { id: 'rp_driftwood', name: '磨圓的漂流木', rarity: 'junk', junkArt: 'driftwood', value: 11, minLen: 25, maxLen: 60, unit: 'cm', desc: '被水滾了不知道幾年，稜角全沒了。斷面的年輪還數得出來，二十七圈。' },
+    { id: 'rp_can',  name: '壓扁的鋁罐',     rarity: 'junk', junkArt: 'can',  value: 8, minLen: 5,  maxLen: 11, unit: 'cm', desc: '卡在兩塊石頭中間，被水壓成一片。' },
+    { id: 'rp_line', name: '纏成一團的釣線', rarity: 'junk', junkArt: 'weed', value: 6, minLen: 20, maxLen: 80, unit: 'cm', desc: '上一個人也在這裡下過竿，而且也纏在同一塊石頭上。' },
+
+    /* --- 普通 --- */
+    { id: 'rp_horsemouth', name: '馬口魚', rarity: 'common', shape: 'long', scale: .70, pattern: 'stripe', value: 239, minLen: 7, maxLen: 18,
+      colors: { body: '#9aa8a8', back: '#54615f', belly: '#f0f4f2', fin: '#778584', pattern: '#5f7a84' },
+      desc: '牠佔的是水舌正下方那個坑。餌一落水牠就從坑裡衝上來，衝到你來不及看清楚是什麼咬的。' },
+    { id: 'rp_goby', name: '吻鰕虎', rarity: 'common', shape: 'long', scale: .58, pattern: 'speck', value: 235, minLen: 4, maxLen: 11,
+      colors: { body: '#7f7460', back: '#463f31', belly: '#cfc8b0', fin: '#5f5849', pattern: '#37301f' },
+      desc: '牠佔的是石縫，整條塞在裡面只露一顆頭。同一條縫每年都有一隻，不見得是同一隻。' },
+    { id: 'rp_stoneloach', name: '纓口鰍', rarity: 'common', shape: 'long', scale: .60, pattern: 'net', value: 242, minLen: 4, maxLen: 10,
+      colors: { body: '#6f6a54', back: '#3c382a', belly: '#c8c2a4', fin: '#524d3d', pattern: '#8f8a6f' },
+      desc: '牠佔的是石頭的迎水面——水最急的那一面。所有魚都躲到石頭後面，只有牠反過來。' },
+    { id: 'rp_barb', name: '條紋鬚䰾', rarity: 'common', shape: 'normal', scale: .72, pattern: 'stripe', value: 237, minLen: 8, maxLen: 20,
+      colors: { body: '#a4a49a', back: '#5c5c53', belly: '#eff0ea', fin: '#82827a', pattern: '#3f4a48' },
+      desc: '牠佔的是堆水那條白線的後面。水撞上石頭會先堆高再翻過去，那道白線底下是整條溪最容易撿東西的地方。' },
+    { id: 'rp_bleak', name: '溪鰷', rarity: 'common', shape: 'long', scale: .64, pattern: 'none', value: 233, minLen: 5, maxLen: 14,
+      colors: { body: '#bcc8c8', back: '#71807f', belly: '#f8fafa', fin: '#98a4a4' },
+      desc: '牠佔的是兩道水舌中間的分水處。那裡水最淺、最不值錢，所以沒有人跟牠搶。' },
+    { id: 'rp_sculpin', name: '寬頭鮈', rarity: 'common', shape: 'round', scale: .66, pattern: 'speck', value: 244, minLen: 5, maxLen: 13,
+      colors: { body: '#5f5c50', back: '#33322c', belly: '#bfbcaa', fin: '#464438', pattern: '#8a8674' },
+      desc: '牠佔的是石頭底下，一整天都不出來。翻石頭的人常常先看到牠的影子跑掉，才知道底下有東西。' },
+
+    /* --- 優良 --- */
+    { id: 'rp_yamame', name: '山女鱒', rarity: 'good', shape: 'normal', scale: .86, pattern: 'spot', value: 478, minLen: 16, maxLen: 34,
+      colors: { body: '#9aa8ac', back: '#556065', belly: '#f2eee4', fin: '#77848a', pattern: '#3f4a52' },
+      desc: '牠佔的是主流邊那塊靜水——整段溪最好的位置，因為餌會自己送過來。牠會把別條趕走，趕不動的就一起待著。' },
+    { id: 'rp_iwana', name: '岩魚', rarity: 'good', shape: 'wide', scale: .88, pattern: 'spot', value: 482, minLen: 20, maxLen: 42,
+      colors: { body: '#77837f', back: '#3f4a48', belly: '#eae4d4', fin: '#5c6664', pattern: '#d8c8a0' },
+      desc: '牠佔的是最上游那一段。再往上就沒有魚了——不是水不好，是水太少，撐不起一條這麼大的。' },
+    { id: 'rp_ayu', name: '香魚', rarity: 'good', shape: 'long', scale: .84, pattern: 'none', value: 473, minLen: 14, maxLen: 30,
+      colors: { body: '#b4c0b8', back: '#697470', belly: '#f6f8f4', fin: '#8f9a94' },
+      desc: '牠佔的不是一個位置，是一塊石頭上的藻。牠繞著那塊石頭巡，別的魚靠近就用身體撞。' },
+    { id: 'rp_chub', name: '圓吻鮠', rarity: 'good', shape: 'wide', scale: .86, pattern: 'speck', value: 468, minLen: 18, maxLen: 40,
+      special: ['whisker'],
+      colors: { body: '#8f8874', back: '#4e4a3c', belly: '#e4dec8', fin: '#6d6857', pattern: '#38342a' },
+      desc: '牠佔的是深槽的底部。那裡水是慢的、暗的，牠靠四根鬚在石頭之間摸，不太需要眼睛。' },
+    { id: 'rp_spinedloach', name: '花鰍', rarity: 'good', shape: 'long', scale: .80, pattern: 'speck', value: 475, minLen: 10, maxLen: 22,
+      colors: { body: '#a89a7a', back: '#5f5544', belly: '#ece4cc', fin: '#847a5f', pattern: '#463d2a' },
+      desc: '牠佔的是沙礫的縫。整條鑽進去只露兩顆眼睛，你把手伸過去牠往更深的地方鑽。' },
+
+    /* --- 稀有（虹彩出現） --- */
+    { id: 'rp_rainbow', name: '虹彩鱲', rarity: 'rare', shape: 'normal', scale: 1.00, pattern: 'scale', value: 1910, minLen: 20, maxLen: 44,
+      colors: { body: '#8fa8b0', back: '#4a6068', belly: '#f4f0e4', fin: '#c86a8f', pattern: '#7fd8c0' },
+      desc: '側線那一道會隨著角度從青轉紫再轉金。在白水裡那是唯一看得見的東西——所以牠不躲，牠閃。' },
+    { id: 'rp_masu', name: '降海型櫻鱒', rarity: 'rare', shape: 'wide', scale: 1.02, pattern: 'spot', value: 1897, minLen: 30, maxLen: 68,
+      colors: { body: '#a8b4b8', back: '#5c686c', belly: '#f6f2e8', fin: '#84908f', pattern: '#c8506a' },
+      desc: '牠佔的是最上面那個潭，而且只佔一季。秋天一到牠就走了，走的時候整條溪空掉一半。' },
+    { id: 'rp_goldenbarb', name: '金線䰾', rarity: 'rare', shape: 'normal', scale: 1.00, pattern: 'stripe', value: 1916, minLen: 18, maxLen: 40,
+      colors: { body: '#c0b478', back: '#7a6f38', belly: '#f6f0c8', fin: '#9a8f50', pattern: '#e8d88f' },
+      desc: '身側一條金線從鰓一路拉到尾。水一急那條線會斷成一節一節，像有人在水裡打摩斯電碼。' },
+    { id: 'rp_torrentcat', name: '石紋鮡', rarity: 'rare', shape: 'long', scale: 1.02, pattern: 'net', value: 1891, minLen: 15, maxLen: 34,
+      special: ['whisker'],
+      colors: { body: '#6a6450', back: '#3a3629', belly: '#c8c2a8', fin: '#514c3c', pattern: '#a89a72' },
+      desc: '胸腹整片是一塊吸附板，貼在石頭上像一片苔。牠佔的位置是全溪流速最快的那一格，因為那裡沒有對手。' },
+
+    /* --- 史詩 --- */
+    { id: 'rp_ghostchar', name: '白斑幻岩魚', rarity: 'epic', shape: 'wide', scale: 1.08, pattern: 'spot', value: 7661, minLen: 45, maxLen: 95,
+      special: ['glow'],
+      colors: { body: '#8fa0a4', back: '#4a585c', belly: '#f4f8f8', fin: '#6c7c80', pattern: '#eef8ff', glow: '#cfeef8' },
+      desc: '身上的白斑在陰天會亮起來，亮到看起來像水面的泡沫掉進了水裡。牠佔的位置每天換，沒有人畫得出牠的地圖。' },
+    { id: 'rp_flowcutter', name: '切流長鰭鱲', rarity: 'epic', shape: 'long', scale: 1.06, pattern: 'stripe', value: 7594, minLen: 40, maxLen: 88,
+      special: ['glow'],
+      colors: { body: '#7f96a8', back: '#41535f', belly: '#e8f0f4', fin: '#a8dce8', pattern: '#cfa8e8', glow: '#a8d8ff' },
+      desc: '背鰭與胸鰭都拉得又長又薄，逆著水推的時候鰭緣會出現一圈細細的白線。那不是泡沫，是水被切開的痕跡。' },
+
+    /* --- 傳說 --- */
+    { id: 'rp_amber', name: '琥珀岩魚', rarity: 'legend', shape: 'wide', scale: 1.16, pattern: 'spot', value: 21022, minLen: 60, maxLen: 125,
+      special: ['glow'],
+      colors: { body: '#c8a45f', back: '#7f6428', belly: '#f8ecc8', fin: '#a0854a', pattern: '#f0dca0', glow: '#ffd98f' },
+      legend: '最上游那個潭一年四季曬不到太陽，兩邊的岩壁太高了。潭水終年在攝氏八度，清澈到看不出有多深。有人下去量過，繩子放到三十公尺還沒到底就不敢再放。牠在那裡，通體琥珀色，一動也不動地懸在中層。第一個看到牠的人說，那不像一條魚泡在水裡，像一塊琥珀裡剛好封了一條魚。',
+      desc: '懸在照不到太陽的那個潭的中層。' },
+    { id: 'rp_thread', name: '一線鱲', rarity: 'legend', shape: 'long', scale: 1.18, pattern: 'stripe', value: 20831, minLen: 35, maxLen: 75,
+      special: ['glow'],
+      colors: { body: '#a8b8c0', back: '#5a6a72', belly: '#f6fafa', fin: '#8496a0', pattern: '#e8d060', glow: '#e8f4ff' },
+      legend: '溪水最急的那一段，偶爾會出現一整排魚頭朝上游、彼此相隔剛好一個身長、一動也不動地頂著水流。牠們維持那個隊形可以維持一整個下午，中間沒有一條換位置。有人試著在上游丟東西打散牠們，散開之後三分鐘內牠們會回到原來的位置——包括原來的那個順序。',
+      desc: '一整排頂著水流不動，順序從來不換。' },
+
+    /* --- 魚王 --- */
+    { id: 'rp_king_fuseki', name: '石紋巨鰍「伏石」', rarity: 'king', shape: 'clinger', scale: 1.28, pattern: 'net', value: 81212, minLen: 110, maxLen: 200,
+      special: ['glow', 'sucker'], cyOffset: 1,
+      colors: { body: '#6a6450', back: '#332f22', belly: '#c4bda0', fin: '#4e4936', pattern: '#a89c74', glow: '#bfe08f', sucker: '#d8d0ac' },
+      legend: '溪谷中央那塊最大的石頭，二十年來每一份地圖上都有。前年有人潛下去綁測流儀，摸到石頭底部的時候發現那不是石頭——它有溫度，而且在呼吸。那個人上來以後沒有再下水，只留了一句話：石頭是真的石頭，牠只是趴在上面趴太久了，久到兩邊長在一起。從那之後測流儀還在原地，訊號一直沒斷。',
+      desc: '亂石急湍之王。牠已經在那塊石頭上趴了二十年。' }
+  ];
+
+  /* ============================================================
+     地點十四：琉璃珊瑚（castCost 1,400，插在落霞峽灣與宵櫻神域之間）
+     配色規則：**全遊戲飽和度最高的釣點**，桃紅、橙黃、青綠、藍紫在普通階就全上了。
+     所以這裡的稀有度對比**不能靠顏色**——沒有更鮮豔的顏色可以留給高階。
+     改用**輪廓**分階：稀有以上一律是體型或造型異常的（蓑鮋的鰭、魟的圓盤、
+     角鼻魚的角、蝠鱝的翼）。其他釣點是「灰底 + 高階跳色」，這裡是
+     「全部都在跳色，所以改用剪影分階」。這條是新的分階手法，別退回配色。
+     魚種的共同點：**每一則 desc 都在解釋那身顏色是幹什麼用的**。
+     ============================================================ */
+  const CORAL_FISH = [
+    /* --- 雜物 --- */
+    { id: 'cr_coralfrag', name: '白化的珊瑚枝', rarity: 'junk', junkArt: 'coralfrag', value: 17, minLen: 8,  maxLen: 22, unit: 'cm', desc: '折斷的鹿角枝，白得像骨頭。活著的時候它是紫色的。' },
+    { id: 'cr_can',       name: '褪色的飲料罐', rarity: 'junk', junkArt: 'can',       value: 12, minLen: 6,  maxLen: 12, unit: 'cm', desc: '上面長了一層薄薄的藻，正在慢慢變成礁的一部分。' },
+    { id: 'cr_net',       name: '纏在礁上的漁網', rarity: 'junk', junkArt: 'weed',    value: 14, minLen: 30, maxLen: 90, unit: 'cm', desc: '沒有人來收，它就一直在那裡捕。拉起來的時候裡面還有東西。' },
+
+    /* --- 普通 --- */
+    { id: 'cr_damsel', name: '藍雀鯛', rarity: 'common', shape: 'flat', scale: .62, pattern: 'none', value: 195, minLen: 4, maxLen: 10,
+      colors: { body: '#2f6ae0', back: '#16357f', belly: '#7fa8ff', fin: '#4a86f0' },
+      desc: '那身電光藍是給同種看的，不是給你看的——牠們用顏色的深淺互相報告誰佔了哪一叢珊瑚。' },
+    { id: 'cr_sergeant', name: '條紋豆娘魚', rarity: 'common', shape: 'flat', scale: .66, pattern: 'stripe', value: 192, minLen: 6, maxLen: 15,
+      colors: { body: '#e8d05f', back: '#a08a18', belly: '#f8f0c8', fin: '#c8b040', pattern: '#20242a' },
+      desc: '五條黑帶不是裝飾，是把身體的輪廓切開。掠食者看到的是五塊互不相連的東西，不是一條魚。' },
+    { id: 'cr_cardinal', name: '絲鰭天竺鯛', rarity: 'common', shape: 'flat', scale: .60, pattern: 'band', value: 190, minLen: 4, maxLen: 9,
+      colors: { body: '#d84a4a', back: '#8f2020', belly: '#f8c8b0', fin: '#e87a6a', pattern: '#2a1a20' },
+      desc: '紅色在水下十公尺就變成灰的——所以在礁洞裡牠等於隱形。牠只在洞裡待著，白天不出來。' },
+    { id: 'cr_wrassejuv', name: '幼隆頭魚', rarity: 'common', shape: 'long', scale: .64, pattern: 'stripe', value: 197, minLen: 5, maxLen: 13,
+      colors: { body: '#3fc0a8', back: '#1f7a70', belly: '#c8f4ea', fin: '#e8a83a', pattern: '#f0f4f0' },
+      desc: '身上那條白帶是招牌：掛著這個顏色的魚會幫別人清寄生蟲，所以大魚不吃牠，還會排隊。' },
+    { id: 'cr_gobyshrimp', name: '共生鰕虎', rarity: 'common', shape: 'long', scale: .58, pattern: 'spot', value: 188, minLen: 3, maxLen: 8,
+      colors: { body: '#f0e0c0', back: '#a89060', belly: '#fbf6ea', fin: '#e8c88f', pattern: '#e05f7a' },
+      desc: '牠身上那排桃紅點是給洞裡那隻蝦看的。蝦幾乎全盲，負責挖洞；牠負責站在洞口，看到危險就用尾巴敲一下。' },
+    { id: 'cr_surgeonjuv', name: '幼刺尾鯛', rarity: 'common', shape: 'flat', scale: .68, pattern: 'band2', value: 200, minLen: 5, maxLen: 12,
+      colors: { body: '#f0a83a', back: '#a86a10', belly: '#f8dca8', fin: '#2f7fc8', pattern: '#20242a' },
+      desc: '尾柄兩側各有一片會彈出來的刀。那片刀是藍的，藍得跟身體完全不搭——因為它本來就該被看見。' },
+
+    /* --- 優良 --- */
+    { id: 'cr_snapper', name: '藍紋笛鯛', rarity: 'good', shape: 'wide', scale: .88, pattern: 'stripe', value: 632, minLen: 18, maxLen: 40,
+      colors: { body: '#e8c44a', back: '#a08010', belly: '#f8f0c8', fin: '#d8a828', pattern: '#3f8fe0' },
+      desc: '成群的時候整片都是同一種黃配同一種藍。掠食者衝進來以後找不到單一目標——這叫「數量本身就是保護色」。' },
+    { id: 'cr_butterfly', name: '四線蝶魚', rarity: 'good', shape: 'flat', scale: .84, pattern: 'band', value: 624, minLen: 10, maxLen: 22,
+      colors: { body: '#f8e070', back: '#b09818', belly: '#fbf4c8', fin: '#e8c840', pattern: '#20242a' },
+      desc: '眼睛藏在一道黑帶裡，尾巴那邊卻畫了一顆假眼。你要咬的那一頭，牠會往反方向跑。' },
+    { id: 'cr_angel', name: '皇后神仙魚', rarity: 'good', shape: 'flat', scale: .88, pattern: 'band2', value: 637, minLen: 15, maxLen: 34,
+      colors: { body: '#2f6fd8', back: '#183a7f', belly: '#a8d8f8', fin: '#f0d060', pattern: '#f8e8a0' },
+      desc: '幼魚跟成魚的花色完全不一樣，不一樣到早年被當成兩個物種。換色的那幾個月牠會被兩邊都當成外人。' },
+    { id: 'cr_trigger', name: '花斑擬鱗魨', rarity: 'good', shape: 'round', scale: .86, pattern: 'net', value: 619, minLen: 14, maxLen: 32,
+      colors: { body: '#e8f0e8', back: '#98a498', belly: '#ffffff', fin: '#f0a03a', pattern: '#20242a' },
+      desc: '那身斑點是給你記住的：牠護巢的時候會追人，而且會追到你離開牠那一整塊沙地為止。' },
+    { id: 'cr_moorish', name: '鐮魚', rarity: 'good', shape: 'flat', scale: .86, pattern: 'stripe', value: 629, minLen: 12, maxLen: 26,
+      colors: { body: '#f8f4e0', back: '#a8a490', belly: '#ffffff', fin: '#f0c040', pattern: '#20242a' },
+      desc: '背鰭拉出一條長到不合理的白絲。那條絲在水裡飄的樣子跟礁上的一種海鞭一模一樣——這是模仿，不是裝飾。' },
+
+    /* --- 稀有（開始改用輪廓分階） --- */
+    { id: 'cr_lionfish', name: '翱翔蓑鮋', rarity: 'rare', shape: 'flat', scale: 1.02, pattern: 'stripe', value: 2630, minLen: 15, maxLen: 38,
+      special: ['spike'],
+      colors: { body: '#e8dcd0', back: '#9a8070', belly: '#fbf4ec', fin: '#c84a3a', pattern: '#7a2418' },
+      desc: '牠不躲也不快。那身斑馬紋加上十八根散開的鰭棘是一句話：我有毒，你自己看著辦。' },
+    { id: 'cr_ribbon', name: '藍帶裸胸鱔', rarity: 'rare', shape: 'long', scale: 1.06, pattern: 'none', value: 2612, minLen: 45, maxLen: 100,
+      special: ['jaw'],
+      colors: { body: '#2f6fe0', back: '#16357f', belly: '#8fb8f8', fin: '#f0d840', tooth: '#f8f4e8' },
+      desc: '牠一生要換兩次顏色，也換兩次性別：黑色的是幼魚，藍色的是雄魚，全黃的是雌魚。顏色在這裡不是身分，是年紀。' },
+    { id: 'cr_bluespotray', name: '藍點魟', rarity: 'rare', shape: 'ray', scale: 1.04, pattern: 'spot', value: 2602, minLen: 25, maxLen: 60,
+      colors: { body: '#c8a850', back: '#8a6f20', belly: '#f4ecd0', fin: '#a88f38', pattern: '#3fa8f0' },
+      desc: '背上那些藍點在沙裡幾乎看不見，只有牠掀起來游走的那一秒會全部亮出來。那是警告尾刺的最後通牒。' },
+    { id: 'cr_unicorn', name: '獨角鼻魚', rarity: 'rare', shape: 'wide', scale: 1.02, pattern: 'none', value: 2639, minLen: 30, maxLen: 62,
+      special: ['horn'],
+      colors: { body: '#5f8f9a', back: '#2f545c', belly: '#d8e8ea', fin: '#3fc0d8', hornColor: '#a8c8cc' },
+      desc: '額頭那根角沒有任何用途——不打架、不挖沙、不防禦。牠是唯一一種身上有一個東西純粹只是長在那裡的礁魚。' },
+
+    /* --- 史詩 --- */
+    { id: 'cr_mantajuv', name: '幼蝠鱝', rarity: 'epic', shape: 'ray', scale: 1.12, pattern: 'none', value: 10263, minLen: 70, maxLen: 160,
+      special: ['glow'],
+      colors: { body: '#2a3a4a', back: '#141d26', belly: '#f0f4f8', fin: '#3f5666', glow: '#7fb8e0' },
+      desc: '背面黑、腹面白，從上面看牠是海底，從下面看牠是天光。牠身上唯一的花色是腹面那組斑點——那組斑點每一隻都不一樣，等於名字。' },
+    { id: 'cr_seadragon', name: '葉形海龍', rarity: 'epic', shape: 'long', scale: 1.06, pattern: 'net', value: 10059, minLen: 20, maxLen: 45,
+      special: ['glow'],
+      colors: { body: '#e8b04a', back: '#a07a10', belly: '#f8e0a8', fin: '#5fc09a', pattern: '#3f7a5a', glow: '#ffd88f' },
+      desc: '全身長滿葉狀的贅生物，那些葉子不會動也不划水，純粹是為了讓輪廓不成立。牠靠一片小到看不見的背鰭前進，一小時走十公尺。' },
+
+    /* --- 傳說 --- */
+    { id: 'cr_prism', name: '稜鏡鸚鯛', rarity: 'legend', shape: 'flat', scale: 1.16, pattern: 'scale', value: 28676, minLen: 35, maxLen: 78,
+      special: ['glow'],
+      colors: { body: '#3fc0a8', back: '#1f6f68', belly: '#d8f8ee', fin: '#e85f9a', pattern: '#f0d84a', glow: '#8ff0d8' },
+      legend: '白天牠是這片礁上最鮮豔的東西，一條魚身上數得出七種顏色。天一黑牠會找一個縫躲進去，從嘴裡吐出一層黏膜把自己整個包起來——那層膜會蓋掉氣味，讓夜行的掠食者聞不到。潛水的人在夜裡照到過那個繭：裡面那條魚是灰白的，七種顏色一種都不剩。天亮牠咬破膜出來，顏色又全部回來了。',
+      desc: '天一黑，牠會把顏色關掉。' },
+    { id: 'cr_shadowray', name: '暗礁蝠鱝', rarity: 'legend', shape: 'ray', scale: 1.22, pattern: 'none', value: 28108, minLen: 180, maxLen: 400,
+      special: ['glow'],
+      colors: { body: '#1f2a36', back: '#0d141c', belly: '#e8eef2', fin: '#33465a', glow: '#5f9ad8' },
+      legend: '礁湖的水清到能看見八公尺深的沙。所以牠來的時候不是先看到牠——是先看到沙上那片影子，一片超過三公尺寬、邊緣柔軟的影子，從你腳底下滑過去。抬頭要花一秒，那一秒牠已經過去了。老潛水員說判斷牠有多大最準的方法是看影子，因為在那麼清的水裡，你永遠會低估牠的距離。',
+      desc: '你會先看到牠的影子。' },
+
+    /* --- 魚王 --- */
+    { id: 'cr_king_ruri', name: '虹鱗蘇眉「琉璃」', rarity: 'king', shape: 'wrasse', scale: 1.32, pattern: 'scale', value: 112140, minLen: 140, maxLen: 250,
+      special: ['glow', 'hump'], cyOffset: 1,
+      colors: { body: '#2f9a8f', back: '#155a58', belly: '#c8f0e4', fin: '#3fc0b0', pattern: '#e8d04a', glow: '#7ff0d8', hump: '#7fe8d0' },
+      legend: '蘇眉活得很久，久到牠們會認人。這一條額頭上的隆起已經大到擋住一部分視線，所以牠看東西的時候要側過頭來，一次只用一隻眼睛。礁區的潛導都認得牠，也都知道規矩：不要餵，不要摸，不要擋在牠跟那個洞中間。牠每天下午會回到礁牆上同一個洞，那個洞比牠現在的身體小——牠已經進不去很多年了，但還是每天回去看一次。',
+      desc: '琉璃珊瑚之王。牠每天回去看那個牠已經進不去的洞。' }
+  ];
+
+  /* ============================================================
+     地點十五：鐘乳暗穴（castCost 96,000，接在黃沙冥河之後，目前的最後一站）
+     配色規則：全部壓在**乳白與半透明的粉肉色**，唯一的顏色是鰓部血管透出來的紅。
+     ★ **稀有以上不給 glow——這是全遊戲唯一這樣做的釣點。** 深淵海溝是
+     「沒有光，所以自己發光」；這裡是「沒有光，所以放棄了光」。白色的魚在
+     全黑的洞裡本來就是最高對比，不需要光暈。魚王例外，因為 glow 是
+     「這條是魚王」的統一訊號（見 07 §十五位魚王必須長得不一樣）。
+     魚種的共同點：**每一條都失去了某樣東西**——眼睛、色素、鰾、鱗片、晝夜節律。
+     ============================================================ */
+  const CAVERN_FISH = [
+    /* --- 雜物 --- */
+    { id: 'cv_dripstone', name: '斷落的鐘乳石', rarity: 'junk', junkArt: 'dripstone', value: 1180, minLen: 12, maxLen: 40, unit: 'cm', desc: '斷面上一圈一圈的層理，一圈大約一百年。這一根數得出六十幾圈。' },
+    { id: 'cv_can',   name: '探洞隊的空罐',   rarity: 'junk', junkArt: 'can',   value: 860, minLen: 6,  maxLen: 12, unit: 'cm', desc: '罐身還印得出隊名跟年份。那支隊伍有回去，紀錄裡寫著「水道以下未探」。' },
+    { id: 'cv_ladder', name: '垂下來的舊繩梯', rarity: 'junk', junkArt: 'weed', value: 940, minLen: 50, maxLen: 150, unit: 'cm', desc: '上端還綁在岩釘上，下端泡在水裡。中間斷了三格。' },
+
+    /* --- 普通 --- */
+    { id: 'cv_blindloach', name: '無眼平鰍', rarity: 'common', shape: 'long', scale: .68, pattern: 'none', value: 7236, minLen: 5, maxLen: 13,
+      special: ['blind'],
+      colors: { body: '#f0e0dc', back: '#c8b0aa', belly: '#fbf4f2', fin: '#e0cac4' },
+      desc: '牠失去的是眼睛。眼窩還在，上面長了一層皮，摸得出來底下是空的。' },
+    { id: 'cv_whitegoby', name: '白化吻鰕虎', rarity: 'common', shape: 'long', scale: .62, pattern: 'none', value: 7160, minLen: 4, maxLen: 10,
+      special: ['blind'],
+      colors: { body: '#f4e8e4', back: '#d0bab6', belly: '#fefaf8', fin: '#e8d6d2' },
+      desc: '牠失去的是色素。洞外的同種是土褐色的，這裡的每一條都是這個顏色，一條例外都沒有。' },
+    { id: 'cv_cavecarp', name: '盲鯉', rarity: 'common', shape: 'normal', scale: .74, pattern: 'none', value: 7290, minLen: 8, maxLen: 20,
+      special: ['blind'],
+      colors: { body: '#f0dcd4', back: '#c8aaa0', belly: '#fbf2ee', fin: '#dfc4bc' },
+      desc: '牠失去的是晝夜。洞裡沒有天亮這件事，所以牠一天二十四小時平均地吃、平均地睡，沒有任何一段是「白天」。' },
+    { id: 'cv_translucent', name: '透體鰷', rarity: 'common', shape: 'long', scale: .66, pattern: 'none', value: 7204, minLen: 4, maxLen: 11,
+      special: ['blind'],
+      colors: { body: '#f8eeea', back: '#dcc6c2', belly: '#ffffff', fin: '#eeddd8', pattern: '#e0a8a0' },
+      desc: '牠失去的是不透明。撈起來對著頭燈看，脊椎一節一節數得出來，心臟在哪裡也看得見。' },
+    { id: 'cv_flatfin', name: '扁鰭穴魚', rarity: 'common', shape: 'flat', scale: .70, pattern: 'none', value: 7318, minLen: 5, maxLen: 12,
+      special: ['blind'],
+      colors: { body: '#f2e2e0', back: '#cbb2b0', belly: '#fdf6f5', fin: '#e4d0ce' },
+      desc: '牠失去的是速度。洞裡沒有東西追牠，所以肌肉退化成剛好夠移動的程度，游起來像在漂。' },
+    { id: 'cv_mudsucker', name: '泥食盲鮈', rarity: 'common', shape: 'round', scale: .68, pattern: 'none', value: 7146, minLen: 5, maxLen: 13,
+      special: ['blind'],
+      colors: { body: '#eee0d8', back: '#c6aca4', belly: '#faf2ee', fin: '#dcc8c0' },
+      desc: '牠失去的是選擇。洞裡的食物只有一種——從上面滴下來的東西沉在底泥裡，牠就吃那個。' },
+
+    /* --- 優良 --- */
+    { id: 'cv_barbel', name: '長鬚盲鮠', rarity: 'good', shape: 'long', scale: .88, pattern: 'none', value: 27979, minLen: 14, maxLen: 32,
+      special: ['blind', 'whisker'],
+      colors: { body: '#f0dcd6', back: '#c6aaa4', belly: '#fbf4f1', fin: '#e0c8c2' },
+      desc: '牠失去的是眼睛，換來的是六根長到不合比例的鬚。牠用鬚在水裡畫出前方三十公分的形狀，比看的還準。' },
+    { id: 'cv_paleeel', name: '乳白穴鰻', rarity: 'good', shape: 'long', scale: .92, pattern: 'none', value: 27700, minLen: 30, maxLen: 70,
+      special: ['blind'],
+      colors: { body: '#f6ece8', back: '#d4bcb8', belly: '#ffffff', fin: '#e8d8d4' },
+      desc: '牠失去的是回頭的路。牠是從外面游進來的，進來以後在黑暗裡待了太久，現在游到洞口那一段光裡牠會立刻退回去。' },
+    { id: 'cv_swimless', name: '無鰾底棲魚', rarity: 'good', shape: 'round', scale: .86, pattern: 'none', value: 28118, minLen: 10, maxLen: 24,
+      special: ['blind'],
+      colors: { body: '#ecdcd6', back: '#c2a8a2', belly: '#f8f0ec', fin: '#dac6c0' },
+      desc: '牠失去的是鰾。沒有鰾就浮不起來，所以牠一輩子貼著底，連睡覺都是趴著。' },
+    { id: 'cv_needle', name: '針嘴盲鱂', rarity: 'good', shape: 'long', scale: .82, pattern: 'none', value: 27840, minLen: 8, maxLen: 18,
+      special: ['blind'],
+      colors: { body: '#f4e6e0', back: '#d0b6b0', belly: '#fdf7f4', fin: '#e6d2cc' },
+      desc: '牠失去的是咬合力。嘴退化成一根細管，只能吸——吸那些小到不需要咬的東西。' },
+    { id: 'cv_platefin', name: '盤鰭穴鰈', rarity: 'good', shape: 'flat', scale: .88, pattern: 'none', value: 27561, minLen: 12, maxLen: 28,
+      special: ['blind'],
+      colors: { body: '#f2e4de', back: '#cab0aa', belly: '#fcf6f3', fin: '#e2d0ca' },
+      desc: '牠失去的是方向感——或者說，牠不需要了。洞裡沒有上下的線索，牠側著游、翻著游都一樣，沒有哪一面是正面。' },
+
+    /* --- 稀有 --- */
+    { id: 'cv_redgill', name: '赤鰓盲鰍', rarity: 'rare', shape: 'long', scale: 1.00, pattern: 'none', value: 121443, minLen: 12, maxLen: 28,
+      special: ['blind', 'gills'],
+      colors: { body: '#f6e8e4', back: '#d2bab6', belly: '#fffbfa', fin: '#e8d6d2', gill: '#e0505f' },
+      desc: '整條魚身上唯一的顏色是頭後那三叢外鰓——那不是色素，是血。洞水的溶氧低到牠得把鰓翻到外面來。' },
+    { id: 'cv_jadecarp', name: '白玉盲鯉', rarity: 'rare', shape: 'normal', scale: 1.02, pattern: 'none', value: 120356, minLen: 22, maxLen: 50,
+      special: ['blind'],
+      colors: { body: '#f8f0ea', back: '#d8c8c0', belly: '#ffffff', fin: '#ebdfd8' },
+      desc: '離水以後牠的身體會在幾分鐘內失去光澤，變成一種霧霧的白。所以帶出洞的標本沒有一件像本人。' },
+    { id: 'cv_longfin', name: '長鰭穴鮠', rarity: 'rare', shape: 'long', scale: 1.04, pattern: 'none', value: 122060, minLen: 25, maxLen: 58,
+      special: ['blind', 'whisker'],
+      colors: { body: '#f2e2da', back: '#cbb0a8', belly: '#fdf6f2', fin: '#e4cec6' },
+      desc: '鰭緣拉得又長又薄，薄到透光。牠不用鰭划水，牠用鰭感覺水——水一動牠就知道有多大的東西在多遠的地方。' },
+    { id: 'cv_slowgrow', name: '百歲盲鱒', rarity: 'rare', shape: 'wide', scale: 1.02, pattern: 'none', value: 119702, minLen: 28, maxLen: 62,
+      special: ['blind'],
+      colors: { body: '#f0e4dc', back: '#c8b2aa', belly: '#fbf6f2', fin: '#e0d0c8' },
+      desc: '洞裡的東西少，所以牠長得極慢——這一條的耳石切開來數，五十三年。牠現在的長度是外面同種三年的長度。' },
+
+    /* --- 史詩 --- */
+    { id: 'cv_armored', name: '鎧甲盲鱘', rarity: 'epic', shape: 'wide', scale: 1.10, pattern: 'net', value: 481203, minLen: 60, maxLen: 130,
+      special: ['blind', 'spike'],
+      colors: { body: '#eee2d8', back: '#c4ada2', belly: '#faf4ee', fin: '#dfcdc4', pattern: '#d8c0b4' },
+      desc: '背上五列骨板，硬得像石灰華。洞裡沒有天敵，所以那身鎧甲是從外面帶進來的——牠的祖先在外面需要它，牠只是還沒把它丟掉。' },
+    { id: 'cv_dripeater', name: '食滴白鰻', rarity: 'epic', shape: 'long', scale: 1.08, pattern: 'none', value: 469197, minLen: 70, maxLen: 150,
+      special: ['blind'],
+      colors: { body: '#f8f2ee', back: '#d8c8c2', belly: '#ffffff', fin: '#eae0da' },
+      desc: '牠整天待在鐘乳石正下方，等水滴。每一滴會帶下來一點洞頂的有機物，一天大概兩百滴。牠算得出下一滴什麼時候到。' },
+
+    /* --- 傳說 --- */
+    { id: 'cv_silentfin', name: '無聲白鰭', rarity: 'legend', shape: 'flat', scale: 1.18, pattern: 'none', value: 1318656, minLen: 45, maxLen: 100,
+      special: ['blind'],
+      colors: { body: '#fbf6f4', back: '#dccecb', belly: '#ffffff', fin: '#f0e6e2' },
+      legend: '洞裡沒有風也沒有浪，所以水面靜到可以當鏡子用，任何東西下水都會被聽見。牠是唯一一種下水不出聲的東西。潛過那一段的人說，你會先感覺到水壓變了，然後才發現身邊多了一條很大的白色的魚，而牠已經在那裡跟著你走了一段時間。牠不靠近也不離開，維持一個固定的距離，直到你游進那道從洞口漏進來的光裡為止。',
+      desc: '牠會跟著你走一段，直到你進到光裡。' },
+    { id: 'cv_relict', name: '遺留種盲鰻', rarity: 'legend', shape: 'long', scale: 1.20, pattern: 'none', value: 1292544, minLen: 90, maxLen: 190,
+      special: ['blind', 'gills'],
+      colors: { body: '#f4ece6', back: '#d0c0b8', belly: '#fffcfa', fin: '#e6dad2', gill: '#d8606a' },
+      legend: '這條水道以前是通海的。海退了以後，出口被自己的沉積物封死，裡面的東西就留在原地——那大約是二十萬年前。牠的近親全部住在深海，而牠住在一個海拔四百公尺的山肚子裡。牠的身體構造顯示牠仍然能適應鹹水，這件事沒有任何用途，因為離牠最近的海在七十公里外，中間隔著一整座山。',
+      desc: '牠還能適應鹹水，但海在七十公里外。' },
+
+    /* --- 魚王 --- */
+    { id: 'cv_king_chosoku', name: '盲穴白龍「長息」', rarity: 'king', shape: 'olm', scale: 1.26, pattern: 'none', value: 4606080, minLen: 200, maxLen: 380,
+      special: ['glow', 'blind', 'gills', 'limbs'], cyOffset: 1,
+      colors: { body: '#f8f0ec', back: '#d8c6c0', belly: '#ffffff', fin: '#ebe0da', glow: '#cfe8f0', gill: '#e0505f', limb: '#e8d8d2' },
+      legend: '洞螈可以十年不吃東西，可以活一百年，可以在同一個地方待上七年不動。這一條的體長是紀錄裡最大一隻的十倍，而牠的呼吸週期是四十分鐘一次——探洞隊的聲納在那條水道底下錄到過那個週期，穩定得像機器。牠們把錄音帶回去比對，發現三十年前另一支隊伍錄過同一個週期，誤差在秒以內。也就是說這三十年裡，牠一次都沒有加快，也一次都沒有離開。',
+      desc: '鐘乳暗穴之王。四十分鐘呼吸一次，三十年沒有變過。' }
+  ];
+
+  /* ============================================================
      地點列表
      ============================================================ */
   FG.LOCATIONS = [
@@ -1249,6 +1556,35 @@ window.FG = window.FG || {};
       fish: POND_FISH
     },
     {
+      id: 'rapids',
+      name: '亂石急湍',
+      subtitle: '溪流釣場 · 湍瀨',
+      desc: '溪水從上面一階一階摔下來，撞在滿床的卵石上再散開。水很淺、很急、很冷，含氧高到魚可以整天頂著流不休息。這裡沒有「一片水域」，只有一格一格的位置，每一格都已經有主人了。',
+      seed: 30918,
+      castCost: 900,
+      unlock: { free: true },
+      scene: {
+        terrain: 'rapids',
+        // 地平線壓高（0.28）：這個釣點的招牌全在水面——斜向流線、石頭尾流、前景巨石
+        horizon: 0.28,
+        // 山谷裡的晴天散射光，偏冷。天空窄，不需要戲劇性
+        sky: ['#5f7d94', '#93b0be', '#c4d8dc'],
+        hill: '#5f6f70',
+        // 三層卵石堆由遠而近由亮而暗
+        farTree: '#8f9490', midTree: '#6f7570', nearTree: '#4a504c',
+        // 前景巨石：畫在最下方把水面框住，是這個地形獨有的一層
+        fore: '#2e3330',
+        moss: '#54703f', alder: '#4a6a44',
+        cobble: '#a8ada6', cobbleLit: '#d0d4cc',
+        foam: '#f4fafa', flow: '#cfe8ec',
+        shore: '#3a403c',
+        waterTop: '#5f8f96', waterBot: '#a8d0d0', waterDeep: '#3f6f78',
+        highlight: '#fbffff', highlight2: '#cfe8ec',
+        boat: '#5f4a30', boatRim: '#7f6642', boatDark: '#3b2e1e'
+      },
+      fish: RAPIDS_FISH
+    },
+    {
       id: 'sunset_fjord',
       name: '落霞峽灣',
       subtitle: '進階釣場 · 鹹水',
@@ -1275,6 +1611,34 @@ window.FG = window.FG || {};
         boat: '#4a3348', boatRim: '#6b4a5e', boatDark: '#2e2030'
       },
       fish: FJORD_FISH
+    },
+    {
+      id: 'coral_reef',
+      name: '琉璃珊瑚',
+      subtitle: '熱帶釣場 · 淺礁',
+      desc: '水清到看不出有水。船底下八公尺是一整片活的礁——分枝的、球形的、桌面一樣攤開的，全部都在自己的顏色裡。礁與礁之間是一個一個黑掉的洞口，你不會知道哪一個裡面有東西。',
+      seed: 24507,
+      castCost: 1400,
+      unlock: { free: true },
+      scene: {
+        terrain: 'reef',
+        // 地平線壓到 0.24：陸地只有一條環礁沙洲，畫面要留給水下的礁體
+        horizon: 0.24,
+        // 熱帶正午：全遊戲最亮最藍的天空
+        sky: ['#2f7fc8', '#5fa8dc', '#a8d8ea', '#e0f0f0'],
+        hill: '#a8b4a8',
+        farTree: '#e8dcc0', midTree: '#cfc4a4', nearTree: '#5f8a5f',
+        surf: '#ffffff',
+        // 珊瑚色盤：這六個色是這個釣點的身分，**不要往灰的方向調**
+        coral: ['#e85f8f', '#f0913a', '#8f5fd8', '#3fc0a8', '#4a7fe0', '#e8d04a'],
+        sand: '#eae0c4', cave: '#141d24',
+        shore: '#8f8f70',
+        // 礁湖的水比外洋淺得多，所以 waterTop（遠＝外洋）刻意壓深
+        waterTop: '#1f6f9a', waterBot: '#7fdcd0', waterDeep: '#14567f',
+        highlight: '#ffffff', highlight2: '#bff0ea',
+        boat: '#7f5f38', boatRim: '#a07a48', boatDark: '#4f3a22'
+      },
+      fish: CORAL_FISH
     },
     {
       id: 'sakura_shrine',
@@ -1491,6 +1855,34 @@ window.FG = window.FG || {};
         boat: '#5a4028', boatRim: '#7f5c38', boatDark: '#38281a'
       },
       fish: DUAT_FISH
+    },
+    {
+      id: 'cavern',
+      name: '鐘乳暗穴',
+      subtitle: '洞穴釣場 · 伏流',
+      desc: '一條窄到只容一船通過的水道，往山肚子裡走。頭頂垂著鐘乳石，兩側是往水面下延伸的岩壁。回頭看得到洞口那一小塊亮，往前看不到任何東西。這裡沒有天空。',
+      seed: 70414,
+      castCost: 96000,
+      unlock: { free: true },
+      scene: {
+        terrain: 'cavern',
+        // 地平線壓到 0.52：這是全遊戲最低的一條，因為洞頂與鐘乳石要佔掉一半以上
+        horizon: 0.52,
+        // 「天空」在這裡是洞口漏進來的那一點光。above() 會把它幾乎整片蓋掉，
+        // 只留中央遠處一個拱形缺口——所以這條漸層只有缺口那一塊會被看見
+        sky: ['#0a1216', '#16323a', '#4a8f96', '#a8dcdc'],
+        hill: '#141c20',
+        // 三層岩由遠而近由亮而暗（空氣透視在洞裡一樣成立，靠的是洞口的散射光）
+        farTree: '#2e3a40', midTree: '#1f292e', nearTree: '#141b1f',
+        stalac: '#5f5a52', stalacLit: '#8f877a', stalagmite: '#4a463e',
+        flowstone: '#6f6252',
+        glowmoss: '#3fa88f',
+        shore: '#0d1215',
+        waterTop: '#0e2126', waterBot: '#2a5a5e', waterDeep: '#061114',
+        highlight: '#a8f0f0', highlight2: '#4f9a9a',
+        boat: '#3a3228', boatRim: '#5a4e3c', boatDark: '#241e18'
+      },
+      fish: CAVERN_FISH
     }
   ];
 
@@ -1519,7 +1911,9 @@ window.FG = window.FG || {};
   FG.RODS = [
     { id: 'rod_bamboo', name: '竹製釣竿',   price: 0,      rareMul: 1.00, sizeBonus: 0,    kingMul: 1,    loc: 'mist_lake',     desc: '祖父留下的舊竿子，堪用。' },
     { id: 'rod_reed',   name: '蘆葦手竿',   price: 900,    rareMul: 1.07, sizeBonus: 0.02, kingMul: 1,    loc: 'mist_lake',     desc: '晨霧湖岸邊割來的，輕到感覺不出手上有東西。' },
+    { id: 'rod_rapids', name: '急瀨振出竿', price: 1200,   rareMul: 1.09, sizeBonus: 0.028,kingMul: 1,    loc: 'rapids',        desc: '節與節之間收得進去，走到下一塊石頭之前先縮起來。溪谷裡沒有一段路是空的。' },
     { id: 'rod_tenkara',name: '池畔短節竿', price: 1600,   rareMul: 1.11, sizeBonus: 0.035,kingMul: 1,    loc: 'garden_pond',   desc: '沒有捲線器，線就綁在竿尖。池子那麼小，本來也不需要放線。' },
+    { id: 'rod_reefcast',name: '礁池輕拋竿',price: 2000,   rareMul: 1.13, sizeBonus: 0.042,kingMul: 1,    loc: 'coral_reef',    desc: '極軟極輕，餌落水幾乎沒有聲音。礁上的魚看得見你，重一點牠們就全散了。' },
     { id: 'rod_glass',  name: '玻纖磯竿',   price: 2400,   rareMul: 1.15, sizeBonus: 0.05, kingMul: 1,    desc: '韌性不錯，稀有魚上鉤率 +15%。' },
     { id: 'rod_tide',   name: '趕海長竿',   price: 3400,   rareMul: 1.19, sizeBonus: 0.065,kingMul: 1,    loc: 'tide_flat',     desc: '特別長，讓你站在乾的地方就搆得到水窪。' },
     { id: 'rod_drift',  name: '浮木海竿',   price: 4800,   rareMul: 1.24, sizeBonus: 0.08, kingMul: 1,    loc: 'sunset_fjord',  desc: '峽灣漂上岸的木料削的。泡過鹹水反而更韌。' },
@@ -1533,7 +1927,8 @@ window.FG = window.FG || {};
     { id: 'rod_winch',  name: '深海絞盤竿', price: 110000, rareMul: 1.70, sizeBonus: 0.30, kingMul: 1.7,  loc: 'abyss',         desc: '不是用來甩的，是用來把東西從很深的地方搖上來的。' },
     { id: 'rod_dragon', name: '龍骨釣竿',   price: 180000, rareMul: 1.80, sizeBonus: 0.35, kingMul: 2.0,  desc: '取自某條不該被釣起的東西的脊骨。' },
     { id: 'rod_ash',    name: '世界樹枝竿', price: 320000, rareMul: 1.83, sizeBonus: 0.36, kingMul: 2.02, loc: 'world_root',    desc: '一根掉下來的枝。它到現在還在長。' },
-    { id: 'rod_sceptre',name: '黃金權杖竿', price: 780000, rareMul: 1.86, sizeBonus: 0.36, kingMul: 2.05, loc: 'duat',          desc: '陪葬品。原本的用途不是釣魚，但它顯然不介意。' }
+    { id: 'rod_sceptre',name: '黃金權杖竿', price: 780000, rareMul: 1.86, sizeBonus: 0.36, kingMul: 2.05, loc: 'duat',          desc: '陪葬品。原本的用途不是釣魚，但它顯然不介意。' },
+    { id: 'rod_blind',  name: '無光探竿',   price: 1500000,rareMul: 1.88, sizeBonus: 0.37, kingMul: 2.07, loc: 'cavern',        desc: '竿身通體無漆，因為在洞裡看不看得見它沒有差別。全部的資訊都從手上進來。' }
   ];
 
   /* ------------------------------------------------------------
@@ -1545,7 +1940,9 @@ window.FG = window.FG || {};
     { id: 'bait_bread', name: '麵包屑',     price: 25,   pack: 10, rareMul: 1.00, junkMul: 1.00, valueMul: 1.00, kingMul: 1,    desc: '便宜、堪用、什麼都釣得到一點。' },
     { id: 'bait_moss',  name: '湖苔團',     price: 45,   pack: 10, rareMul: 1.09, junkMul: 0.85, valueMul: 1.00, kingMul: 1,    loc: 'mist_lake',     desc: '從湖底石頭上刮下來搓成團。晨霧湖的魚從小吃這個。' },
     { id: 'bait_pellet',name: '沉底飼料錠', price: 55,   pack: 10, rareMul: 1.13, junkMul: 0.78, valueMul: 1.00, kingMul: 1,    loc: 'garden_pond',   desc: '池子裡的魚從小吃這個長大。牠們認得袋子的聲音。' },
+    { id: 'bait_mayfly',name: '蜉蝣若蟲',   price: 62,   pack: 10, rareMul: 1.155,junkMul: 0.74, valueMul: 1.00, kingMul: 1,    loc: 'rapids',        desc: '翻開石頭底面就有一整片。牠們是急流裡食物鏈的第一格，所以每一條魚都認得。' },
     { id: 'bait_worm',  name: '紅蚯蚓',     price: 70,   pack: 10, rareMul: 1.18, junkMul: 0.70, valueMul: 1.00, kingMul: 1,    desc: '萬用活餌，雜物明顯變少。' },
+    { id: 'bait_urchin',name: '海膽肉',     price: 82,   pack: 10, rareMul: 1.215,junkMul: 0.66, valueMul: 1.01, kingMul: 1.02, loc: 'coral_reef',    desc: '敲開殼把裡面挖出來。味道在清水裡散得很慢，但礁洞裡的東西一聞到就會探頭。' },
     { id: 'bait_crab',  name: '碎潮蟹',     price: 95,   pack: 10, rareMul: 1.25, junkMul: 0.62, valueMul: 1.02, kingMul: 1.05, loc: 'tide_flat',     desc: '退潮時翻石頭抓的，直接連殼敲碎。腥味在水窪裡散得特別快。' },
     { id: 'bait_squid', name: '花枝切段',   price: 130,  pack: 10, rareMul: 1.32, junkMul: 0.55, valueMul: 1.05, kingMul: 1.1,  loc: 'sunset_fjord',  desc: '切得越不整齊越有效，沒有人知道為什麼。' },
     { id: 'bait_caddis',name: '石蠶蛹',     price: 165,  pack: 10, rareMul: 1.39, junkMul: 0.47, valueMul: 1.07, kingMul: 1.15, loc: 'fall_pool',     desc: '從瀑布下的石頭底面剝下來的。逆流上來的魚一輩子只認得這個味道。' },
@@ -1558,7 +1955,8 @@ window.FG = window.FG || {};
     { id: 'bait_king',  name: '魚王秘餌',   price: 900,  pack: 5,  rareMul: 1.90, junkMul: 0.00, valueMul: 1.20, kingMul: 3.0,  desc: '配方不明。魚王等級的傢伙聞到就會失去理智。' },
     { id: 'bait_glow',  name: '深海發光蟲', price: 1300, pack: 5,  rareMul: 1.92, junkMul: 0.00, valueMul: 1.21, kingMul: 3.05, loc: 'abyss',         desc: '拿上船之後還會亮三天。三天後就只是一團灰。' },
     { id: 'bait_mead',  name: '蜜酒浸餌',   price: 1800, pack: 5,  rareMul: 1.93, junkMul: 0.00, valueMul: 1.21, kingMul: 3.05, loc: 'world_root',    desc: '泡過那桶酒的餌。連不該上鉤的東西都會來看一眼。' },
-    { id: 'bait_scarab',name: '聖甲蟲餌',   price: 2600, pack: 5,  rareMul: 1.94, junkMul: 0.00, valueMul: 1.22, kingMul: 3.1,  loc: 'duat',          desc: '從石棺裡拿出來的。它在你手上動了一下。' }
+    { id: 'bait_scarab',name: '聖甲蟲餌',   price: 2600, pack: 5,  rareMul: 1.94, junkMul: 0.00, valueMul: 1.22, kingMul: 3.1,  loc: 'duat',          desc: '從石棺裡拿出來的。它在你手上動了一下。' },
+    { id: 'bait_troglo',name: '洞穴盲蝦',   price: 3600, pack: 5,  rareMul: 1.95, junkMul: 0.00, valueMul: 1.22, kingMul: 3.12, loc: 'cavern',        desc: '整隻是透明的，撈起來只看得到腸子那一條線。牠也沒有眼睛——洞裡的東西一律沒有。' }
   ];
 
   /* ------------------------------------------------------------
@@ -1590,7 +1988,10 @@ window.FG = window.FG || {};
     { id: 'eq_raft',     name: '溫泉浮台',   price: 95000,  effect: { loc: 'caldera',       costMul: 0.91 },    desc: '固定在湖心，省掉每次划出去的工夫。拋竿費 −9%，只在硫煙湯湖生效。' },
     { id: 'eq_winch',    name: '耐壓絞盤',   price: 120000, effect: { loc: 'abyss',         sizeBonus: 0.06 },  desc: '拉得動不該拉得動的東西。體型 +6%，只在深淵海溝生效。' },
     { id: 'eq_runeplate',name: '符文銘板',   price: 240000, effect: { loc: 'world_root',    rareMul: 1.16 },    desc: '照著石板抄下來的。抄的人說抄完手抖了三天。稀有度 +16%，只在世界樹根生效。' },
-    { id: 'eq_ankh',     name: '生命之符',   price: 480000, effect: { loc: 'duat',          rareMul: 1.17 },    desc: '掛在胸前，河裡的東西就會當你已經死了。稀有度 +17%，只在黃沙冥河生效。' }
+    { id: 'eq_ankh',     name: '生命之符',   price: 480000, effect: { loc: 'duat',          rareMul: 1.17 },    desc: '掛在胸前，河裡的東西就會當你已經死了。稀有度 +17%，只在黃沙冥河生效。' },
+    { id: 'eq_wading',   name: '涉水釘鞋',   price: 8000,   effect: { loc: 'rapids',        sizeBonus: 0.045 }, desc: '鞋底一整排鎢鋼釘。站得住，才拉得住往下游衝的東西。體型 +4.5%，只在亂石急湍生效。' },
+    { id: 'eq_viewbox',  name: '玻璃底看箱', price: 12000,  effect: { loc: 'coral_reef',    rareMul: 1.11 },    desc: '木框底下一片玻璃，壓進水面就沒有反光了。看得見哪個洞裡有東西，餌就不會白放。稀有度 +11%，只在琉璃珊瑚生效。' },
+    { id: 'eq_headlamp', name: '防水頭燈',   price: 900000, effect: { loc: 'cavern',        rareMul: 1.18 },    desc: '洞裡沒有別的光。關掉它你連自己的手都看不見，更不用說下鉤的地方。稀有度 +18%，只在鐘乳暗穴生效。' }
   ];
 
   /* ============================================================
@@ -1618,7 +2019,10 @@ window.FG = window.FG || {};
     { id: 'shellrack', name: '貝殼標本架', price: 14000, effect: {}, desc: '純裝飾。從潮落礁灘一趟一趟撿回來的，九個格子花了很久才填滿。' },
     { id: 'cascade',   name: '循環水景',   price: 22000, effect: {}, desc: '純裝飾。懸瀑深潭的迷你版，水從上面的盆流到下面的盆，再被打上去。' },
     { id: 'onsen',     name: '檜木泡湯桶', price: 34000, effect: {}, desc: '純裝飾。裝的是從硫煙湯湖運回來的水。水豚看到的第一天就跳進去了。' },
-    { id: 'sarco',  name: '彩繪石棺',   price: 90000, effect: {},              desc: '純裝飾。從黃沙冥河搬回來的，裡面是空的——搬之前就是空的。' }
+    { id: 'flybox',    name: '毛鉤標本盒', price: 11000, effect: {}, desc: '純裝飾。攤開的木盒裡插著一排自己綁的毛鉤，亂石急湍用得上的全在這裡了。水豚咬過一次，之後就不咬了。' },
+    { id: 'floats',    name: '玻璃浮球串', price: 16000, effect: {}, desc: '純裝飾。三顆大小不同的玻璃浮球用麻繩網起來，堆在牆角。從琉璃珊瑚的沙洲上撿的，上面還有藤壺的印子。' },
+    { id: 'sarco',  name: '彩繪石棺',   price: 90000, effect: {},              desc: '純裝飾。從黃沙冥河搬回來的，裡面是空的——搬之前就是空的。' },
+    { id: 'driplamp',  name: '鐘乳石燈',   price: 120000, effect: {}, desc: '純裝飾。一段真的鐘乳石倒吊著，裡面裝了燈。末端每隔一陣子會凝一滴水掉下來——那滴水是它還活著的證據。' }
   ];
 
   /* ============================================================

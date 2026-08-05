@@ -193,7 +193,21 @@ window.FG = window.FG || {};
     leaper:   { bodyLen: .56, bodyH: .54, gamma: 0.82, e: .56, tailLen: .28, tailH: 1.02, fork: .52, dorsal: .32, dorsalAt: [.24, .46], anal: .28, analAt: [.10, .32] },
     // 腔棘魚：gamma 1.02 ＝ 最寬處剛好落在正中央（**唯一一個**），配 e .36 的方剖面，
     // 讀起來是「兩端一樣粗的木桶」。catfish 的 gamma 1.42 是大頭收尾，不會搞混
-    coelacanth: { bodyLen: .58, bodyH: .50, gamma: 1.02, e: .36, tailLen: .22, tailH: .62, fork: .00, dorsal: .34, dorsalAt: [.30, .50], anal: .28, analAt: [.14, .36] }
+    coelacanth: { bodyLen: .58, bodyH: .50, gamma: 1.02, e: .36, tailLen: .22, tailH: .62, fork: .00, dorsal: .34, dorsalAt: [.30, .50], anal: .28, analAt: [.14, .36] },
+
+    // 貼石巨鰍：**全檔最扁**（bodyH .30）＋ e .24 的方剖面 ＝ 一片等厚的板子。
+    // 它跟 lungfish 的分界不在長度，在鰭：lungfish 的鰭緣從 .02 一路鋪到 .58，
+    // 這裡的背鰭只有 .12 而且擠在尾側，前半身**光的**——因為前半身要交給 sucker。
+    // 真正的識別是那片吸盤（底緣是一條完全水平的直線，全檔唯一）
+    clinger:  { bodyLen: .70, bodyH: .30, gamma: 1.35, e: .24, tailLen: .14, tailH: .42, fork: .00, dorsal: .12, dorsalAt: [.10, .40], anal: .10, analAt: [.08, .34] },
+    // 隆頭魚：gamma 1.34 把最寬處推到 t≈0.59（厚重的前半身），再靠 hump 把頭墊高。
+    // fork .04 ＝ 幾乎切齊的圓截尾，這是它跟 flat（.48 深叉）與 tuna（.72）的分界；
+    // 背鰭刻意收在 [.14,.62]**不要碰到頭**，否則會跟 hump 連成一塊看不出是額隆
+    wrasse:   { bodyLen: .54, bodyH: .60, gamma: 1.34, e: .46, tailLen: .20, tailH: .74, fork: .04, dorsal: .40, dorsalAt: [.14, .62], anal: .34, analAt: [.12, .48] },
+    // 洞螈：長管身 ＋ **側扁的圓槳尾**（tailH .50、fork 0），鰭褶只在尾側三成。
+    // serpent 的尾是收成一點的（tailH .14），lungfish 的鰭緣鋪滿後半身——
+    // 這一種是「前面光溜溜、後面一支槳」，加上外鰓與四肢才成立
+    olm:      { bodyLen: .76, bodyH: .19, gamma: 1.12, e: .36, tailLen: .13, tailH: .50, fork: .00, dorsal: .16, dorsalAt: [.02, .30], anal: .13, analAt: [.02, .26] }
   };
 
   const SPR_W = 96, SPR_H = 56, MARGIN = 4;
@@ -695,6 +709,131 @@ window.FG = window.FG || {};
         }
       });
     }
+    // --- 腹面吸盤（貼石性的溪流魚）---
+    // 識別完全靠**底緣是一條完全水平的直線**——魚身上不會有直線，所以只要出現
+    // 就一定被讀成「壓在一個平面上」。這跟 TERRAIN.pond 用等距直線表達人造物
+    // 是同一條規則的反向應用。兩端各留 18% 收角，不收角會變成一件裙子
+    if (sp.indexOf('sucker') >= 0) {
+      const su = C.sucker || FG.mix(body, belly, 0.55);
+      const rim = FG.shade(su, -0.34);
+      const t0 = 0.34, t1 = 0.90;
+      // 2.4 倍半高：盤子必須明顯**低於身體最寬處**，否則它會跟腹部連成一塊，
+      // 那條「完全水平的底緣」就沒有機會被看見（初版設 1.75，整條魚讀起來像潛艇）
+      const flat = cy + halfMax * 2.4;
+      const xa = Math.round(x0 + bodyW * t0), xb = Math.round(x0 + bodyW * t1);
+      for (let x = xa; x <= xb; x++) {
+        if (x < 0 || x >= W) continue;
+        const t = (x - x0) / bodyW;
+        const s = (x - xa) / Math.max(1, xb - xa);
+        const taper = Math.min(1, Math.min(s, 1 - s) / 0.18);
+        const top = cy + profile(t) - 1;
+        const bot = top + (flat - top) * taper;
+        if (bot <= top) continue;
+        for (let y = Math.round(top); y <= Math.round(bot); y++) {
+          if (y < 0 || y >= H) continue;
+          col[y * W + x] = su;
+        }
+        const by = Math.round(bot);
+        if (by >= 0 && by < H) col[by * W + x] = rim;          // 盤緣的厚度
+      }
+    }
+    // --- 額隆（隆頭魚的頭上那一包）---
+    // 峰值刻意落在 t≈0.8 而不是吻端：長在最前面會被讀成「嘴腫起來」，
+    // 長在眼睛後上方才是額頭。用 sin^0.7 讓它前緣陡、後緣緩
+    if (sp.indexOf('hump') >= 0) {
+      const hc = C.hump || FG.shade(back, 0.14);
+      const t0 = 0.62, t1 = 1.0;
+      const xa = Math.round(x0 + bodyW * t0), xb = Math.round(x0 + bodyW * t1);
+      for (let x = xa; x <= xb; x++) {
+        if (x < 0 || x >= W) continue;
+        const t = (x - x0) / bodyW;
+        const s = FG.clamp((x - xa) / Math.max(1, xb - xa), 0, 1);
+        const rise = halfMax * 0.62 * Math.pow(Math.sin(Math.PI * s), 0.7);
+        const base = cy - profile(t);
+        const ty = Math.round(base - rise);
+        for (let y = ty; y < base; y++) {
+          if (y < 0 || y >= H) continue;
+          col[y * W + x] = hc;
+        }
+        if (ty >= 0 && ty < H) col[ty * W + x] = FG.shade(hc, 0.22);
+      }
+    }
+    // --- 外鰓（洞穴兩棲類與低溶氧水域的幼體）---
+    // 三叢往**後上方**張開（頭在 x 大的一端，所以往後是 x 變小）。
+    // 柄一定要 2px：1px 的斜線在這個尺寸會被讀成鬍鬚，而鬍鬚是往前的，方向相反也救不回來。
+    // 末端要岔開成羽狀，只有一根柄就只是三根刺
+    if (sp.indexOf('gills') >= 0) {
+      const gc = C.gill || '#d8606a';
+      const gl = FG.shade(gc, 0.26);
+      [0.60, 0.67, 0.74].forEach(function (t, k) {
+        const bx = Math.round(x0 + bodyW * t);
+        const by = Math.round(cy - profile(t) * 0.86);
+        const len = 5 + k;
+        let ex = bx, ey = by;
+        for (let s = 0; s <= len; s++) {
+          ex = bx - Math.round(s * 0.75); ey = by - s;
+          for (let d = 0; d < 2; d++) {
+            const x = ex - d;
+            if (x < 0 || x >= W || ey < 0 || ey >= H) continue;
+            col[ey * W + x] = d ? FG.shade(gc, -0.18) : gc;
+          }
+        }
+        // 末端的羽：三根往上、往後、往前各岔 3px
+        [[-3, -2], [-1, -3], [1, -2]].forEach(function (v) {
+          for (let s = 1; s <= 3; s++) {
+            const x = Math.round(ex + v[0] * s / 3), y = Math.round(ey + v[1] * s / 3);
+            if (x < 0 || x >= W || y < 0 || y >= H) continue;
+            col[y * W + x] = gl;
+          }
+        });
+      });
+    }
+    // --- 四肢（洞螈這類仍留著腳的水生種）---
+    // 側視只會看到兩條，所以同一對錯開 2px、遠的那條壓暗，才讀得出「四條」。
+    // 末端一定要有 3px 的橫向「手」，沒有的話就只是四根往下的刺
+    if (sp.indexOf('limbs') >= 0) {
+      const lc = C.limb || FG.mix(body, belly, 0.5);
+      const far = FG.shade(lc, -0.28);
+      [[0.68, 0], [0.68, 3], [0.24, 0], [0.24, 3]].forEach(function (v) {
+        const t = v[0];
+        const bx = Math.round(x0 + bodyW * t) - v[1];
+        const by = Math.round(cy + profile(t) * 0.82);
+        const c = v[1] ? far : lc;
+        let lx = bx, ly = by;
+        for (let s = 0; s < 5; s++) {
+          lx = bx - Math.round(s * 0.4); ly = by + s;
+          for (let d = 0; d < 2; d++) {
+            const x = lx + d;
+            if (x < 0 || x >= W || ly < 0 || ly >= H) continue;
+            if (s === 0 && !col[ly * W + x]) continue;     // 肢根要黏在身上
+            col[ly * W + x] = c;
+          }
+        }
+        for (let d = -1; d <= 1; d++) {
+          const x = lx + d;
+          if (x < 0 || x >= W || ly + 1 < 0 || ly + 1 >= H) continue;
+          col[(ly + 1) * W + x] = c;
+        }
+      });
+    }
+    // --- 無眼（洞穴生物）---
+    // 把眼睛填回**同一條混色**（眼睛落在 v≈0.36，正好是 mix(back, body, 0.55) 那一帶），
+    // 用別的顏色會留下一塊方形補丁。填完還要留一道暗痕：整片塗平會被讀成「畫忘了」，
+    // 要看得出那裡曾經有一顆眼睛、後來被皮膚蓋住了
+    if (sp.indexOf('blind') >= 0) {
+      const ex = Math.round(x0 + bodyW * 0.87);
+      const ey = Math.round(cy - profile(0.87) * 0.28);
+      const skin = FG.mix(back, body, 0.55);
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const i = (ey + dy) * W + (ex + dx);
+        if (i >= 0 && i < W * H && col[i]) col[i] = skin;
+      }
+      for (let dx = 0; dx <= 1; dx++) {
+        const a = ey * W + (ex + dx), b = (ey - 1) * W + (ex + dx);
+        if (a >= 0 && a < W * H && col[a]) col[a] = FG.shade(skin, -0.18);
+        if (b >= 0 && b < W * H && col[b]) col[b] = FG.shade(skin, 0.14);
+      }
+    }
 
     // --- 描邊 ---
     const outCol = new Array(W * H).fill(null);
@@ -965,6 +1104,59 @@ window.FG = window.FG || {};
         '.XoodddoX.',
         '..XXddXX..',
         '....XX....'
+      ]
+    },
+    // 急湍用：磨圓的漂流木。棍子跟漂流木的差別只有一樣——**斷面的年輪**，
+    // 所以成本全部花在左端那幾圈同心弧上，木身只要縱向紋理帶過
+    driftwood: {
+      pal: { X: '#3a2c1e', d: '#6a5238', m: '#8f7048', l: '#b09068', r: '#d8bc90' },
+      map: [
+        '..XXXX..........',
+        '.XdrdrX.XXXX....',
+        'XdrlrldXXmmmXX..',
+        'XrldldrXmlmlmmX.',
+        'XdrlrldXmmlmlmmX',
+        'XrldldrXmlmlmlmX',
+        'XdrdrdXXmmlmlmmX',
+        '.XXXXX.XmlmmmmX.',
+        '.......XXmmmXX..',
+        '.........XXX....'
+      ]
+    },
+    // 珊瑚礁用：折斷的鹿角珊瑚枝。**至少分岔兩次**才讀得出是珊瑚——
+    // 只有一根的話是骨頭，兩根的話是樹枝。白化的枝是灰白的，帶一點殘留的紫
+    coralfrag: {
+      pal: { X: '#6a6070', w: '#ece6ea', d: '#b8b0bc', p: '#9a7fb0' },
+      map: [
+        '..X....X..',
+        '.XwX..XwX.',
+        '.XdX..XwX.',
+        '..XwXXwX..',
+        '..XdwwdX..',
+        'X..XwwX..X',
+        'XwX.XdX.Xw',
+        'XdXXXwXXXd',
+        '.XXXdpdXX.',
+        '...XdpdX..',
+        '...XXpXX..'
+      ]
+    },
+    // 暗穴用：斷落的鐘乳石。**斷面的同心層理**是它跟一根石筍／木樁的唯一差別，
+    // 所以斷口畫在上方（朝著觀眾）並且一圈一圈；破損照慣例做不對稱（右下角缺一塊）
+    dripstone: {
+      pal: { X: '#3a352c', s: '#8f8574', l: '#c0b49c', d: '#5f594a', m: '#a09680' },
+      map: [
+        '.XXXXXX...',
+        'XlmlmlmX..',
+        'XmslslsmX.',
+        'XlmslsmlX.',
+        'XsmlslmsX.',
+        '.XsmlmsXX.',
+        '.XsmsmsX..',
+        '.XdsmsdX..',
+        '..XdsdX...',
+        '..XdsdXX..',
+        '...XdX....'
       ]
     },
     // 深淵用：辨識不出物種的魚骨。頭在左、脊椎往右、肋骨是垂直短線
@@ -2409,6 +2601,596 @@ window.FG = window.FG || {};
     }
   };
 
+  // 十三 · 湍瀨：卵石河床 + 斜向流線 + 石頭尾流 + 前景巨石（亂石急湍）
+  //
+  //   這一種佔的是三條還沒有人用的辨識軸，三條都在**水面**上：
+  //
+  //     一 · **斜向的流動紋理**——其他十四種地形的水面全是水平的（反光橫線、
+  //          倒影、深水帶都是橫的）。這裡整片水面是從畫面上方往下、往兩側散開的
+  //          斜線，一眼就知道「這片水在跑」。
+  //     二 · **石頭的尾流**——每顆露出水面的石頭，上游側一道堆水的白弧、下游側
+  //          一個往下張開的 V。這是「水在繞過東西」唯一便宜又有效的畫法。
+  //     三 · **前景遮擋**——畫面最下緣兩塊被裁掉的大石。其他地形沒有任何一種有
+  //          前景層，所以光是「有東西比水更近」就構成識別。
+  //
+  //   地平線以上刻意低調（只有卵石堆與赤楊叢），因為三條軸全在水裡，
+  //   上面再放高聳的東西只會分掉注意力。卵石堆用**重疊的橢圓群**——
+  //   §16 的尖三角、ice 的寬扁板塊、karst 的圓頂柱都不是這個形狀。
+  TERRAIN.rapids = {
+    above: function (T) {
+      const { P, R, W, horizon, rect } = T;
+      const g = T.g;
+
+      function shades(base) {
+        return [FG.shade(base, -0.42), FG.shade(base, -0.24), FG.shade(base, -0.09),
+                base, FG.shade(base, 0.16), FG.shade(base, 0.36)];
+      }
+      // 4×4 有序抖動：把六階明度之間的斷層補起來，避免大面積平塗
+      const BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
+      function dither(x, y, sh, lv) {
+        const i = FG.clamp(Math.round(lv) + (BAYER[y & 3][x & 3] > 7 ? 1 : 0), 0, sh.length - 1);
+        return sh[i];
+      }
+
+      // --- 遠處谷壁：低矮起伏的一道，只是把天空收住 ---
+      const far = shades(P.farTree);
+      for (let x = 0; x < W; x++) {
+        const h = 22 + Math.sin(x * 0.031) * 9 + Math.sin(x * 0.077 + 1.3) * 4;
+        for (let y = horizon - h; y < horizon; y++) {
+          const d = (y - (horizon - h)) / h;
+          rect(x, y, 1, 1, dither(x, y, far, 4.4 - d * 2.4));
+        }
+      }
+
+      const foam = P.foam || '#f4fafa';
+
+      // --- 卵石堆：重疊的橢圓群。一顆石頭的三件事，少一件就糊成麻點 ---
+      //   1. 上亮下暗的縱向分層  2. **只有左半**的頂緣高光（整圈都亮會變成球）
+      //   3. 底部一道接觸陰影，讓它「坐」在後面那顆上
+      const cob = P.cobble || '#a8ada6', cobLit = P.cobbleLit || '#d0d4cc';
+      // ⚠️ 卵石的明度階要從 `cobble`（淺灰）展開，**不要用 midTree/nearTree**——
+      //    那兩個是谷壁色，石頭跟背後的牆同一個色域就等於沒畫，初版整條岸只看得到
+      //    一片灰帶加幾顆綠球。河床的卵石本來就比岸壁亮，這是它最好認的地方
+      const mid = shades(cob), near = shades(FG.shade(cob, -0.22));
+      function cobble(cx, cy, rw, rh, sh, lit) {
+        for (let dy = -rh; dy <= rh; dy++) {
+          const half = Math.sqrt(Math.max(0, 1 - (dy / (rh + 0.4)) * (dy / (rh + 0.4)))) * rw;
+          const lv = 3.6 - (dy + rh) / (2 * rh) * 2.6;
+          for (let x = Math.round(cx - half); x <= Math.round(cx + half); x++) {
+            const y = Math.round(cy + dy);
+            rect(x, y, 1, 1, dither(x, y, sh, lv));
+          }
+        }
+        rect(cx - rw * 0.72, cy - rh, rw * 0.55, 1, lit);                   // 只有左半的頂緣高光
+        rect(cx - rw * 0.8, cy + rh, rw * 1.6, 1, FG.shade(sh[0], -0.3));   // 接觸陰影
+      }
+      for (let i = 0; i < 30; i++) {                                        // 遠層
+        cobble(R() * (W + 20) - 10, horizon - 8 - R() * 12, 6 + R() * 9, 4 + R() * 5, mid, FG.shade(cob, 0.1));
+      }
+
+      // --- 遠處那一階跌水：告訴玩家上面還有一段，水是從那裡來的 ---
+      // 細瀑一定要 2px 以上，1px 的垂直線在這個尺寸一律被讀成雨絲（§冰川裂隙）。
+      // ★ 畫在遠層與近層卵石**之間**：畫太早會被兩層石頭一起蓋掉（初版就是這樣，
+      //   跌水完全看不見），畫太晚又會浮在近景石頭前面
+      [[58, 5, 30], [142, 3, 22]].forEach(function (f) {
+        for (let k = 0; k < f[2]; k++) {
+          const w = f[1] * (0.7 + k / f[2] * 0.7);
+          rect(f[0] - w / 2, horizon - f[2] + k, w, 1, k % 4 === 0 ? FG.shade(foam, -0.16) : foam);
+        }
+        for (let k = 0; k < 5; k++) {                                       // 落點的一小團白
+          rect(f[0] - f[1] - k * 0.9, horizon - 5 + k, (f[1] + k * 0.9) * 2, 1, foam);
+        }
+      });
+
+      for (let i = 0; i < 22; i++) {                                        // 近層（大顆、壓在前面）
+        cobble(R() * (W + 20) - 10, horizon - 1 - R() * 7, 9 + R() * 13, 5 + R() * 7, near, cobLit);
+      }
+
+      // --- 岸上的赤楊叢與苔：植被佔比，順便把卵石堆的上緣打散 ---
+      const alder = P.alder || '#4a6a44', moss = P.moss || '#54703f';
+      for (let i = 0; i < 22; i++) {
+        const cx = R() * W, cy = horizon - 10 - R() * 12, r = 3 + R() * 5;
+        for (let dy = -r; dy <= r; dy++) {
+          const half = Math.sqrt(Math.max(0, r * r - dy * dy));
+          rect(cx - half, cy + dy, half * 2, 1, dy < -r * 0.3 ? FG.shade(alder, 0.24) : alder);
+        }
+      }
+      for (let i = 0; i < 40; i++) {                                        // 石頭背面的苔
+        const x = R() * W, y = horizon - 2 - R() * 8;
+        rect(x, y, 1 + R() * 3, 1, R() < 0.4 ? FG.shade(moss, 0.2) : moss);
+      }
+    },
+    below: function (T) {
+      const { P, R, W, H, horizon, rect } = T;
+      const g = T.g;
+      const foam = P.foam || '#f4fafa', flow = P.flow || '#cfe8ec';
+
+      // --- 斜向流線 ---
+      // 這是這個地形的主角。每一條從水面上方出發往下走，x 隨深度往兩側散開
+      // （越近越發散＝透視），並且**不等長不等寬**——等長等寬會變成一把梳子
+      for (let i = 0; i < 170; i++) {
+        const sx = R() * W;
+        const sy = horizon + 2 + R() * (H - horizon - 20);
+        const len = 10 + R() * 34;
+        const spread = (sx - W / 2) / (W / 2) * 0.55;      // 往中線兩側散
+        const wd = R() < 0.28 ? 2 : 1;
+        g.globalAlpha = 0.16 + R() * 0.28;
+        for (let k = 0; k < len; k++) {
+          const y = sy + k;
+          if (y >= H) break;
+          rect(sx + spread * k + Math.sin(k * 0.22 + i) * 1.2, y, wd, 1, R() < 0.25 ? foam : flow);
+        }
+      }
+      // 水舌：少數幾道全白的強流。沒有這幾道，整片只會是一潭有紋路的靜水
+      for (let i = 0; i < 9; i++) {
+        const sx = R() * W;
+        const sy = horizon + 4 + R() * (H - horizon - 60);
+        const len = 30 + R() * 60;
+        const spread = (sx - W / 2) / (W / 2) * 0.5;
+        for (let k = 0; k < len; k++) {
+          const y = sy + k;
+          if (y >= H) break;
+          g.globalAlpha = 0.75 * Math.sin(Math.PI * (k / len));
+          rect(sx + spread * k + Math.sin(k * 0.16 + i) * 2, y, 2 + Math.round(R()), 1, foam);
+        }
+      }
+      g.globalAlpha = 1;
+
+      // --- 露出水面的石塊 ---
+      // 上游側一道堆水的白弧、下游側一個往下張開的 V。
+      // 尾流的兩道邊**不要對稱到像字母 V**：兩側各自抖動，長度差三成
+      // ⚠️ 初版在石頭上方畫了一道**比石頭寬的白弧**當堆水，結果每顆石頭都變成
+      //    一個飛碟：一個深色橢圓頂著一圈白邊，那正是飛碟的畫法。改成「只沿著
+      //    石頭上緣、比石頭窄的一道白」，堆水才會被讀成貼在石頭上的浪。
+      //    真正該花力氣的是**下游的尾流**——那才是「水在動」的證據。
+      // 石頭要**成群**：真實的亂石灘是一堆擠在一起再空一段，不是平均散開。
+      // 平均散開會被讀成「湖上的幾座小島」
+      // ⚠️ 群心刻意寫死而不是隨機：隨機的群心可能整個落在船的排除區裡，
+      //    那樣「不合格就重抽」的迴圈會**永遠抽不到合格的點**而卡死（踩過一次，
+      //    症狀是整個分頁沒有回應）。凡是「重抽直到合格」的寫法，
+      //    都要先確認取樣範圍跟排除區沒有完全重疊
+      const clusters = [[34, horizon + 46], [166, horizon + 92], [96, horizon + 24]];
+      const stones = [];
+      for (let i = 0, guard = 0; i < 14 && guard < 400; i++, guard++) {
+        const c = clusters[i % clusters.length];
+        const x = c[0] + (R() - 0.5) * 80;
+        const y = c[1] + (R() - 0.5) * 70;
+        // 避開船（x 40～150、y 216～268），不然石頭會從船身裡長出來
+        if (x < 8 || x > W - 8 || y < horizon + 12 || y > H - 26 ||
+            (x > 26 && x < 164 && y > 200 && y < 280)) { i--; continue; }
+        // 尺寸差距要拉開（5～19），一整片同樣大的石頭會被讀成一串排開的浮標
+        const rw = 5 + Math.pow(R(), 1.5) * 14, rh = Math.max(4, rw * (0.66 + R() * 0.24));
+        stones.push([x, y, rw, rh]);
+      }
+      stones.sort(function (a, b) { return a[1] - b[1]; });          // 由遠而近畫，近的壓在前面
+      stones.forEach(function (s) {
+        const cx = s[0], cy = s[1], rw = s[2], rh = s[3];
+        // ★ 先畫**水面下那一大塊**：比露出的部分寬一半、往下延伸，深色半透明。
+        //   這是解決「石頭浮在半空」的關鍵——這個投影裡的水面是一整片平塗，
+        //   沒有任何東西可以讓物件「站」上去，所以石頭必須自己帶著水下的體積。
+        //   （初版沒有這一塊，只有一個圓頂加下方的白，讀起來就是飛碟加光束。）
+        g.globalAlpha = 0.42;
+        for (let dy = -rh * 0.2; dy <= rh * 1.7; dy++) {
+          const t = dy / (rh * 1.75);
+          const half = Math.sqrt(Math.max(0, 1 - t * t)) * rw * 1.45;
+          rect(cx - half, cy + dy, half * 2, 1, FG.shade(P.waterDeep || '#3f6f78', -0.45));
+        }
+        g.globalAlpha = 1;
+        //   露出水面的部分是**半沉的圓頂**：上半是弧、下緣被水線切平
+        for (let dy = -rh; dy <= 0; dy++) {
+          const half = Math.sqrt(Math.max(0, 1 - (dy / (rh + 0.4)) * (dy / (rh + 0.4)))) * rw;
+          const c = dy < -rh * 0.5 ? FG.shade(P.nearTree, 0.26)
+                  : dy < -rh * 0.15 ? P.nearTree : FG.shade(P.nearTree, -0.26);
+          rect(cx - half, cy + dy, half * 2, 1, c);
+        }
+        rect(cx - rw * 0.52, cy - rh + 2, rw * 0.34, 1, P.cobbleLit || '#d0d4cc');   // 只有左半的頂緣高光
+        if (R() < 0.6) rect(cx - rw * 0.2, cy - rh + 3, rw * 0.5, 1, P.moss || '#54703f');
+        // 上游側的堆水：**兩小段偏一邊的白**，不要畫成一道置中對稱的弧。
+        // 對稱的白弧壓在深色圓頂上就是一顆眼睛（或一台飛碟）的畫法，
+        // 打散成不等長、偏一側的兩段之後才會被讀成撞在石頭上的浪
+        const side = R() < 0.5 ? -1 : 1;
+        g.globalAlpha = 0.8;
+        rect(cx + side * rw * 0.1 - rw * 0.4, cy - rh - 1, rw * 0.6, 1, foam);
+        rect(cx + side * rw * 0.34 - rw * 0.2, cy - rh - 2, rw * 0.32, 1, foam);
+        g.globalAlpha = 1;
+        // 下游只留幾顆散開的泡，**刻意畫得很少**。
+        //   ⚠️ 這裡連續兩版栽在同一個坑：石頭下方只要出現一片夠亮、會往下擴散的
+        //   東西（楔形也好、兩條線也好、一團密集的碎白也好），整顆石頭就會被讀成
+        //   飛碟加光束。水在流這件事已經由整片斜向流線講完了，石頭這裡不必再講一次
+        for (let k = 0; k < 7; k++) {
+          g.globalAlpha = 0.25 + R() * 0.3;
+          rect(cx + (R() - 0.5) * rw * 1.6, cy + rh * (0.4 + R() * 1.4), 1 + Math.round(R()), 1, foam);
+        }
+        g.globalAlpha = 1;
+      });
+
+      // --- 前景巨石：畫面最下緣兩塊被裁掉的大石 ---
+      // 「有東西比水更近」是這個地形獨有的一層。刻意讓它們被畫面下緣切斷——
+      // 完整的輪廓會被讀成「水裡的石頭」，被切斷才是「鏡頭前面的石頭」。
+      // 位置避開船（x 40～150、y 216～268）
+      const fore = P.fore || '#2e3330';
+      [[6, H + 4, 44, 30], [176, H + 10, 52, 34]].forEach(function (f) {
+        for (let dy = -f[3]; dy <= 0; dy++) {
+          const half = Math.sqrt(Math.max(0, 1 - (dy / (f[3] + 2)) * (dy / (f[3] + 2)))) * f[2];
+          const y = f[1] + dy;
+          if (y >= H) continue;
+          rect(f[0] - half, y, half * 2, 1, dy < -f[3] * 0.55 ? FG.shade(fore, 0.22) : fore);
+        }
+        // 上緣的苔與高光：沒有這一條的話它只是一塊黑
+        for (let k = 0; k < 14; k++) {
+          const dx = (R() - 0.5) * f[2] * 1.4;
+          const dy = -f[3] + Math.abs(dx) / f[2] * f[3] * 0.5;
+          rect(f[0] + dx, f[1] + dy, 1 + R() * 3, 1, R() < 0.5 ? P.moss || '#54703f' : FG.shade(fore, 0.4));
+        }
+      });
+      // 前景石周圍的白沫：水撞上來的地方
+      for (let i = 0; i < 40; i++) {
+        g.globalAlpha = 0.3 + R() * 0.4;
+        const s = R() < 0.5 ? 0 : 1;
+        const cx = s ? 176 : 6, cw = s ? 52 : 44, ch = s ? 34 : 30, cyy = s ? H + 10 : H + 4;
+        rect(cx + (R() - 0.5) * cw * 2.2, cyy - ch - R() * 8, 1 + R() * 3, 1, foam);
+      }
+      g.globalAlpha = 1;
+    }
+  };
+
+  // 十四 · 珊瑚礁：環礁沙洲 + 碎浪線 + 側視的立體礁體與礁洞（琉璃珊瑚）
+  //
+  //   三個設計決定：
+  //
+  //   一 · **水下是「側視的立體結構」，不是「俯視的底面」。** pond 已經佔走
+  //        「看得見水底」了，但它畫的是一張往下看、帶滅點的平面（磁磚 + 透視格線）。
+  //        這裡的礁是**從畫面下緣往上長**的——有高度、有前後遮擋、有樹冠一樣的輪廓，
+  //        讀起來像一片水下的森林而不是一塊地板。兩者放在一起不會混。
+  //
+  //   二 · **碎浪線把水面切成兩種水色。** 地平線下方一條白色破碎帶，上面是外洋的
+  //        深藍（waterTop 刻意壓深），下面是礁湖的亮青。「同一個畫面裡有兩片不同的海」
+  //        是這個地形獨有的，成本只有一條抖動過的橫帶。
+  //
+  //   三 · **這是全遊戲飽和度最高的一格，而且是刻意的。** 其他十四種地形不是偏冷
+  //        就是偏灰，這裡六個珊瑚色全部拉到最滿。**不要因為「看起來太吵」把它調灰**——
+  //        吵就是它的識別，調灰之後它會變成另一個潮落礁灘。
+  TERRAIN.reef = {
+    above: function (T) {
+      const { P, R, W, horizon, rect } = T;
+      const g = T.g;
+      const sand = P.sand || '#eae0c4';
+
+      // --- 環礁沙洲：一條低平的白沙帶。陸地在這個釣點只是背景，越少越好 ---
+      for (let x = 0; x < W; x++) {
+        const h = 7 + Math.sin(x * 0.028) * 3 + Math.sin(x * 0.09 + 2.1) * 1.6;
+        rect(x, horizon - h, 1, h + 2, P.midTree);
+        rect(x, horizon - h, 1, 2, FG.shade(sand, 0.1));
+        if ((x * 7 + Math.round(h)) % 11 === 0) rect(x, horizon - h + 2, 1, 1, FG.shade(sand, -0.16));
+      }
+      // 遠處外洋的一線深藍：沙洲後面就是外海，這條讓沙洲有厚度
+      rect(0, horizon - 22, W, 5, FG.shade(P.hill || '#a8b4a8', -0.36));
+
+      // --- 沙洲上的海葡萄叢：低矮的圓團，不用椰子樹（那是 desert 的 palm 佔走的） ---
+      for (let i = 0; i < 16; i++) {
+        const cx = R() * W, cy = horizon - 8 - R() * 4, r = 2.5 + R() * 4;
+        for (let dy = -r; dy <= r; dy++) {
+          const half = Math.sqrt(Math.max(0, r * r - dy * dy));
+          rect(cx - half, cy + dy, half * 2, 1, dy < -r * 0.35 ? FG.shade(P.nearTree, 0.26) : P.nearTree);
+        }
+      }
+      // 海鳥
+      for (let i = 0; i < 5; i++) {
+        const x = Math.floor(R() * W), y = Math.floor(R() * (horizon - 30)) + 5;
+        const c = FG.shade(P.hill || '#a8b4a8', -0.5);
+        rect(x, y, 1, 1, c); rect(x + 1, y - 1, 1, 1, c); rect(x + 2, y, 1, 1, c);
+      }
+    },
+    below: function (T) {
+      const { P, R, W, H, horizon, rect } = T;
+      const g = T.g;
+      const corals = P.coral || ['#e85f8f', '#f0913a', '#8f5fd8', '#3fc0a8', '#4a7fe0', '#e8d04a'];
+      const sand = P.sand || '#eae0c4', cave = P.cave || '#141d24';
+      const surf = P.surf || '#ffffff';
+
+      // --- 碎浪帶：礁緣的浪打在這裡，外洋與礁湖的分界 ---
+      // 帶緣要**破碎**（隨機的段落），連續的一條白線會變成一根桿子
+      const surfY = horizon + 11;
+      for (let x = 0; x < W; x++) {
+        const y = surfY + Math.sin(x * 0.055) * 2 + Math.sin(x * 0.17 + 1) * 1.2;
+        g.globalAlpha = 0.55 + R() * 0.4;
+        rect(x, y, 1, 1 + Math.round(R() * 2), surf);
+        if (R() < 0.4) rect(x, y - 1 - Math.round(R() * 2), 1, 1, surf);
+      }
+      g.globalAlpha = 1;
+      // 礁湖那一側加一層亮青，讓兩片水的色差看得出來
+      g.globalAlpha = 0.22;
+      rect(0, surfY + 3, W, H - surfY - 3, P.waterBot);
+      g.globalAlpha = 1;
+
+      // --- 白沙底：越近越亮。礁叢之間露出來的部分 ---
+      // ⚠️ 這一層的 alpha 上限只能到 0.3 左右。初版拉到 0.52，整片礁湖被洗成
+      //    一種很淡的奶青色，珊瑚的高飽和度全部被吃掉——而高飽和正是這個地形的識別
+      for (let y = surfY + 4; y < H; y++) {
+        const t = (y - surfY) / (H - surfY);
+        g.globalAlpha = 0.06 + t * 0.24;
+        rect(0, y, W, 1, sand);
+      }
+      g.globalAlpha = 1;
+
+      // --- 礁體：三層，由遠而近由小而大、由淡而濃 ---
+      // 三種形態一定要都有：分枝（鹿角）、球（腦珊瑚）、桌形。
+      // 只畫一種的話整片會變成同一個花紋，讀不出「礁」是很多種東西堆起來的
+      function branchCoral(cx, baseY, hgt, c, alpha) {
+        g.globalAlpha = alpha;
+        const trunkW = Math.max(2, Math.round(hgt * 0.17));
+        rect(cx - trunkW / 2, baseY - hgt * 0.55, trunkW, hgt * 0.55, c);
+        const n = 2 + Math.floor(R() * 3);
+        for (let i = 0; i < n; i++) {
+          const dir = i % 2 ? 1 : -1;
+          const off = (0.3 + R() * 0.5) * dir;
+          const bh = hgt * (0.45 + R() * 0.45);
+          for (let k = 0; k < bh; k++) {
+            const w = Math.max(1, trunkW * 0.8 * (1 - k / bh * 0.5));
+            rect(cx + off * k * 0.55, baseY - hgt * 0.5 - k, w, 1, k > bh * 0.7 ? FG.shade(c, 0.3) : c);
+          }
+        }
+        g.globalAlpha = 1;
+      }
+      function brainCoral(cx, baseY, r, c, alpha) {
+        g.globalAlpha = alpha;
+        for (let dy = -r; dy <= 0; dy++) {
+          const half = Math.sqrt(Math.max(0, r * r - dy * dy));
+          rect(cx - half, baseY + dy, half * 2, 1, dy < -r * 0.5 ? FG.shade(c, 0.22) : c);
+        }
+        for (let k = 0; k < 4; k++) {                       // 腦紋：彎曲的溝
+          for (let x = -r; x <= r; x += 1) {
+            const y = baseY - r * 0.35 - k * r * 0.22 + Math.sin(x * 0.6 + k) * 1.2;
+            if (Math.abs(x) > r * 0.85) continue;
+            rect(cx + x, y, 1, 1, FG.shade(c, -0.32));
+          }
+        }
+        g.globalAlpha = 1;
+      }
+      function tableCoral(cx, baseY, w, c, alpha) {
+        g.globalAlpha = alpha;
+        rect(cx - 1.5, baseY - w * 0.42, 3, w * 0.42, FG.shade(c, -0.24));   // 短柱
+        rect(cx - w / 2, baseY - w * 0.5, w, 3, c);                          // 桌面
+        rect(cx - w / 2, baseY - w * 0.5, w, 1, FG.shade(c, 0.32));
+        g.globalAlpha = 1;
+      }
+      // --- 礁叢：一座礁石丘 + 長在丘上的珊瑚 + 挖進丘裡的洞 ---
+      // ⚠️ 初版把珊瑚、洞口各自隨機灑在整片水裡，結果每一株都像**浮在半空**，
+      //    黑色的洞口更像是畫面上破了幾個洞。問題不在數量也不在顏色，是**沒有地面**：
+      //    珊瑚必須長在某個東西上面，洞必須挖在某個東西裡面。
+      //    改成先堆一座礁丘，再讓那一叢的東西全部坐在同一座丘上，整片才站得住。
+      const rockBase = FG.mix(cave, sand, 0.34);
+      function reefClump(cx, baseY, scale, alpha) {
+        // 每一座丘的岩色微微偏向那一叢的其中一個珊瑚色。全部同一個灰的話，
+        // 十幾座丘會被讀成灑在沙上的一堆石頭，而不是連成一片的礁體
+        const rock = FG.mix(rockBase, corals[Math.floor(R() * corals.length)], 0.12);
+        const mw = (16 + R() * 20) * scale, mh = (7 + R() * 9) * scale;
+        // 礁丘本體
+        g.globalAlpha = alpha;
+        for (let dy = -mh; dy <= 0; dy++) {
+          const half = Math.sqrt(Math.max(0, 1 - (dy / (mh + 0.5)) * (dy / (mh + 0.5)))) * mw;
+          rect(cx - half, baseY + dy, half * 2, 1, dy < -mh * 0.55 ? FG.shade(rock, 0.2) : rock);
+        }
+        rect(cx - mw * 0.9, baseY, mw * 1.8, 1, FG.shade(sand, -0.34));      // 接觸陰影
+        g.globalAlpha = 1;
+        // 挖進丘裡的洞：**開在丘的正面下緣**，上緣一圈受光的岩檐。
+        // 洞口是這個釣點的招牌（「你不會知道哪一個裡面有東西」）
+        if (scale > 0.7 && R() < 0.6) {
+          const hw = mw * (0.2 + R() * 0.16), hh = mh * (0.5 + R() * 0.3);
+          const hx = cx + (R() - 0.5) * mw * 0.7;
+          for (let dy = -hh; dy <= 0; dy++) {
+            const half = Math.sqrt(Math.max(0, 1 - (dy / (hh + 0.3)) * (dy / (hh + 0.3)))) * hw;
+            rect(hx - half, baseY + dy, half * 2, 1, cave);
+          }
+          rect(hx - hw * 0.9, baseY - hh - 1, hw * 1.8, 1, FG.shade(rock, 0.44));
+        }
+        // 長在丘上的珊瑚：貼著丘的上緣排開，**同一叢混三種形態**
+        const n = 3 + Math.floor(R() * 4);
+        for (let i = 0; i < n; i++) {
+          const ox = (R() - 0.5) * mw * 1.7;
+          const oy = baseY - mh * Math.sqrt(Math.max(0, 1 - (ox / (mw + 0.5)) * (ox / (mw + 0.5)))) + 1;
+          const c = corals[Math.floor(R() * corals.length)];
+          const kind = R();
+          if (kind < 0.42) branchCoral(cx + ox, oy, (9 + R() * 13) * scale, c, alpha);
+          else if (kind < 0.76) brainCoral(cx + ox, oy, (3 + R() * 5) * scale, c, alpha);
+          else tableCoral(cx + ox, oy, (9 + R() * 10) * scale, c, alpha);
+        }
+      }
+      // 由遠而近：越近越大越實，近的壓在遠的前面
+      const clumps = [];
+      for (let i = 0; i < 23; i++) clumps.push([R() * (W + 30) - 15, surfY + 12 + Math.pow(R(), 0.85) * (H - surfY - 6)]);
+      clumps.sort(function (a, b) { return a[1] - b[1]; });
+      clumps.forEach(function (c) {
+        const t = (c[1] - surfY) / (H - surfY);
+        reefClump(c[0], c[1], 0.5 + t * 0.8, 0.72 + t * 0.28);
+      });
+
+      // --- 魚群：幾撮高飽和的小點。成本一格一格算，但「這片礁是活的」講得最快 ---
+      for (let i = 0; i < 9; i++) {
+        const cx = R() * W, cy = surfY + 10 + R() * (H - surfY - 40);
+        const c = corals[Math.floor(R() * corals.length)];
+        for (let k = 0; k < 7; k++) {
+          rect(cx + (R() - 0.5) * 16, cy + (R() - 0.5) * 10, 2, 1, FG.shade(c, 0.24));
+        }
+      }
+    }
+  };
+
+  // 十五 · 鐘乳洞：沒有天空的地形（鐘乳暗穴）
+  //
+  //   一 · **這是唯一一種把天空整片蓋掉的地形。** 前十四種的天際線再怎麼變，
+  //        上緣一定是天空漸層；這裡上緣是岩，只在中央遠處留一個拱形洞口透光。
+  //        「畫面被岩石框住」本身就是識別，不需要任何細節去解釋它是洞。
+  //        `loc.scene.sky` 在這裡只有那個拱口看得見，所以它調的其實是「洞口的光」。
+  //
+  //   二 · **倒吊的尖錐是安全的。** §16 說這個尺寸下尖三角一律被讀成針葉樹——
+  //        但那是**站著**的尖三角。從畫面頂端往下垂的尖錐沒有這個問題，
+  //        因為沒有樹是倒著長的。這等於把一條被封死的軸重新打開。
+  //
+  //   三 · **窄水道靠 below() 的兩側岩壁做，不是靠 above()。** cliff 是地平線
+  //        以上兩側崖壁夾出中央的亮縫；這裡把同一件事搬到水面以下——左右各一塊
+  //        往中間侵入的暗岩，把可見的水面壓成中間一條帶。加上頭頂的岩，
+  //        四個邊都是石頭，跟 cliff 站在一起不會認錯。
+  const CAVE_MOUTH_X = 112;
+  TERRAIN.cavern = {
+    above: function (T) {
+      const { P, R, W, horizon, rect } = T;
+      const g = T.g;
+
+      function shades(base) {
+        return [FG.shade(base, -0.5), FG.shade(base, -0.3), FG.shade(base, -0.12),
+                base, FG.shade(base, 0.2), FG.shade(base, 0.44)];
+      }
+      const BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
+      function dither(x, y, sh, lv) {
+        const i = FG.clamp(Math.round(lv) + (BAYER[y & 3][x & 3] > 7 ? 1 : 0), 0, sh.length - 1);
+        return sh[i];
+      }
+
+      // 先把天空整片吃掉。留著的那一塊等一下再挖回來
+      const farS = shades(P.farTree);
+      for (let y = 0; y < horizon; y++) {
+        for (let x = 0; x < W; x++) {
+          // 越靠近洞口越亮（散射光只到得了那一圈）
+          const d = Math.min(1, Math.hypot((x - CAVE_MOUTH_X) / 70, (y - (horizon - 26)) / 46));
+          rect(x, y, 1, 1, dither(x, y, farS, 4.6 - d * 3.4));
+        }
+      }
+
+      // --- 洞口：中央遠處的拱。整個場景唯一的光源 ---
+      const mw = 30, mh = 40, my = horizon;
+      for (let y = my - mh; y < my; y++) {
+        const t = (my - y) / mh;
+        // 拱形：下半是直壁、上半收成半圓
+        const half = t < 0.62 ? mw : mw * Math.sqrt(Math.max(0, 1 - Math.pow((t - 0.62) / 0.38, 2)));
+        if (half < 1) continue;
+        const sk = P.sky;
+        const st = FG.clamp(1 - t * 0.9, 0, 1);
+        const idx = FG.clamp(Math.floor(st * (sk.length - 1)), 0, sk.length - 2);
+        const c = FG.mix(sk[idx], sk[idx + 1], st * (sk.length - 1) - idx);
+        rect(CAVE_MOUTH_X - half, y, half * 2, 1, c);
+      }
+      // 洞口往內散出來的光暈：寬而淡，不要畫成一圈光環
+      for (let k = 0; k < 26; k++) {
+        g.globalAlpha = 0.06 * (1 - k / 26);
+        rect(CAVE_MOUTH_X - mw - k * 1.6, my - mh - k * 0.9, (mw + k * 1.6) * 2, mh + k * 0.9, P.highlight || '#a8f0f0');
+      }
+      g.globalAlpha = 1;
+
+      // --- 鐘乳石：從畫面頂端往下垂的尖錐 ---
+      // 這個地形的招牌。長度差距要拉到三倍以上，等長的一排會變成柵欄；
+      // 每根都要有**橫向層理**（它是一層一層長出來的），沒有層理只是一根釘子
+      const st = shades(P.stalac || '#5f5a52');
+      const lit = P.stalacLit || '#8f877a';
+      for (let i = 0; i < 34; i++) {
+        const cx = R() * (W + 8) - 4;
+        const h = 6 + Math.pow(R(), 1.6) * 46;
+        // ⚠️ 初版的 w 抓 0.16～0.30 倍高、收尖用 pow(.., 0.72)，結果每一根都又肥又鈍，
+        //    加上層理的橫紋看起來像一排包裝好的糖果。鐘乳石要**細而尖**：
+        //    收尖的指數要大於 1（前段收得慢、末段急收），寬度上限砍掉三分之一
+        const w = Math.max(2, Math.round(h * (0.11 + R() * 0.08)));
+        for (let k = 0; k < h; k++) {
+          const ww = Math.max(1, w * Math.pow(1 - k / h, 1.15));
+          for (let x = Math.round(cx - ww / 2); x <= Math.round(cx + ww / 2); x++) {
+            rect(x, k, 1, 1, dither(x, k, st, x < cx ? 4.2 : 2.2));
+          }
+          if (k % 5 === 2) rect(cx - ww / 2, k, ww, 1, FG.shade(P.stalac || '#5f5a52', -0.34));  // 層理
+        }
+        rect(cx - w / 2, 0, Math.max(1, w * 0.45), 1, lit);
+      }
+
+      // --- 流石：牆面上一片片往下流的鈣華 ---
+      // 從**底部往上**長不適用（它本來就是往下流的），但要讓寬度隨高度變化，
+      // 等寬的垂直帶會被讀成柱子
+      const flow = P.flowstone || '#6f6252';
+      for (let i = 0; i < 9; i++) {
+        const cx = R() * W, top = R() * horizon * 0.4, h = 20 + R() * 40;
+        for (let k = 0; k < h; k++) {
+          const w = 4 + Math.sin(k / h * Math.PI) * (5 + R() * 4);
+          const y = top + k;
+          if (y >= horizon) break;
+          rect(cx - w / 2, y, w, 1, k % 4 === 0 ? FG.shade(flow, 0.2) : flow);
+        }
+      }
+
+      // --- 近景洞壁：左右兩側往中間收，把畫面框住 ---
+      const nearS = shades(P.nearTree);
+      for (let x = 0; x < W; x++) {
+        const d = Math.min(x / (W * 0.3), (W - 1 - x) / (W * 0.3));
+        if (d > 1) continue;
+        const h = horizon * (0.86 * Math.pow(1 - d, 1.3));
+        for (let y = horizon - h; y < horizon; y++) {
+          rect(x, y, 1, 1, dither(x, y, nearS, 2.6 - (1 - d) * 1.6));
+        }
+      }
+
+      // --- 石筍：岸線上往上長的錐，短。有上有下才是一個洞 ---
+      for (let i = 0; i < 13; i++) {
+        const cx = R() * W, h = 4 + R() * 16;
+        const w = Math.max(2, Math.round(h * 0.34));
+        for (let k = 0; k < h; k++) {
+          const ww = Math.max(1, w * Math.pow(k / h, 0.7));
+          rect(cx - ww / 2, horizon - h + k, ww, 1, k < h * 0.3 ? FG.shade(P.stalagmite || '#4a463e', 0.26) : P.stalagmite || '#4a463e');
+        }
+      }
+    },
+    below: function (T) {
+      const { P, R, W, H, horizon, rect } = T;
+      const g = T.g;
+
+      // --- 兩側往中間侵入的水下岩壁：把水面壓成中央一條窄帶 ---
+      // 「狹窄水道」是這個釣點的文案第一句，所以它必須看得出來。
+      // 右側刻意比左側寬（不對稱），對稱的話會變成一條運河
+      for (let y = horizon + 2; y < H; y++) {
+        const t = (y - horizon) / (H - horizon);
+        const lw = 18 + t * 46 + Math.sin(y * 0.09) * 4;
+        const rw = 26 + t * 58 + Math.sin(y * 0.07 + 2) * 5;
+        rect(0, y, lw, 1, FG.shade(P.nearTree, 0.06 - t * 0.3));
+        rect(W - rw, y, rw, 1, FG.shade(P.nearTree, -t * 0.34));
+        // 岩腳的水線：只每隔幾列點一段。整條連續的亮線會被讀成一根拉緊的纜繩
+        if ((y & 3) !== 3) {
+          rect(lw - 1, y, 1, 1, FG.shade(P.nearTree, 0.24));
+          rect(W - rw, y, 1, 1, FG.shade(P.nearTree, 0.24));
+        }
+      }
+
+      // --- 洞口的光在水面拉出來的一道縱向亮帶 ---
+      // 這是全畫面第二亮的東西（第一亮是洞口本身），也是唯一讓水面看得見的原因
+      for (let y = horizon + 2; y < H; y++) {
+        const t = (y - horizon) / (H - horizon);
+        const w = 8 + t * 26;
+        g.globalAlpha = 0.3 * (1 - t * 0.75);
+        rect(CAVE_MOUTH_X - w / 2 + Math.sin(y * 0.06) * 3, y, w, 1, P.highlight || '#a8f0f0');
+        g.globalAlpha = 0.16 * (1 - t * 0.7);
+        rect(CAVE_MOUTH_X - w * 1.4 + Math.sin(y * 0.05) * 4, y, w * 2.8, 1, P.highlight2 || '#4f9a9a');
+      }
+      g.globalAlpha = 1;
+
+      // --- 發光苔：水線附近幾點青綠。全場唯一的第二光源，克制才有效 ---
+      const gm = P.glowmoss || '#3fa88f';
+      for (let i = 0; i < 22; i++) {
+        const x = R() * W, y = horizon + 2 + R() * 40;
+        g.globalAlpha = 0.3 + R() * 0.5;
+        rect(x, y, 1 + Math.round(R()), 1, gm);
+        if (R() < 0.3) { g.globalAlpha = 0.14; rect(x - 1, y - 1, 3, 3, gm); }
+      }
+      g.globalAlpha = 1;
+
+      // --- 水滴落點：頭頂的鐘乳石一直在滴 ---
+      // 自然界沒有完整的同心圓（§落水點像射箭靶紙），所以只畫**弧段**
+      for (let i = 0; i < 6; i++) {
+        const cx = 30 + R() * (W - 60), cy = horizon + 14 + R() * (H - horizon - 40);
+        const r = 3 + R() * 6;
+        g.globalAlpha = 0.3 + R() * 0.3;
+        const a0 = R() * Math.PI * 2, span = 1.4 + R() * 2.2;
+        for (let a = a0; a < a0 + span; a += 0.14) {
+          rect(cx + Math.cos(a) * r, cy + Math.sin(a) * r * 0.36, 1, 1, P.highlight || '#a8f0f0');
+        }
+      }
+      g.globalAlpha = 1;
+    }
+  };
+
   function buildBackground(loc) {
     const P = loc.scene;
     const W = SCENE_W, H = SCENE_H;
@@ -2872,6 +3654,73 @@ window.FG = window.FG || {};
         break;
       }
 
+      case 'rapids': {
+        // 卵石堆 + 一小段跌水。真正的招牌（斜向流線與尾流）在水面那一段，見下方
+        fill(0, hz - 6 * S, W, 6 * S + 2, P.farTree);
+        for (let i = 0; i < 14; i++) {
+          const cx = R() * W, cy = hz - 1 - R() * 4 * S, r = (1.6 + R() * 3) * S;
+          for (let dy = -r; dy <= r; dy++) {
+            const half = Math.sqrt(Math.max(0, r * r - dy * dy));
+            fill(cx - half, cy + dy, half * 2, 1, dy < -r * 0.3 ? FG.shade(P.nearTree, 0.3) : P.nearTree);
+          }
+        }
+        for (let i = 0; i < 5; i++) {
+          const cx = R() * W, r = (1.2 + R() * 1.6) * S;
+          for (let dy = -r; dy <= r; dy++) {
+            const half = Math.sqrt(Math.max(0, r * r - dy * dy));
+            fill(cx - half, hz - 6 * S + dy, half * 2, 1, P.alder || '#4a6a44');
+          }
+        }
+        fill(W * 0.34, hz - 5 * S, 2 * S, 5 * S, P.foam || '#f4fafa');
+        break;
+      }
+
+      case 'reef': {
+        // 低平沙洲。礁與碎浪線是招牌，但它們都在水裡，畫在水面漸層之後
+        for (let x = 0; x < W; x++) {
+          const h = 2.4 * S + Math.sin(x * 0.1) * S * 0.6;
+          fill(x, hz - h, 1, h + 2, P.midTree);
+          fill(x, hz - h, 1, 1, FG.shade(P.sand || '#eae0c4', 0.1));
+        }
+        for (let i = 0; i < 5; i++) {
+          const cx = R() * W, r = (1 + R() * 1.5) * S;
+          for (let dy = -r; dy <= r; dy++) {
+            const half = Math.sqrt(Math.max(0, r * r - dy * dy));
+            fill(cx - half, hz - 3 * S + dy, half * 2, 1, P.nearTree);
+          }
+        }
+        break;
+      }
+
+      case 'cavern': {
+        // 岩頂 + 倒垂的鐘乳石 + 中央一個亮口。三樣缺一不可：
+        // 少了鐘乳石就是一個山洞剪影，少了亮口整格是黑的
+        fill(0, 0, W, hz, P.farTree);
+        const mw = W * 0.16, mx = W * 0.5, mh = hz * 0.72;
+        for (let y = hz - mh; y < hz; y++) {
+          const t = (hz - y) / mh;
+          const half = t < 0.6 ? mw : mw * Math.sqrt(Math.max(0, 1 - Math.pow((t - 0.6) / 0.4, 2)));
+          if (half < 1) continue;
+          g.fillStyle = FG.mix(P.sky[1], P.sky[P.sky.length - 1], 1 - t);
+          g.fillRect(Math.round(mx - half), y, Math.round(half * 2), 1);
+        }
+        for (let i = 0; i < 16; i++) {
+          const cx = R() * W, h = (1.5 + Math.pow(R(), 1.5) * 7) * S;
+          const w = Math.max(1, h * 0.28);
+          for (let k = 0; k < h; k++) {
+            const ww = Math.max(1, w * (1 - k / h));
+            fill(cx - ww / 2, k, ww, 1, k < h * 0.3 ? (P.stalacLit || '#8f877a') : (P.stalac || '#5f5a52'));
+          }
+        }
+        for (let x = 0; x < W; x++) {
+          const d = Math.min(x / (W * 0.3), (W - 1 - x) / (W * 0.3));
+          if (d > 1) continue;
+          const h = hz * 0.7 * Math.pow(1 - d, 1.3);
+          fill(x, hz - h, 1, h, P.nearTree);
+        }
+        break;
+      }
+
       default:
         for (let i = 0; i < 40; i++) {
           const x = Math.floor(R() * W), hgt = 4 + R() * 8;
@@ -2903,6 +3752,86 @@ window.FG = window.FG || {};
         const rw = (1 + R() * 2) * S;
         fill(x - rw, y, rw * 2, Math.max(1, rw * 0.6), P.pool || '#6fb4c0');
       }
+    }
+
+    // 湍瀨的招牌在水面：斜向流線 + 石頭的 V 字尾流 + 前景巨石
+    if (P.terrain === 'rapids') {
+      const fm = P.foam || '#f4fafa';
+      g.globalAlpha = 0.5;
+      for (let i = 0; i < 26; i++) {
+        const sx = R() * W, sy = hz + R() * (H - hz), len = (2 + R() * 5) * S;
+        const spread = (sx - W / 2) / (W / 2) * 0.5;
+        for (let k = 0; k < len; k++) fill(sx + spread * k, sy + k, 1, 1, P.flow || '#cfe8ec');
+      }
+      g.globalAlpha = 1;
+      for (let i = 0; i < 4; i++) {
+        const cx = R() * W, cy = hz + (2 + R() * 5) * S, r = (1.4 + R() * 2) * S;
+        for (let dy = -r; dy <= r; dy++) {
+          const half = Math.sqrt(Math.max(0, r * r - dy * dy)) * 1.5;
+          fill(cx - half, cy + dy, half * 2, 1, dy < -r * 0.3 ? FG.shade(P.nearTree, 0.3) : P.nearTree);
+        }
+        g.globalAlpha = 0.6;
+        for (let k = 0; k < 5 * S; k++) {
+          fill(cx - r * 1.2 - k * 0.4, cy + r + k * 0.7, 1, 1, fm);
+          fill(cx + r * 1.2 + k * 0.4, cy + r + k * 0.7, 1, 1, fm);
+        }
+        g.globalAlpha = 1;
+      }
+      const fore = P.fore || '#2e3330';
+      [[W * 0.06, H + S, W * 0.22, 5 * S], [W * 0.94, H + 1.5 * S, W * 0.26, 6 * S]].forEach(function (f) {
+        for (let dy = -f[3]; dy <= 0; dy++) {
+          const half = Math.sqrt(Math.max(0, 1 - (dy / (f[3] + 1)) * (dy / (f[3] + 1)))) * f[2];
+          if (f[1] + dy >= H) continue;
+          fill(f[0] - half, f[1] + dy, half * 2, 1, fore);
+        }
+      });
+    }
+
+    // 珊瑚礁的招牌在水面下：碎浪線 + 側視的彩色礁體
+    if (P.terrain === 'reef') {
+      const sy = hz + 3 * S;
+      g.globalAlpha = 0.85;
+      for (let x = 0; x < W; x++) fill(x, sy + Math.sin(x * 0.16) * S * 0.6, 1, Math.max(1, S * 0.8), P.surf || '#ffffff');
+      g.globalAlpha = 1;
+      const cs = P.coral || ['#e85f8f', '#f0913a', '#8f5fd8', '#3fc0a8', '#4a7fe0', '#e8d04a'];
+      g.globalAlpha = 0.5;
+      for (let y = sy + S; y < H; y++) fill(0, y, W, 1, P.sand || '#eae0c4');
+      g.globalAlpha = 1;
+      for (let i = 0; i < 22; i++) {
+        const cx = R() * W, base = sy + (1.5 + R() * 7) * S, hgt = (1.5 + R() * 4) * S;
+        const c = cs[Math.floor(R() * cs.length)];
+        if (R() < 0.45) {                                        // 分枝
+          fill(cx - 0.5 * S, base - hgt, Math.max(1, S), hgt, c);
+          fill(cx - 1.6 * S, base - hgt * 0.8, Math.max(1, S), hgt * 0.8, c);
+          fill(cx + 0.8 * S, base - hgt * 0.7, Math.max(1, S), hgt * 0.7, c);
+        } else {                                                 // 球／桌
+          const r = hgt * 0.7;
+          for (let dy = -r; dy <= 0; dy++) {
+            const half = Math.sqrt(Math.max(0, r * r - dy * dy));
+            fill(cx - half, base + dy, half * 2, 1, dy < -r * 0.5 ? FG.shade(c, 0.25) : c);
+          }
+        }
+      }
+      for (let i = 0; i < 3; i++) {                              // 礁洞
+        const cx = R() * W, cy = sy + (4 + R() * 5) * S, r = (0.8 + R() * 1.2) * S;
+        fill(cx - r - 1, cy - r, r * 2 + 2, r * 2, FG.shade(P.sand || '#eae0c4', -0.3));
+        fill(cx - r, cy - r, r * 2, r * 2, P.cave || '#141d24');
+      }
+    }
+
+    // 洞穴的招牌在水面：兩側夾進來的岩壁 + 洞口漏下來的那道光
+    if (P.terrain === 'cavern') {
+      for (let y = hz; y < H; y++) {
+        const t = (y - hz) / (H - hz);
+        fill(0, y, W * (0.12 + t * 0.2), 1, FG.shade(P.nearTree, 0.06 - t * 0.3));
+        fill(W * (1 - (0.16 + t * 0.24)), y, W * (0.16 + t * 0.24), 1, FG.shade(P.nearTree, -t * 0.3));
+      }
+      for (let y = hz; y < H; y++) {
+        const t = (y - hz) / (H - hz);
+        g.globalAlpha = 0.34 * (1 - t * 0.7);
+        fill(W * 0.5 - (2 + t * 6) * S, y, (4 + t * 12) * S, 1, P.highlight || '#a8f0f0');
+      }
+      g.globalAlpha = 1;
     }
 
     // 神域的縮圖補一座鳥居——它是這個釣點最好認的招牌
@@ -3123,6 +4052,60 @@ window.FG = window.FG || {};
         g.globalAlpha = 0.16 * (1 - k / 12);
         rect(ox + 6 + Math.sin(k * 0.5 + time * 0.002) * 3, oy - k, 8, 1, '#eef4f6');
         rect(ox + 15 + Math.sin(k * 0.4 + time * 0.0016 + 2) * 3, oy - k, 6, 1, '#eef4f6');
+      }
+      g.globalAlpha = 1;
+    }
+    if (deco.flybox) {
+      // 毛鉤標本盒：攤開的木盒 + 兩排插著的毛鉤。**每個毛鉤要有不同的顏色與大小**——
+      // 一排同色同大小的小點會被讀成螺絲或釘子，差異本身就是「這是收藏」的訊號
+      const fx = 8, fy = 18;
+      rect(fx, fy, 30, 20, '#6b4f30');
+      rect(fx, fy, 30, 1, '#8f6c44');
+      rect(fx + 1, fy + 1, 28, 18, '#2f2a24');
+      rect(fx + 15, fy + 1, 1, 18, '#6b4f30');                 // 中間的合頁
+      const fc = ['#c85f4a', '#e0c04a', '#5f9ad8', '#8fc85f', '#d88fb0', '#e8e4d8'];
+      for (let i = 0; i < 12; i++) {
+        const cx = fx + 3 + (i % 6) * 5, cy = fy + 5 + Math.floor(i / 6) * 8;
+        rect(cx, cy, 1, 3 + (i % 3), '#b8b4a8');               // 鉤柄
+        rect(cx - 1, cy - 2, 3, 3, fc[i % fc.length]);         // 綁的毛
+      }
+    }
+    if (deco.floats) {
+      // 玻璃浮球串：三顆**大小不同**的球疊在左下牆角。等大的三顆會被讀成一串珠子，
+      // 大小差異加上麻繩網才是浮球。
+      // ⚠️ 網格線一定要**裁進圓裡**（每一列只畫該列的弦長）。初版直接畫 r*2 的
+      //    整條橫線與豎線，三顆球全變成方塊——圓形被自己的網格蓋掉了。
+      // 位置在地板左下角：魚缸（x 12～136、上緣 y 28）與窗戶（x 146～190）
+      // 把牆面佔滿了，掛在牆上一定會疊到其中一個
+      [[14, 142, 7], [17, 128, 5], [12, 117, 4]].forEach(function (b) {
+        const cx = b[0], cy = b[1], r = b[2];
+        for (let dy = -r; dy <= r; dy++) {
+          const half = Math.floor(Math.sqrt(Math.max(0, r * r - dy * dy)));
+          rect(cx - half, cy + dy, half * 2 + 1, 1, dy < -r * 0.4 ? '#bfe4e8' : '#7fb8bf');
+          if (((dy + r) % 4) === 0) rect(cx - half, cy + dy, half * 2 + 1, 1, '#8a7a5c');   // 橫向網繩
+        }
+        for (let k = -r; k <= r; k += 4) {                     // 縱向網繩：同樣要裁進圓裡
+          const h = Math.floor(Math.sqrt(Math.max(0, r * r - k * k)));
+          rect(cx + k, cy - h, 1, h * 2 + 1, '#8a7a5c');
+        }
+        rect(cx - Math.round(r * 0.5), cy - Math.round(r * 0.6), 2, 2, '#eefaff');          // 玻璃的點高光
+      });
+    }
+    if (deco.driplamp) {
+      // 鐘乳石燈：倒吊的錐 + 內部透光。末端每隔一陣子凝一滴水掉下去——
+      // 那滴水是它跟「一盞吊燈」唯一的差別，所以**必須會動**
+      const dx = 118, dh = 26;
+      for (let k = 0; k < dh; k++) {
+        const w = Math.max(1, 9 * Math.pow(1 - k / dh, 0.7));
+        rect(dx - w / 2, k, w, 1, k % 5 === 2 ? '#57503f' : '#7a705c');
+        if (k > dh * 0.45) rect(dx - w / 2, k, Math.max(1, w * 0.4), 1, '#e0c88f');   // 透出來的光
+      }
+      const phase = (time * 0.0016) % 1;
+      if (phase < 0.55) rect(dx, dh + phase * 30, 1, 2, '#cfeef8');                   // 落下的那一滴
+      rect(dx - 1, dh - 1, 3, 2, '#f0e0a8');
+      for (let k = 0; k < 5; k++) {                                                   // 燈暈
+        g.globalAlpha = 0.09 * (1 - k / 5);
+        rect(dx - 4 - k, dh - 4 - k, 9 + k * 2, 9 + k * 2, '#f0e0a8');
       }
       g.globalAlpha = 1;
     }

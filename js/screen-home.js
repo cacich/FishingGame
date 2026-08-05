@@ -232,7 +232,10 @@ window.FG = window.FG || {};
     shishi:    { pal: { a: '#a8b45f', b: '#6b5a34', c: '#7f7a70', d: '#bfe4f2' }, map: ['................','...aaaa.........','..aaaaaa........','...b...aaa......','...b......aa....','...b........d...','...b.....ccc....','...b....ccccc...'] },
     shellrack: { pal: { a: '#7a5a38', b: '#e8dcc0', c: '#d8b8a0', d: '#c8ccd8' }, map: ['..bb..cc..dd....','.bbbb.cccc.dddd.','aaaaaaaaaaaaaaa.','..cc..dd..bb....','.cccc.dddd.bbbb.','aaaaaaaaaaaaaaa.','..dd..bb..cc....','aaaaaaaaaaaaaaa.'] },
     cascade:   { pal: { a: '#6f6a60', b: '#dff2f8', c: '#9fd8e8' }, map: ['....aaaaaa......','....a....a......','......bb........','......cb........','......bb........','...aaaaaaaa.....','...abbbbbba.....','...aaaaaaaa.....'] },
-    onsen:     { pal: { a: '#c8a46a', b: '#7f6438', c: '#9fd0d8', d: '#eef4f6' }, map: ['...d....d.......','....d..d........','..aaaaaaaaaa....','..acccccccca....','..bbbbbbbbbb....','..aaaaaaaaaa....','..bbbbbbbbbb....','..aaaaaaaaaa....'] }
+    onsen:     { pal: { a: '#c8a46a', b: '#7f6438', c: '#9fd0d8', d: '#eef4f6' }, map: ['...d....d.......','....d..d........','..aaaaaaaaaa....','..acccccccca....','..bbbbbbbbbb....','..aaaaaaaaaa....','..bbbbbbbbbb....','..aaaaaaaaaa....'] },
+    flybox:    { pal: { a: '#6b4f30', b: '#2f2a24', c: '#c85f4a', d: '#e0c04a', e: '#5f9ad8' }, map: ['aaaaaaaaaaaaaa..','abbbbbbabbbbba..','ab.c.d.ab.e.c.a.','ab.b.b.ab.b.b.a.','ab.e.c.ab.d.e.a.','ab.b.b.ab.b.b.a.','abbbbbbabbbbba..','aaaaaaaaaaaaaa..'] },
+    floats:    { pal: { a: '#7fb8bf', b: '#bfe4e8', c: '#8a7a5c' }, map: ['......c.........','...bbb.c..bb....','..babab.cbabab..','..bababc.babab..','...bbb.c..bb....','......c...b.....','.....bab........','......b.........'] },
+    driplamp:  { pal: { a: '#7a705c', b: '#57503f', c: '#e0c88f', d: '#cfeef8' }, map: ['...aaaaaa.......','....abba........','....acca........','.....ac.........','.....ac.........','.....cc.........','................','.....d..........'] }
   };
   function decoIcon(d) {
     const def = DECO_ART[d.id];
