@@ -61,7 +61,10 @@ window.FG = window.FG || {};
     du_king_osiris:      { motif: 'reveal', particle: 'drift', title: '不　死', tone: [220, 277, 330, 440, 554] },
     rp_king_fuseki:      { motif: 'reveal', particle: 'drift', title: '伏　石', tone: [294, 247, 330, 392] },
     cr_king_ruri:        { motif: 'spiral', particle: 'burst', title: '琉　璃', tone: [392, 494, 659, 880, 1046] },
-    cv_king_chosoku:     { motif: 'emerge', particle: 'up',    title: '長　息', tone: [175, 220, 262, 330] }
+    cv_king_chosoku:     { motif: 'emerge', particle: 'up',    title: '長　息', tone: [175, 220, 262, 330] },
+    // 名字本身就是一段演出：圓的橘色東西從水裡浮起來。所以 motif 用 emerge，
+    // 音階是一路上行的大調（其他 emerge 三位都收在較低的音）
+    dp_king_sunrise:     { motif: 'emerge', particle: 'up',    title: '日　出', tone: [262, 330, 392, 523, 659] }
   };
 
   // 新增的魚王忘了補 KING 表時用這個。刻意不報錯——少一筆資料不該讓玩家

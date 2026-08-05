@@ -235,7 +235,8 @@ window.FG = window.FG || {};
     onsen:     { pal: { a: '#c8a46a', b: '#7f6438', c: '#9fd0d8', d: '#eef4f6' }, map: ['...d....d.......','....d..d........','..aaaaaaaaaa....','..acccccccca....','..bbbbbbbbbb....','..aaaaaaaaaa....','..bbbbbbbbbb....','..aaaaaaaaaa....'] },
     flybox:    { pal: { a: '#6b4f30', b: '#2f2a24', c: '#c85f4a', d: '#e0c04a', e: '#5f9ad8' }, map: ['aaaaaaaaaaaaaa..','abbbbbbabbbbba..','ab.c.d.ab.e.c.a.','ab.b.b.ab.b.b.a.','ab.e.c.ab.d.e.a.','ab.b.b.ab.b.b.a.','abbbbbbabbbbba..','aaaaaaaaaaaaaa..'] },
     floats:    { pal: { a: '#7fb8bf', b: '#bfe4e8', c: '#8a7a5c' }, map: ['......c.........','...bbb.c..bb....','..babab.cbabab..','..bababc.babab..','...bbb.c..bb....','......c...b.....','.....bab........','......b.........'] },
-    driplamp:  { pal: { a: '#7a705c', b: '#57503f', c: '#e0c88f', d: '#cfeef8' }, map: ['...aaaaaa.......','....abba........','....acca........','.....ac.........','.....ac.........','.....cc.........','................','.....d..........'] }
+    driplamp:  { pal: { a: '#7a705c', b: '#57503f', c: '#e0c88f', d: '#cfeef8' }, map: ['...aaaaaa.......','....abba........','....acca........','.....ac.........','.....ac.........','.....cc.........','................','.....d..........'] },
+    beacon:    { pal: { a: '#5a5a66', b: '#2a2a34', c: '#dff0f4', d: '#a8c8d0', e: '#ffe9b8' }, map: ['.......bb.......','..aaaaaaaaaaaa..','..bcdcdcdcdcdb..','..bdcdcdcdcdcb..','..bcdcdcdcdcdb..','..aaaaaaaaaaaa..','.....bbbbbb.....','....eeeeeeee....'] }
   };
   function decoIcon(d) {
     const def = DECO_ART[d.id];

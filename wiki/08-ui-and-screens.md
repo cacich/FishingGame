@@ -93,7 +93,7 @@
 
 同樣條件下 8 個釣點，原本的 `.seg` 會折成三行（高 67px），`.seg-scroll` 仍然是 33px。
 
-**15 個釣點 @ 320px 實測**：15 顆按鈕**全部 33px 高**（`offsetHeight` 只有一種值）、沒有折行，`seg.scrollWidth > clientWidth`（橫向可捲、邊緣漸層有出現），`document.body` 沒有橫向溢出。跟 12 個釣點時的量測完全一樣——這正是 `flex: 0 0 auto` 該有的行為。
+**16 個釣點 @ 320px 實測**：16 顆按鈕**全部 33px 高**（`offsetHeight` 只有一種值）、沒有折行，`seg.scrollWidth > clientWidth`（橫向可捲、邊緣漸層有出現），`document.body` 沒有橫向溢出；釣點選單的 16 張卡片高度也只有一種值（69px），彈窗沒有橫向溢出。跟 12／15 個釣點時的量測完全一樣——這正是 `flex: 0 0 auto` 該有的行為。
 
 > **`.seg-scroll` 的按鈕是 `flex: 0 0 auto`，所以寬高完全不隨數量變化。** 也就是說它**沒有數量上限**——加到第二十個釣點，按鈕還是 33px 高。真正的上限是玩家願意橫向捲多遠，那是體驗問題不是版面問題。
 
@@ -243,7 +243,7 @@ box-shadow:
 - `.motif-emerge|charge|spiral|reveal` 決定魚怎麼進場、要不要黑幕／符文環。
 - `.pm-up|burst|drift` 決定粒子動線。
 
-顏色走兩個 CSS 變數 `--ci-key` / `--ci-accent`，由 `cutin.js` 從魚自己的 `colors.glow` / `colors.pattern` 寫進 style。**不要在 CSS 裡寫死稀有度顏色**——那樣十五位魚王會長得一樣。放射線與光帶用 `currentColor` 配 `color: var(--ci-key)`，因為 gradient 裡不能直接吃自訂屬性當色票。
+顏色走兩個 CSS 變數 `--ci-key` / `--ci-accent`，由 `cutin.js` 從魚自己的 `colors.glow` / `colors.pattern` 寫進 style。**不要在 CSS 裡寫死稀有度顏色**——那樣十六位魚王會長得一樣。放射線與光帶用 `currentColor` 配 `color: var(--ci-key)`，因為 gradient 裡不能直接吃自訂屬性當色票。
 
 三個硬性約束：
 

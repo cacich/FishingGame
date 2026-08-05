@@ -207,7 +207,12 @@ window.FG = window.FG || {};
     // 洞螈：長管身 ＋ **側扁的圓槳尾**（tailH .50、fork 0），鰭褶只在尾側三成。
     // serpent 的尾是收成一點的（tailH .14），lungfish 的鰭緣鋪滿後半身——
     // 這一種是「前面光溜溜、後面一支槳」，加上外鰓與四肢才成立
-    olm:      { bodyLen: .76, bodyH: .19, gamma: 1.12, e: .36, tailLen: .13, tailH: .50, fork: .00, dorsal: .16, dorsalAt: [.02, .30], anal: .13, analAt: [.02, .26] }
+    olm:      { bodyLen: .76, bodyH: .19, gamma: 1.12, e: .36, tailLen: .13, tailH: .50, fork: .00, dorsal: .16, dorsalAt: [.02, .30], anal: .13, analAt: [.02, .26] },
+    // 章魚：**gamma 1.00 ＋ e .50 ＝ 一個正橢圓**，而 bodyLen .42 與 bodyH .74 讓那個
+    // 橢圓的長寬幾乎相等——也就是一個圓。這是全檔唯一刻意畫成圓的輪廓，也是
+    // 「圓圓的太陽升起」這個名字的來源。尾鰭與各鰭全部壓到接近零（頭足類沒有鰭），
+    // 身體後方留給 `arms` 的八條腕；沒有 arms 的話它只是一顆球
+    octopus:  { bodyLen: .42, bodyH: .74, gamma: 1.00, e: .50, tailLen: .05, tailH: .08, fork: .00, dorsal: .04, dorsalAt: [.34, .52], anal: .04, analAt: [.34, .52] }
   };
 
   const SPR_W = 96, SPR_H = 56, MARGIN = 4;
@@ -834,6 +839,78 @@ window.FG = window.FG || {};
         if (b >= 0 && b < W * H && col[b]) col[b] = FG.shade(skin, 0.14);
       }
     }
+    // --- 腕足（頭足類）---
+    // 八條從外套膜後緣往畫面左方散開的腕。三件事缺一不可，少一件就變成水母：
+    //   1. **基部粗、末端細，而且末端要捲。** 等寬又直的線一律被讀成觸手或繩子。
+    //   2. **一列吸盤。** 每三格點一顆淺色，這是「腕」跟「觸手」唯一的分界。
+    //   3. **遠側的四條要壓暗。** 側視看到的八條若全同色會糊成一片扇形；一深一淺
+    //      交錯排才數得出有很多條。這條跟 `limbs` 的處理是同一個道理。
+    // 腕往**尾側**（x 變小）長，所以不必登記 HEAD_ROOM——那張表只管吻端前方。
+    if (sp.indexOf('arms') >= 0) {
+      const ac = C.arm || FG.mix(body, back, 0.3);
+      const su = C.sucker || FG.shade(belly, 0.16);
+      // [附著點的縱向比例(−上 +下), 長度, 每格的縱向漂移, 是否為遠側]
+      const ARMS = [[-0.86, 20, -0.42, 0], [-0.58, 25, -0.24, 1], [-0.28, 28, -0.06, 0], [-0.04, 30, 0.06, 1],
+                    [0.22, 29, 0.20, 0], [0.48, 26, 0.38, 1], [0.70, 22, 0.56, 0], [0.88, 18, 0.72, 1]];
+      ARMS.forEach(function (a) {
+        const c = a[3] ? FG.shade(ac, -0.30) : ac;
+        const rim = FG.shade(c, -0.34);
+        const t0 = 0.16;
+        const bx = x0 + bodyW * t0;
+        const by = cy + a[0] * profile(t0);
+        // ⚠️ 取樣密度：步距要小於 1px，而且**每一步要把上一個取樣點的 y 補起來**。
+        //    初版一格一格畫（步距 0.92px），末段的急彎讓 y 一次跳兩三格，八條腕
+        //    全部斷成虛線——lantern 的弧形竿踩過同一個坑（見上方 §特殊特徵的三條經驗）
+        const steps = a[1] * 2;
+        let py = Math.round(by);
+        for (let s = 1; s <= steps; s++) {
+          const u = s / steps;
+          // 末端捲起來：縱向漂移用 u^1.6 加權，前段幾乎是直的、末段急彎
+          const x = Math.round(bx - u * a[1] * 0.92);
+          // 蜿蜒的振幅往末端收掉：末端還在抖的話 1px 寬的腕尖會散成幾顆孤立的點
+          const y = Math.round(by + a[2] * a[1] * Math.pow(u, 1.6) + Math.sin(s * 0.12) * 1.4 * (1 - u * 0.75));
+          const th = Math.max(1, Math.round(3.4 * Math.pow(1 - u, 0.55)));
+          const ya = Math.min(py, y), yb = Math.max(py, y) + th - 1;
+          for (let yy = ya; yy <= yb; yy++) {
+            if (x < 0 || x >= W || yy < 0 || yy >= H) continue;
+            col[yy * W + x] = (yy === yb && th > 1) ? rim : c;
+          }
+          // 吸盤：貼在腕的上緣，每三格一顆。腕太細（末段）就不畫，1px 寬的腕上
+          // 再點一顆淺色等於把那一格的腕擦掉
+          if (s % 6 === 1 && th >= 2 && x >= 0 && x < W && y >= 0 && y < H) col[y * W + x] = su;
+          py = y;
+        }
+      });
+    }
+    // --- 橫長瞳（頭足類）---
+    // 章魚的眼睛是一條**水平的長方形瞳孔**，這是「這不是魚」最便宜的訊號——
+    // 圓瞳配上圓身體會被讀成一顆有眼睛的球。眼球也要比魚眼大得多（7×5 而不是 3×3），
+    // 頭足類的眼佔頭部的比例本來就誇張。位置刻意跟預設的眼睛完全重疊，直接蓋掉它
+    if (sp.indexOf('slitEye') >= 0) {
+      const ex = Math.round(x0 + bodyW * 0.87);
+      const ey = Math.round(cy - profile(0.87) * 0.28);
+      const eyeW = C.eyeWhite || '#f4f8fb';
+      const pupil = C.pupil || '#141a20';
+      for (let dy = -2; dy <= 2; dy++) for (let dx = -3; dx <= 3; dx++) {
+        if (Math.abs(dx) === 3 && Math.abs(dy) === 2) continue;      // 切四個角＝眼球是圓的
+        const x = ex + dx, y = ey + dy;
+        if (x < 0 || x >= W || y < 0 || y >= H) continue;
+        const i = y * W + x;
+        if (col[i]) col[i] = eyeW;
+      }
+      for (let dx = -2; dx <= 2; dx++) {                             // 水平長瞳
+        const x = ex + dx;
+        if (x < 0 || x >= W || ey < 0 || ey >= H) continue;
+        const i = ey * W + x;
+        if (col[i]) col[i] = pupil;
+      }
+      for (let dx = -3; dx <= 2; dx++) {                             // 上眼瞼的稜，讓眼睛鼓出來
+        const x = ex + dx, y = ey - 3;
+        if (x < 0 || x >= W || y < 0 || y >= H) continue;
+        const i = y * W + x;
+        if (col[i]) col[i] = FG.shade(back, -0.24);
+      }
+    }
 
     // --- 描邊 ---
     const outCol = new Array(W * H).fill(null);
@@ -1160,6 +1237,26 @@ window.FG = window.FG || {};
       ]
     },
     // 深淵用：辨識不出物種的魚骨。頭在左、脊椎往右、肋骨是垂直短線
+    // 舷窗：辨識全靠**銅環 ＋ 一側的鉸鏈／蝶形螺栓**。少了那幾顆凸出來的螺栓，
+    // 一個同心圓會被讀成硬幣或圓盾（shield 就是靠中央凸飾才分得出來）。
+    // 破損照慣例做不對稱：裂縫從右上斜切下來，右下角的玻璃整塊不見了
+    porthole: {
+      pal: { R: '#7a5a24', B: '#d8b45a', g: '#5f7f8c', h: '#a8c8d4', k: '#1a1620', o: '#b89a48' },
+      map: [
+        '.....RRRR.....',
+        '...BBBBBBBB...',
+        '..BBggggggBB..',
+        '..BBghhgkgBB..',
+        'oBBgghhkgggRR.',
+        'oBBgggkggggRR.',
+        '.BBggkkggggRRo',
+        '.RRgggkg...RR.',
+        '..RRgggg..RR..',
+        '..RRRRRRRRRR..',
+        '...RRRRRRRR...',
+        '.....RRRR.....'
+      ]
+    },
     bone: {
       pal: { b: '#e6e0cc', o: '#2a2822' },
       map: [
@@ -3191,6 +3288,320 @@ window.FG = window.FG || {};
     }
   };
 
+  /* ------------------------------------------------------------
+     wreck · 曉日沉港
+
+     它佔的兩條辨識軸都是新的（見 wiki 06 §十五種地形各自佔了哪一條辨識軸）：
+
+     一 · **地平線上一顆巨大的天體。** 前十五種地形沒有任何一種畫太陽或月亮——
+          天空一律只有漸層（外加 night/yggdrasil 的星點與極光）。一顆半徑 34 的
+          日盤壓在地平線上，一行公式就把「破曉」跟「逆光」同時講完，而且它
+          順便解釋了為什麼港區全是剪影（＝畫得便宜）。
+
+     二 · **同一個物件跨越水線。** yggdrasil 的樹幹畫到地平線就交給倒影，其他
+          地形的物件也一律只在水上或只在水下。這裡的船殼是**一個**物件：上部
+          構造在 above()，同一段 x 範圍的水下船身在 below()，中間用船底漆
+          （redlead）與藤壺帶接起來。玩家讀到的是「這艘船有一半在水裡」。
+
+     ★ 日盤的亮度遠高於倒影的門檻（150），所以它**不會有倒影**（同 karst 的白牆）。
+       水面那道日照光路因此必須自己畫，就在 below() 裡。
+     ------------------------------------------------------------ */
+  const SUN_X = 128, SUN_R = 34;
+
+  TERRAIN.wreck = {
+    above: function (T) {
+      const { P, R, W, horizon, rect } = T;
+      const g = T.g;
+
+      function shades(base) {
+        return [FG.shade(base, -0.5), FG.shade(base, -0.3), FG.shade(base, -0.12),
+                base, FG.shade(base, 0.2), FG.shade(base, 0.44)];
+      }
+      const BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
+      function dither(x, y, sh, lv) {
+        const i = FG.clamp(Math.round(lv) + (BAYER[y & 3][x & 3] > 7 ? 1 : 0), 0, sh.length - 1);
+        return sh[i];
+      }
+
+      const sunC = P.sun || '#ffe6a8';
+      const sunS = shades(sunC);
+      const sy = horizon - 18;              // 日心壓在地平線上方一點，盤的下緣被水切掉
+
+      // --- 日暈：寬而淡，一圈一圈往外遞減。不要畫成一個亮環（那會變成靶紙）---
+      for (let k = 0; k < 30; k++) {
+        g.globalAlpha = 0.05 * (1 - k / 30);
+        const r = SUN_R + k * 2.4;
+        for (let y = Math.max(0, Math.round(sy - r)); y < Math.min(horizon, Math.round(sy + r)); y++) {
+          const half = Math.sqrt(Math.max(0, r * r - (y - sy) * (y - sy)));
+          rect(SUN_X - half, y, half * 2, 1, sunC);
+        }
+      }
+      g.globalAlpha = 1;
+
+      // --- 日盤：六階明度的圓，中心最亮。全畫面最亮的東西 ---
+      for (let y = Math.max(0, Math.round(sy - SUN_R)); y < horizon; y++) {
+        const dy = y - sy;
+        const half = Math.sqrt(Math.max(0, SUN_R * SUN_R - dy * dy));
+        if (half < 1) continue;
+        for (let x = Math.round(SUN_X - half); x <= Math.round(SUN_X + half); x++) {
+          const d = Math.hypot(x - SUN_X, dy) / SUN_R;
+          // 邊緣偏橘、中心接近白：破曉的太陽在地平線上一定是這個方向
+          rect(x, y, 1, 1, dither(x, y, sunS, 5.4 - d * 2.6));
+        }
+      }
+
+      // --- 雲層：橫過整個天空的薄帶，會切過日盤 ---
+      // 只畫在日盤上會被讀成「太陽有條紋」；橫貫整片天空才是雲。
+      // 這也是這片天空色階數的主要來源
+      [[0.24, 5, 0.30], [0.44, 3, 0.22], [0.62, 6, 0.26], [0.78, 4, 0.18]].forEach(function (c, ci) {
+        const base = horizon * c[0];
+        for (let x = 0; x < W; x++) {
+          const th = c[1] * (0.5 + 0.5 * Math.sin(x * 0.045 + ci * 2.1));
+          for (let k = 0; k < th; k++) {
+            g.globalAlpha = c[2] * (1 - k / Math.max(1, th));
+            rect(x, base + Math.sin(x * 0.03 + ci) * 4 + k, 1, 1, ci % 2 ? P.hill : sunC);
+          }
+        }
+      });
+      g.globalAlpha = 1;
+
+      // --- 遠景：外港防波堤 + 一座導標塔。逆光所以只有輪廓 ---
+      const farS = shades(P.farTree);
+      for (let x = 0; x < W; x++) {
+        const h = 4 + Math.sin(x * 0.02 + 1) * 1.6 + (x > 150 ? 3 : 0);
+        for (let y = horizon - h; y < horizon; y++) rect(x, y, 1, 1, dither(x, y, farS, 3.4));
+      }
+      for (let k = 0; k < 22; k++) {          // 導標塔：往上收的窄塔，頂端一格燈
+        const w = Math.max(2, 7 - Math.round(k / 5));
+        rect(28 - w / 2, horizon - 4 - k, w, 1, dither(28, k, farS, k < 4 ? 4.6 : 2.6));
+      }
+      rect(27, horizon - 27, 3, 2, sunC);
+
+      // --- 中景：倉庫群。鋸齒屋頂＋等距的窗，人造物靠規律辨認（同 pond 的原則）---
+      const midS = shades(P.midTree);
+      [[0, 44, 22], [46, 34, 17], [166, 34, 20]].forEach(function (b) {
+        const bx = b[0], bw = b[1], bh = b[2];
+        for (let x = bx; x < bx + bw; x++) {
+          // 鋸齒屋頂：每 10px 一個斜面（工廠採光窗的形狀）
+          const saw = ((x - bx) % 10) * 0.7;
+          for (let y = horizon - bh - saw; y < horizon; y++) rect(x, y, 1, 1, dither(x, y, midS, 2.2));
+        }
+        for (let i = 0; i < Math.floor(bw / 8); i++) {
+          rect(bx + 3 + i * 8, horizon - bh * 0.5, 3, 4, FG.shade(P.midTree, -0.42));
+        }
+      });
+
+      // --- 中景：兩座門式起重機。垂直桁架 ＋ 斜的吊桿 ＋ 垂下來的鉤 ---
+      // 「人造的鋼架」是這一格的第二個識別，桁架的交叉斜撐一定要畫，
+      // 兩根光溜溜的柱子會被讀成電線桿
+      const cr = P.crane || '#15121c';
+      [[74, 46, 1], [188, 34, -1]].forEach(function (c) {
+        const cx = c[0], ch = c[1], dir = c[2];
+        rect(cx - 2, horizon - ch, 4, ch, cr);                       // 主柱
+        for (let k = 0; k < ch; k += 6) {                            // 交叉斜撐
+          rect(cx - 6, horizon - ch + k, 2, 2, cr);
+          rect(cx + 4, horizon - ch + k + 3, 2, 2, cr);
+        }
+        for (let k = 0; k < 26; k++) rect(cx + dir * k, horizon - ch + k * 0.42, 2, 2, cr);   // 吊桿
+        rect(cx + dir * 24, horizon - ch + 11, 1, 14, cr);                                    // 吊索
+        rect(cx + dir * 23, horizon - ch + 25, 3, 3, cr);                                     // 吊鉤
+      });
+
+      // --- 主角：擱在防波堤內側的貨輪。上部構造在這裡，水下船身在 below() ---
+      // 甲板線刻意往右上傾（船頭抬起＝擱淺的姿態）。傾斜是這艘船「壞了」的訊號，
+      // 水平的甲板線只會讀成一艘停著的船
+      const hull = P.hull || '#1f1a22';
+      const hullS = shades(hull);
+      const lit = P.hullLit || '#ffc478';
+      const rust = P.rust || '#8a4326';
+      const HX0 = 50, HX1 = 176;
+      const deckY = function (x) { return horizon - 12 - (x - HX0) * 0.13; };
+
+      for (let x = HX0; x <= HX1; x++) {
+        const dy = deckY(x);
+        for (let y = dy; y < horizon; y++) {
+          // 越靠水線越暗（逆光下的船殼只有上緣受光）
+          rect(x, y, 1, 1, dither(x, y, hullS, 1.9 - (y - dy) / 14));
+        }
+        rect(x, dy, 1, 1, lit);                                      // 甲板緣的逆光邊緣光
+        // 縱向鏽流：每隔幾列從甲板往下淌一段。這是船殼上唯一的暖色，也是資訊密度的來源
+        if ((x * 7) % 23 < 2) {
+          const rl = 4 + ((x * 13) % 11);
+          for (let k = 0; k < rl && dy + k < horizon; k++) {
+            g.globalAlpha = 0.5 - k / rl * 0.35;
+            rect(x, dy + k, 1, 1, rust);
+          }
+          g.globalAlpha = 1;
+        }
+        if ((x - HX0) % 9 === 0) {                                   // 鉚釘列
+          for (let y = dy + 3; y < horizon; y += 5) rect(x, y, 1, 1, FG.shade(hull, 0.22));
+        }
+      }
+      // 船頭：往右收的尖艏。少了它就是一塊長方形的鐵板
+      for (let k = 0; k < 16; k++) {
+        const x = HX1 + k;
+        if (x >= W) break;
+        const dy = deckY(HX1) + k * 1.5;
+        for (let y = dy; y < horizon; y++) rect(x, y, 1, 1, dither(x, y, hullS, 1.4));
+        rect(x, dy, 1, 1, lit);
+      }
+
+      // 上部構造（駕駛台）：三層，每層一排窗。窗要是**黑的**——逆光的建物開口
+      // 一律比外殼更暗，畫成亮的會變成一棟有人住的房子
+      const bx = 96, bw = 34, bTop = deckY(bx) - 30;
+      for (let x = bx; x < bx + bw; x++) {
+        for (let y = bTop; y < deckY(x); y++) rect(x, y, 1, 1, dither(x, y, hullS, 1.6));
+        rect(x, bTop, 1, 1, lit);
+      }
+      for (let lv = 0; lv < 3; lv++) {
+        for (let i = 0; i < 6; i++) {
+          rect(bx + 3 + i * 5, bTop + 5 + lv * 8, 3, 3, FG.shade(hull, -0.55));
+        }
+      }
+      // 煙囪：往上略收，頂緣一道逆光。它跟駕駛台的方塊擺在一起才像一艘船
+      for (let k = 0; k < 24; k++) {
+        const w = 13 - k * 0.16;
+        rect(136 - w / 2 + k * 0.1, deckY(136) - k, w, 1, dither(136, k, hullS, k < 3 ? 3.0 : 1.5));
+      }
+      rect(130, deckY(136) - 24, 12, 1, lit);
+      // 前桅：桅桿＋橫桁＋兩道支索。1px 的斜索在這個尺寸讀得出來，因為它有兩端
+      rect(66, deckY(66) - 42, 2, 42, cr);
+      rect(58, deckY(66) - 30, 18, 2, cr);
+      for (let k = 0; k < 20; k++) rect(66 - k * 0.9, deckY(66) - 42 + k * 2.1, 1, 1, cr);
+      for (let k = 0; k < 20; k++) rect(67 + k * 0.8, deckY(66) - 42 + k * 2.1, 1, 1, cr);
+      // 斷掉的吊桿：斜插著、末端垂到甲板。它是「這艘船已經壞了」最直接的一筆
+      for (let k = 0; k < 30; k++) rect(150 + k * 0.75, deckY(150) - 26 + k * 0.9, 2, 2, cr);
+
+      // --- 海鳥：三筆一隻，全部朝同一個方向。逆光下只有輪廓 ---
+      const bird = P.bird || '#120f18';
+      for (let i = 0; i < 7; i++) {
+        const x = 12 + R() * (W - 24), y = 12 + R() * (horizon * 0.5);
+        const s = R() < 0.4 ? 2 : 1;
+        rect(x, y, s, s, bird);
+        rect(x - s * 2, y - s, s, s, bird);
+        rect(x + s * 2, y - s, s, s, bird);
+      }
+    },
+    below: function (T) {
+      const { P, R, W, H, horizon, rect } = T;
+      const g = T.g;
+
+      const hull = P.hull || '#1f1a22';
+      const HX0 = 50, HX1 = 176;
+      const deckY = function (x) { return horizon - 12 - (x - HX0) * 0.13; };
+
+      // --- 水下船身：跟 above() 同一段 x，接在水線下 ---
+      // ★ 這是這個地形的第二條軸。三件事讓它讀起來是「同一個物件的延續」而不是倒影：
+      //   1. 水線上一條**飽和的船底漆紅**（全畫面唯一的高彩度色）
+      //   2. 紅帶下面一條藤壺白：船在同一個吃水線上停了很久
+      //   3. 往下逐列變暗變藍，並且**船腹往內收**（船體是有形狀的，不是一塊板）
+      const red = P.redlead || '#a4432a';
+      const barn = P.barnacle || '#d8ccb4';
+      const depth = 52;
+      for (let k = 0; k < depth; k++) {
+        const y = horizon + 2 + k;
+        if (y >= H) break;
+        const t = k / depth;
+        // 船腹的收縮：前段幾乎垂直，後段快速往內收
+        const inset = Math.pow(t, 2.2) * 46;
+        const x0 = HX0 + inset * 0.55, x1 = HX1 + 14 - inset;
+        if (x1 <= x0) break;
+        // ⚠️ 明度必須從水線的**亮**一路走到深處的**暗**，不能整塊都用船殼色。
+        //    初版用 shade(hull, 0.10 − t·0.5)，水下船身的亮度（≈48）跟 waterTop（≈44）
+        //    差不到一階，整艘船的下半截等於沒畫——而「跨越水線」正是這個地形的第二條軸。
+        //    現在的解釋也是物理的：低角度的陽光只穿得進水面下那一公尺。
+        const b0 = 0.5 - t * 1.1;
+        for (let x = Math.round(x0); x <= Math.round(x1); x++) {
+          let c;
+          if (k < 3) c = red;                                   // 船底漆
+          else if (k < 5) c = ((x * 5) % 7 < 3) ? barn : FG.shade(red, -0.3);   // 藤壺帶（點狀，不要整條）
+          else c = FG.shade(hull, b0);
+          rect(x, y, 1, 1, c);
+        }
+        // 外板的接縫：每 7 列一道較暗的橫線，讓水下這一塊不是平塗
+        if (k > 5 && k % 7 === 3) rect(x0, y, x1 - x0, 1, FG.shade(hull, b0 - 0.28));
+      }
+      // 破口：船殼上兩個往裡看的黑洞。有洞才解釋得通「魚住在船裡面」
+      [[92, 22, 15, 11], [148, 34, 11, 8]].forEach(function (b) {
+        for (let dy = 0; dy < b[3]; dy++) {
+          const half = b[2] * 0.5 * Math.sqrt(Math.max(0, 1 - Math.pow((dy - b[3] / 2) / (b[3] / 2), 2)));
+          rect(b[0] - half, horizon + b[1] + dy, half * 2, 1, '#0a0810');
+        }
+        rect(b[0] - b[2] * 0.4, horizon + b[1], b[2] * 0.8, 1, FG.shade(hull, 0.3));   // 破口上緣的翻邊
+      });
+
+      // --- 日照光路：從日盤正下方往觀者展開的一片碎光 ---
+      // 刻意做成**斷開的橫向短劃**而不是一條連續亮帶（cavern 的洞口光是連續的，
+      // 撞上去就等於白做一種地形）。真實的日照海路本來也是一片碎光
+      const hi = P.highlight || '#ffdca0', hi2 = P.highlight2 || '#c8785a';
+      for (let y = horizon + 2; y < H; y++) {
+        const t = (y - horizon) / (H - horizon);
+        const spread = 10 + t * 78;
+        const n = 3 + Math.round(t * 7);
+        for (let i = 0; i < n; i++) {
+          const off = (R() * 2 - 1) * spread;
+          const w = 1 + Math.round(R() * (1 + t * 4));
+          g.globalAlpha = (0.55 - Math.abs(off) / spread * 0.42) * (1 - t * 0.45);
+          if (g.globalAlpha <= 0.02) continue;
+          rect(SUN_X + off, y, w, 1, R() < 0.35 ? hi2 : hi);
+        }
+      }
+      g.globalAlpha = 1;
+
+      // --- 半沉的木樁：碼頭剩下的那一排 ---
+      // ⚠️ 這一版的水面是平塗，物件必須自己帶著水下的體積（wiki 11 §31）。
+      //    所以每根樁先畫一塊往下的深色橢圓，再把露出水面的那一段畫在上面
+      [[10, 16, 7], [24, 11, 5], [38, 7, 4]].forEach(function (p) {
+        const px0 = p[0], up = p[1], pw = p[2];
+        for (let k = 0; k < 20; k++) {                          // 水下的體積
+          const half = pw * 0.9 * (1 - k / 26);
+          g.globalAlpha = 0.5 - k / 40;
+          rect(px0 - half, horizon + 4 + k, half * 2, 1, '#0d0a14');
+        }
+        g.globalAlpha = 1;
+        for (let k = 0; k < up; k++) {
+          const y = horizon + 3 - k;
+          rect(px0 - pw / 2, y, pw, 1, FG.shade(hull, 0.14 - k * 0.01));
+          rect(px0 - pw / 2, y, 1, 1, FG.shade(hull, 0.4));     // 受光的左緣
+        }
+        rect(px0 - pw / 2, horizon + 2, pw, 2, barn);            // 吃水線的藤壺環
+      });
+
+      // --- 蛸壺串：一條繩子上掛著四只陶壺，沉在船頭外側 ---
+      // 這是這個釣點在說「這裡抓的是章魚」的地方。壺口一律朝外側（朝右），
+      // 那個朝向就是它跟一串珠子的差別。位置避開船（x 40～150、y 216～268）
+      const pot = P.pot || '#96694a';
+      const ropeX = function (k) { return 182 + Math.sin(k * 0.5) * 3; };
+      for (let k = 0; k < 96; k++) {
+        const y = horizon + 6 + k;
+        if (y >= H) break;
+        rect(ropeX(k / 8), y, 1, 1, FG.shade(pot, -0.4));
+      }
+      [14, 38, 60, 84].forEach(function (k) {
+        const cx = ropeX(k / 8) + 2, cy = horizon + 6 + k, r = 7;
+        for (let dy = -r; dy <= r; dy++) {
+          const half = r * Math.sqrt(Math.max(0, 1 - (dy / r) * (dy / r))) * 0.82;
+          if (cy + dy >= H) break;
+          rect(cx - half, cy + dy, half * 2, 1, dy < -r * 0.4 ? FG.shade(pot, 0.22) : pot);
+        }
+        rect(cx + r * 0.5, cy - 2, 3, 4, '#0d0a12');            // 朝外的壺口
+        rect(cx - 3, cy - r + 1, 2, 2, FG.shade(pot, 0.36));    // 圓肚上的點高光
+      });
+
+      // --- 水面的油膜：幾塊虹彩。這是全畫面唯一的冷色，也是「這裡有船漏油」的證據 ---
+      for (let i = 0; i < 5; i++) {
+        const cx = 20 + R() * (W - 40), cy = horizon + 20 + R() * (H - horizon - 40);
+        const rw = 10 + R() * 22, rh = 3 + R() * 5;
+        for (let dy = -rh; dy <= rh; dy++) {
+          const half = rw * Math.sqrt(Math.max(0, 1 - (dy / rh) * (dy / rh)));
+          g.globalAlpha = 0.14;
+          rect(cx - half, cy + dy, half * 2, 1, dy < 0 ? '#7f6ab0' : '#4a8f8a');
+        }
+      }
+      g.globalAlpha = 1;
+    }
+  };
+
   function buildBackground(loc) {
     const P = loc.scene;
     const W = SCENE_W, H = SCENE_H;
@@ -3721,6 +4132,29 @@ window.FG = window.FG || {};
         break;
       }
 
+      case 'wreck': {
+        // 一顆大日盤 ＋ 一段傾斜的船身剪影 ＋ 駕駛台方塊。三樣缺一不可：
+        // 少了日盤這一格只是一片黑，少了傾斜的甲板線就只是一排倉庫
+        const scx = W * 0.62, scy = hz * 0.62, sr = hz * 0.5;
+        for (let dy = -sr; dy <= sr; dy++) {
+          const half = Math.sqrt(Math.max(0, sr * sr - dy * dy));
+          const y = scy + dy;
+          if (y < 0 || y >= hz) continue;
+          fill(scx - half, y, half * 2, 1, FG.mix(P.sun || '#ffe6a8', FG.shade(P.sun || '#ffe6a8', -0.3), Math.abs(dy) / sr));
+        }
+        for (let x = 0; x < W; x++) fill(x, hz - 2 * S, 1, 2 * S + 2, P.farTree);
+        const hx0 = W * 0.18, hx1 = W * 0.94;
+        for (let x = hx0; x < hx1; x++) {
+          const dy = hz - 3 * S - (x - hx0) * 0.06;
+          fill(x, dy, 1, hz - dy, P.hull || '#1f1a22');
+          fill(x, dy, 1, 1, P.hullLit || '#ffc478');
+        }
+        fill(W * 0.46, hz - 9 * S, 8 * S, 6 * S, P.hull || '#1f1a22');          // 駕駛台
+        fill(W * 0.46, hz - 9 * S, 8 * S, 1, P.hullLit || '#ffc478');
+        fill(W * 0.30, hz - 12 * S, S, 9 * S, P.crane || '#15121c');            // 前桅
+        break;
+      }
+
       default:
         for (let i = 0; i < 40; i++) {
           const x = Math.floor(R() * W), hgt = 4 + R() * 8;
@@ -3830,6 +4264,26 @@ window.FG = window.FG || {};
         const t = (y - hz) / (H - hz);
         g.globalAlpha = 0.34 * (1 - t * 0.7);
         fill(W * 0.5 - (2 + t * 6) * S, y, (4 + t * 12) * S, 1, P.highlight || '#a8f0f0');
+      }
+      g.globalAlpha = 1;
+    }
+
+    // 沉港的招牌有一半在水裡：水線的船底漆紅 + 水下船身 + 日照光路
+    if (P.terrain === 'wreck') {
+      const hx0 = W * 0.18, hx1 = W * 1.0;
+      for (let k = 0; k < (H - hz) * 0.7; k++) {
+        const t = k / ((H - hz) * 0.7);
+        const inset = Math.pow(t, 2.2) * (W * 0.3);
+        const a = hx0 + inset * 0.55, b = hx1 - inset;
+        if (b <= a) break;
+        fill(a, hz + k, b - a, 1, k < Math.max(1, S) ? (P.redlead || '#a4432a') : FG.shade(P.hull || '#1f1a22', 0.1 - t * 0.5));
+      }
+      for (let y = hz; y < H; y++) {
+        const t = (y - hz) / (H - hz);
+        for (let i = 0; i < 3; i++) {
+          g.globalAlpha = 0.5 * (1 - t * 0.5) * (1 - R() * 0.6);
+          fill(W * 0.62 + (R() * 2 - 1) * (2 + t * 14) * S, y, 1 + R() * 2 * S, 1, P.highlight || '#ffdca0');
+        }
       }
       g.globalAlpha = 1;
     }
@@ -4108,6 +4562,32 @@ window.FG = window.FG || {};
         rect(dx - 4 - k, dh - 4 - k, 9 + k * 2, 9 + k * 2, '#f0e0a8');
       }
       g.globalAlpha = 1;
+    }
+    if (deco.beacon) {
+      // 船首航標燈：吊在天花板上。**那道週期性掃過房間的光是它的識別**——
+      // 靜態的話它只是一盞菱形玻璃的怪吊燈（同 shishi / cascade / onsen / driplamp，
+      // 這類「靠動作定義的物件」動畫是必要條件而不是加分項）。
+      // 位置在天花板 x 50～78：牆面被魚缸（x 12～136、上緣 y 28）與窗戶佔滿了
+      const bx = 64;
+      rect(bx - 1, 0, 3, 6, '#3a3a44');                        // 吊桿
+      rect(bx - 9, 6, 19, 3, '#5a5a66');                        // 上蓋
+      rect(bx - 8, 9, 17, 10, '#2a2a34');                       // 燈室底色
+      for (let i = 0; i < 4; i++) {                             // 菱形玻璃格（透鏡）
+        rect(bx - 7 + i * 4, 10, 3, 8, i % 2 ? '#a8c8d0' : '#dff0f4');
+        rect(bx - 7 + i * 4, 13, 3, 2, '#8fb0b8');
+      }
+      rect(bx - 9, 19, 19, 3, '#5a5a66');                        // 下座
+      rect(bx - 4, 22, 9, 2, '#3a3a44');
+      // 掃過去的光：一道往下張開的扇形，角度隨時間繞一圈
+      const a = (time * 0.0009) % (Math.PI * 2);
+      const dir = Math.sin(a);
+      for (let k = 0; k < 46; k++) {
+        g.globalAlpha = 0.11 * (1 - k / 46);
+        const w = 4 + k * 0.5;
+        rect(bx + dir * k * 1.6 - w / 2, 14 + k, w, 1, '#ffe9b8');
+      }
+      g.globalAlpha = 1;
+      rect(bx - 1 + dir * 6, 13, 3, 3, '#fff4d0');               // 燈絲的亮點跟著轉
     }
     if (deco.cat) {
       const wave = Math.sin(time * 0.005) > 0 ? 0 : 1;

@@ -52,10 +52,11 @@
 | **新增釣點** | ★ **必須一次生出一整套**：釣點＋魚種＋釣竿＋餌料＋裝備＋家園裝飾＋**魚王 cut-in**，規則與理由見 [09 §新增一個釣點](09-recipes.md#新增一個釣點--一次要生出一整套)。文件要更新 [07](07-data-schema.md) 釣點表＋配色規則表＋四張裝備表、[10](10-balance-tuning.md) 基準表＋模擬腳本、[12](12-glossary.md) id 前綴、[04](04-fishing-loop.md) 魚王 cut-in 分配表、[wiki README](README.md) 三十秒版本、**[根 README](../README.md) 的釣點表（一列）＋魚種總數＋圖鑑總數＋數值平衡段的倍率鏈**，並**在 320px 寬檢查 [08](08-ui-and-screens.md#會隨釣點數量成長的介面) 列的兩處** |
 | **把釣點插在既有兩個之間**（不是接在尾巴） | 上面那一列全做，**再加**：後段可用的滿裝倍率窗口只有 0.009～0.05，比模擬噪音還窄，**必須用 [10 §精確版](10-balance-tuning.md#精確版不用模擬直接把期望值算出來) 的解析解校正**，理由見 [11 §28](11-invariants-and-gotchas.md#28-插隊的釣點模擬的噪音比可用的窗口還寬)。**前段（400～1,800）還有 0.067～0.087 的窗口**，那裡插隊輕鬆得多 |
 | **新增會在水面上放東西的地形** | 先讀 [11 §31](11-invariants-and-gotchas.md)：這一版的水面是平塗，物件必須自己帶著水下的體積，否則會浮在半空。連續兩個地形踩過 |
+| **新增會在水下放東西的地形** | 先讀 [11 §36](11-invariants-and-gotchas.md)：水下物件的明度必須**跨過水色**，差不到一階等於沒畫（`wreck` 的水下船身踩過）。半透明的淺色疊層另有 alpha 上限 0.3 的陷阱，見 [06 §reef](06-pixel-engine.md#reef-的三個設計決定) |
 | **寫「不合格就重抽」的取樣迴圈** | 先讀 [11 §35](11-invariants-and-gotchas.md)：要確認取樣範圍跟排除區沒有完全重疊，**並且加迴圈上限**。有 `bgCache` 的地方特別難發現 |
 | **新增魚王** | `cutin.js › KING` 補一筆（`motif` / `particle` / `title` / `tone`）＋ [04](04-fishing-loop.md) 的分配表加一列。**漏了不報錯**，只是那位魚王的登場演出跟別人一樣 |
 | 改 cut-in 的長度或動畫 | `cutin.js › DUR_*` 與 `styles.css` 的 keyframes **必須一起改**（[11 §26](11-invariants-and-gotchas.md)）＋ [04 §時間軸](04-fishing-loop.md#時間軸) 的表 ＋ [08](08-ui-and-screens.md) |
-| 新增釣竿／餌料 | [07](07-data-schema.md) 的表；**維持 price 遞增**；`screen-shop.js › rodIcon()` 的色表要同步加長（[11 §24](11-invariants-and-gotchas.md)） |
+| 新增釣竿／餌料 | [07](07-data-schema.md) 的表；**維持 price 遞增**；`screen-shop.js › rodIcon()` 的**兩張色表要同步加長，而且 `% N` 那個硬寫的數字也要跟著改**（[11 §24](11-invariants-and-gotchas.md)） |
 | 新增**裝備** | [07](07-data-schema.md) 的表 ＋ `screen-shop.js › EQUIP_ART` 圖示。**釣點專屬的一律綁 `effect.loc` 且只給一個效果**，否則倍率會疊乘失控（[10](10-balance-tuning.md)） |
 | 新增**家園裝飾** | [07](07-data-schema.md) 的表 ＋ `screen-home.js › DECO_ART` 圖示 ＋ `pixel.js › drawRoom()` 繪製碼。**釣點主題的一律純裝飾**（`effect: {}`） |
 | 新增選項數量會成長的橫向列 | 用 `.seg.seg-scroll`（**不要用 `.seg`**）＋ [08](08-ui-and-screens.md) 設計語彙表加一列。步驟見 [09](09-recipes.md) |

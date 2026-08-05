@@ -1498,6 +1498,107 @@ window.FG = window.FG || {};
   ];
 
   /* ============================================================
+     地點十六：曉日沉港
+     ------------------------------------------------------------
+     這個釣點的魚全部有一個共同點：**每一條都住在人造的東西裡**——輪胎、
+     排水管、貨櫃、錨鏈艙、鍋爐、陶壺。這條軸取代了配色當作識別（做法與
+     「煙雨蓮江＝真實物種」「潮落礁灘＝都在等漲潮」同一套，見 wiki 07），
+     好處是它直接給了每一則 desc 第一句話的方向。
+     配色上普通～優良壓在鏽褐與油污灰綠，稀有以上換成**船漆的人工色**
+     （信號旗紅、警示黃、鉛丹橘、艙藍）——顏色不是天然的，是漆的顏色。
+     ============================================================ */
+  const DAWN_PORT_FISH = [
+    /* --- 雜物 --- */
+    { id: 'dp_porthole', name: '碎裂的舷窗', rarity: 'junk', junkArt: 'porthole', value: 2100, minLen: 22, maxLen: 40, unit: 'cm', desc: '銅環還是亮的，玻璃裂成一片蛛網但沒有掉。蝶形螺栓鎖著，所以它是從船上整片脫落的，不是被人拆下來的。' },
+    { id: 'dp_can',      name: '見底的漆罐', rarity: 'junk', junkArt: 'can',       value: 1720, minLen: 8,  maxLen: 16, unit: 'cm', desc: '底下還剩一層乾掉的鉛丹橘。船底漆就是這個顏色，港裡每一塊沉下去的鐵都塗過它。' },
+    { id: 'dp_plank',    name: '甲板碎木',   rarity: 'junk', junkArt: 'driftwood', value: 1880, minLen: 30, maxLen: 70, unit: 'cm', desc: '一段柚木甲板，釘孔還在，間距是六吋。磨圓的那一端在水裡泡了很久。' },
+
+    /* --- 普通 --- */
+    { id: 'dp_tyregoby', name: '輪胎鰕虎', rarity: 'common', shape: 'long', scale: .70, pattern: 'speck', value: 14320, minLen: 6, maxLen: 15,
+      colors: { body: '#6a6258', back: '#3f3a34', belly: '#9a9084', fin: '#544e46', pattern: '#2e2a26' },
+      desc: '牠住在碼頭邊當緩衝的舊輪胎裡。一個輪胎一條，而且是同一條——把牠撈出來放回水裡，牠會直接游回那一個。' },
+    { id: 'dp_pipeblenny', name: '排管鳚', rarity: 'common', shape: 'long', scale: .66, pattern: 'band', value: 14480, minLen: 5, maxLen: 12,
+      colors: { body: '#7a6a4a', back: '#4a3f2a', belly: '#a89a72', fin: '#635840', pattern: '#3a3020' },
+      desc: '牠住在一截斷掉的排水管裡，只把頭伸出來。管口的直徑決定了牠一輩子能長到多大，所以同一排管子裡的每一條都一樣長。' },
+    { id: 'dp_rustsculpin', name: '鏽斑杜父魚', rarity: 'common', shape: 'round', scale: .74, pattern: 'spot', value: 14260, minLen: 7, maxLen: 17,
+      colors: { body: '#8a5f3f', back: '#5a3524', belly: '#b89070', fin: '#70452c', pattern: '#3f2418' },
+      desc: '牠貼在船殼的鏽蝕面上，身上那一片一片的斑跟鏽的邊緣完全一樣。牠不是像鏽，牠是照著那一塊鏽長的。' },
+    { id: 'dp_bilgesprat', name: '艙底小鯡', rarity: 'common', shape: 'long', scale: .62, pattern: 'stripe', value: 14540, minLen: 4, maxLen: 10,
+      colors: { body: '#8f9a96', back: '#4f5a58', belly: '#cfd8d4', fin: '#6f7a76', pattern: '#3f4a48' },
+      desc: '牠住在灌滿水的艙底，成千上萬條。那裡沒有光，但有從上面漏下來的東西可以吃，所以牠們不出去。' },
+    { id: 'dp_bottlecardinal', name: '瓶棲天竺鯛', rarity: 'common', shape: 'flat', scale: .68, pattern: 'band2', value: 14180, minLen: 5, maxLen: 11,
+      colors: { body: '#a87a5a', back: '#6a4432', belly: '#d8b090', fin: '#8a5f44', pattern: '#4a2c1e' },
+      desc: '牠住在沉下去的玻璃瓶裡，一瓶一條，頭朝瓶口。港裡的瓶子比洞多，所以牠是這一帶數量第二多的魚。' },
+    { id: 'dp_platefin', name: '鐵板鰈', rarity: 'common', shape: 'flat', scale: .72, pattern: 'speck', value: 14400, minLen: 6, maxLen: 14,
+      colors: { body: '#6f6a5f', back: '#43403a', belly: '#a09a8c', fin: '#5a564d', pattern: '#332f2a' },
+      desc: '牠一輩子貼在一塊平的鐵板上，身體壓得比同種還扁。鐵板是什麼形狀，牠就是什麼形狀。' },
+
+    /* --- 優良 --- */
+    { id: 'dp_hoseeel', name: '膠管鰻', rarity: 'good', shape: 'long', scale: .92, pattern: 'none', value: 55420, minLen: 28, maxLen: 66,
+      colors: { body: '#4f4a44', back: '#2a2724', belly: '#7a7268', fin: '#3f3a35' },
+      desc: '牠住在一條橡膠管裡，整條身體剛好填滿。管子已經比牠的身體軟，所以牠現在是那條管子的形狀。' },
+    { id: 'dp_containergrouper', name: '貨櫃石斑', rarity: 'good', shape: 'wide', scale: .90, pattern: 'net', value: 56100, minLen: 22, maxLen: 52,
+      colors: { body: '#6a7a5f', back: '#3a4535', belly: '#9aa88a', fin: '#54624a', pattern: '#2e3628' },
+      desc: '一個沉在港底的貨櫃裡通常住著一條，門開的那一側就是牠的門。櫃子裡原本裝什麼沒人知道，現在裝的是牠。' },
+    { id: 'dp_ladderbass', name: '梯間鱸', rarity: 'good', shape: 'normal', scale: .88, pattern: 'stripe', value: 55180, minLen: 20, maxLen: 46,
+      colors: { body: '#7f7a6a', back: '#4a453a', belly: '#b0a894', fin: '#635c4e', pattern: '#38332a' },
+      desc: '牠在舷梯的每一階之間穿來穿去，永遠不游離開那道梯子。有人把整道梯子吊上來過，牠跟著上來，掉回水裡以後又回到同一道梯子。' },
+    { id: 'dp_dieselmullet', name: '油膜鯔', rarity: 'good', shape: 'long', scale: .94, pattern: 'scale', value: 56340, minLen: 26, maxLen: 60,
+      colors: { body: '#8a8f7a', back: '#4f5544', belly: '#c8ccb4', fin: '#6f7460', pattern: '#3a3f30' },
+      desc: '牠在水面下十公分吃那層油膜底下的東西。撈上來的時候鱗片會有一圈虹彩——那不是牠的顏色，那是油。' },
+    { id: 'dp_anchorbream', name: '錨鏈鯛', rarity: 'good', shape: 'flat', scale: .90, pattern: 'band', value: 55760, minLen: 18, maxLen: 42,
+      colors: { body: '#9a8f7f', back: '#5a5044', belly: '#d0c8b4', fin: '#7a7060', pattern: '#43392e' },
+      desc: '錨鏈在水裡是一整座垂直的城，每一環都是一個房間。牠住在水深六公尺那一環，年年都是那一環。' },
+
+    /* --- 稀有 --- */
+    { id: 'dp_signalsnapper', name: '信號旗笛鯛', rarity: 'rare', shape: 'normal', scale: 1.02, pattern: 'band', value: 240600, minLen: 30, maxLen: 68,
+      colors: { body: '#d8452f', back: '#8f2418', belly: '#f0a48f', fin: '#b03320', pattern: '#fbf0e0' },
+      desc: '紅底一道白帶，是國際信號旗裡「我船正在下潛」那一面的配色。掛著那面旗的船就在牠下面，所以牠身上那道白帶是抄來的。' },
+    { id: 'dp_hazardtrigger', name: '警示紋鱗魨', rarity: 'rare', shape: 'flat', scale: 1.04, pattern: 'stripe', value: 243100, minLen: 24, maxLen: 56,
+      special: ['spike'],
+      colors: { body: '#e8b820', back: '#8f6a08', belly: '#fbe08f', fin: '#c89a18', pattern: '#241f18' },
+      desc: '黃底黑斜紋，跟吊桿上那圈警示漆一模一樣。海裡的東西看到這個配色會退開——牠是從漆上學到的，還是漆是從牠身上學的，沒有人排得出先後。' },
+    { id: 'dp_redleadconger', name: '鉛丹穴鰻', rarity: 'rare', shape: 'long', scale: 1.08, pattern: 'none', value: 239800, minLen: 45, maxLen: 105,
+      colors: { body: '#c86a3a', back: '#7f3518', belly: '#e8a878', fin: '#a4522a' },
+      desc: '牠住在塗滿鉛丹的艙壁縫裡，整條身體是那個橘。刮一塊鱗下來檢驗，橘色是牠自己長出來的，不是沾上去的。' },
+    { id: 'dp_bluecabin', name: '艙藍石狗公', rarity: 'rare', shape: 'round', scale: 1.02, pattern: 'spot', value: 242400, minLen: 22, maxLen: 50,
+      special: ['spike'],
+      colors: { body: '#3f6aa8', back: '#1f3a66', belly: '#8fb4d8', fin: '#2e4f80', pattern: '#e8e0c8' },
+      desc: '船艙內壁的那種淡藍是三十年前的規格漆。牠是這一帶唯一藍色的魚，而且只出現在還留著那層漆的船艙裡。' },
+
+    /* --- 史詩 --- */
+    { id: 'dp_boilerray', name: '鍋爐巨魟', rarity: 'epic', shape: 'ray', scale: 1.14, pattern: 'speck', value: 946200, minLen: 90, maxLen: 210,
+      colors: { body: '#4a4038', back: '#241e1a', belly: '#a89a88', fin: '#3a322c', pattern: '#1a1512' },
+      desc: '鍋爐是整條船最大的一個空腔，門開著。牠平貼在爐底，翼緣剛好貼齊那個圓。要牠出來只有一個辦法——等牠自己要出來。' },
+    { id: 'dp_holdgrouper', name: '貨艙巨石斑', rarity: 'epic', shape: 'wide', scale: 1.12, pattern: 'net', value: 954800, minLen: 110, maxLen: 250,
+      special: ['jaw'],
+      colors: { body: '#5f6a4a', back: '#333a26', belly: '#9aa87a', fin: '#4a5438', pattern: '#e8dcb8', tooth: '#f4ecd8' },
+      desc: '一號貨艙的艙口只有一公尺見方，而牠比艙口寬。也就是說牠是小時候游進去的，然後在裡面長到出不來。牠不介意，艙裡的東西夠牠吃一輩子。' },
+
+    /* --- 傳說 --- */
+    { id: 'dp_cabinguard', name: '留艙白鮸', rarity: 'legend', shape: 'wide', scale: 1.20, pattern: 'none', value: 2598400, minLen: 100, maxLen: 220,
+      special: ['glow'],
+      colors: { body: '#d8d0bc', back: '#8f8674', belly: '#f4f0e4', fin: '#b8b09c', glow: '#ffca7a', pattern: '#a89880' },
+      legend: '沉船的舵房還是完整的，海圖桌、舵輪、掛鉤上的一件外套都在原來的位置。二十年來每一組下去的潛水員都回報同一件事：舵房裡有一條很大的白魚，停在舵輪後面，面朝艙門。牠不游開也不靠近，燈打上去牠不閃避。第一批潛下去的人以為牠受了傷，後來的人發現牠只是站在那裡——站在一個人本來會站的位置上，做著那個人本來會做的事。',
+      desc: '牠停在舵輪後面，面朝艙門，二十年沒有換過位置。' },
+    { id: 'dp_chainconger', name: '鏈艙巨鰻', rarity: 'legend', shape: 'long', scale: 1.22, pattern: 'scale', value: 2624000, minLen: 160, maxLen: 340,
+      special: ['glow', 'jaw'],
+      colors: { body: '#7a6a4f', back: '#43382a', belly: '#c0b090', fin: '#5f5240', glow: '#ffb84a', pattern: '#2e2618', tooth: '#f8f0d8' },
+      legend: '錨鏈艙是船上最不需要照明的地方，因為那裡從來沒有人要看東西。整艙的鏈條在沉下去的那一刻全部滑出來、堆在一起，鏈環之間的縫隙構成了一個沒有人畫得出地圖的空間。牠住在那裡面。潛水員把攝影機從鏈堆的縫伸進去過，錄到的畫面裡有一段是牠的身體，前後都超出畫框，中間那一節花了十一秒才通過鏡頭。',
+      desc: '鏈堆裡的縫隙就是牠的房子。牠通過鏡頭那一次花了十一秒。' },
+
+    /* --- 魚王 --- */
+    // 全遊戲唯一一位不是魚的魚王：一隻章魚。牠的名字是港邊的人取的——
+    // 圓的橘色外套膜在破曉的水面浮起來，看起來就是太陽從水裡升上來。
+    { id: 'dp_king_sunrise', name: '圓圓的太陽升起', rarity: 'king', shape: 'octopus', scale: 1.20, pattern: 'speck', value: 9120000, minLen: 180, maxLen: 400,
+      special: ['glow', 'arms', 'slitEye'],
+      colors: { body: '#e8703a', back: '#a83320', belly: '#f8b86a', fin: '#c8542a', pattern: '#fbd884', glow: '#ffb040',
+                arm: '#d85a30', sucker: '#fbe4b0', eyeWhite: '#fbecc0', pupil: '#180f0c' },
+      legend: '港廢了以後，最早發現牠的是還住在防波堤那一側的人。他們說天要亮的時候，水面會先鼓起一個圓的、橘色的東西，然後那個東西整個浮出來、停一下，再沉回去——所以他們沒有給牠取一個魚的名字，他們說的是「圓圓的太陽升起」。後來有人量過牠外套膜的直徑，一點二公尺；也有人在沉船的一號貨艙裡找到過八十幾只被搬到同一個角落、開口全部朝內排好的陶壺。那個排法沒有任何用途，除了「牠想要那樣排」。',
+      desc: '曉日沉港之王。天亮前浮起來一次，圓的、橘的，像太陽從水裡升上來。' }
+  ];
+
+  /* ============================================================
      地點列表
      ============================================================ */
   FG.LOCATIONS = [
@@ -1883,6 +1984,35 @@ window.FG = window.FG || {};
         boat: '#3a3228', boatRim: '#5a4e3c', boatDark: '#241e18'
       },
       fish: CAVERN_FISH
+    },
+    {
+      id: 'dawn_port',
+      name: '曉日沉港',
+      subtitle: '棄港釣場 · 逆光',
+      desc: '一座廢掉的貨港，一艘擱在防波堤內側的貨輪橫在水道上，船身有一半在水裡。天亮前那顆太陽會從船的缺口後面升起來，整片港區只剩剪影。水下的東西全都住在人造的殼裡。',
+      seed: 51806,
+      castCost: 192000,
+      unlock: { free: true },
+      scene: {
+        terrain: 'wreck',
+        // 0.46：太陽盤（半徑 34）要有三分之二在地平線以上，船的上部構造又要站得住，
+        // 所以天空不能壓得像鐘乳暗穴那麼低
+        horizon: 0.46,
+        // 破曉：頂端還是夜的靛藍，往下經過紫紅到地平線的金。**日盤本身比這條漸層更亮**
+        sky: ['#1a1a3a', '#3f2a52', '#7f3a4a', '#c86a44', '#f0a85a'],
+        hill: '#241f2e',
+        // 三層由遠而近：外港的防波堤、內港的倉庫群、近岸的碼頭。逆光所以一律壓暗
+        farTree: '#2e2836', midTree: '#221d2a', nearTree: '#171320',
+        sun: '#ffe6a8',
+        hull: '#1f1a22', hullLit: '#ffc478', rust: '#8a4326',
+        crane: '#15121c', barnacle: '#d8ccb4', redlead: '#a4432a',
+        pot: '#96694a', bird: '#120f18',
+        shore: '#0f0c14',
+        waterTop: '#2a2438', waterBot: '#7a5a58', waterDeep: '#140f1c',
+        highlight: '#ffdca0', highlight2: '#c8785a',
+        boat: '#4a3628', boatRim: '#6f5238', boatDark: '#2a1e16'
+      },
+      fish: DAWN_PORT_FISH
     }
   ];
 
@@ -1928,7 +2058,8 @@ window.FG = window.FG || {};
     { id: 'rod_dragon', name: '龍骨釣竿',   price: 180000, rareMul: 1.80, sizeBonus: 0.35, kingMul: 2.0,  desc: '取自某條不該被釣起的東西的脊骨。' },
     { id: 'rod_ash',    name: '世界樹枝竿', price: 320000, rareMul: 1.83, sizeBonus: 0.36, kingMul: 2.02, loc: 'world_root',    desc: '一根掉下來的枝。它到現在還在長。' },
     { id: 'rod_sceptre',name: '黃金權杖竿', price: 780000, rareMul: 1.86, sizeBonus: 0.36, kingMul: 2.05, loc: 'duat',          desc: '陪葬品。原本的用途不是釣魚，但它顯然不介意。' },
-    { id: 'rod_blind',  name: '無光探竿',   price: 1500000,rareMul: 1.88, sizeBonus: 0.37, kingMul: 2.07, loc: 'cavern',        desc: '竿身通體無漆，因為在洞裡看不看得見它沒有差別。全部的資訊都從手上進來。' }
+    { id: 'rod_blind',  name: '無光探竿',   price: 1500000,rareMul: 1.88, sizeBonus: 0.37, kingMul: 2.07, loc: 'cavern',        desc: '竿身通體無漆，因為在洞裡看不看得見它沒有差別。全部的資訊都從手上進來。' },
+    { id: 'rod_derrick',name: '吊桿改造竿', price: 2800000,rareMul: 1.90, sizeBonus: 0.375,kingMul: 2.09, loc: 'dawn_port',     desc: '從沉船的吊桿上鋸下來的一截，鏽都沒有磨掉。它原本吊得起十二噸，現在用來拉一隻章魚，算是降級了。' }
   ];
 
   /* ------------------------------------------------------------
@@ -1956,7 +2087,8 @@ window.FG = window.FG || {};
     { id: 'bait_glow',  name: '深海發光蟲', price: 1300, pack: 5,  rareMul: 1.92, junkMul: 0.00, valueMul: 1.21, kingMul: 3.05, loc: 'abyss',         desc: '拿上船之後還會亮三天。三天後就只是一團灰。' },
     { id: 'bait_mead',  name: '蜜酒浸餌',   price: 1800, pack: 5,  rareMul: 1.93, junkMul: 0.00, valueMul: 1.21, kingMul: 3.05, loc: 'world_root',    desc: '泡過那桶酒的餌。連不該上鉤的東西都會來看一眼。' },
     { id: 'bait_scarab',name: '聖甲蟲餌',   price: 2600, pack: 5,  rareMul: 1.94, junkMul: 0.00, valueMul: 1.22, kingMul: 3.1,  loc: 'duat',          desc: '從石棺裡拿出來的。它在你手上動了一下。' },
-    { id: 'bait_troglo',name: '洞穴盲蝦',   price: 3600, pack: 5,  rareMul: 1.95, junkMul: 0.00, valueMul: 1.22, kingMul: 3.12, loc: 'cavern',        desc: '整隻是透明的，撈起來只看得到腸子那一條線。牠也沒有眼睛——洞裡的東西一律沒有。' }
+    { id: 'bait_troglo',name: '洞穴盲蝦',   price: 3600, pack: 5,  rareMul: 1.95, junkMul: 0.00, valueMul: 1.22, kingMul: 3.12, loc: 'cavern',        desc: '整隻是透明的，撈起來只看得到腸子那一條線。牠也沒有眼睛——洞裡的東西一律沒有。' },
+    { id: 'bait_rag',   name: '白布假餌',   price: 5000, pack: 5,  rareMul: 1.96, junkMul: 0.00, valueMul: 1.23, kingMul: 3.14, loc: 'dawn_port',     desc: '一塊綁在鉤上的白布，沒有味道也不像任何一種食物。但港裡的那隻東西會伸一條腕過來把它整個包住——牠不是要吃，牠是要摸。' }
   ];
 
   /* ------------------------------------------------------------
@@ -1991,7 +2123,8 @@ window.FG = window.FG || {};
     { id: 'eq_ankh',     name: '生命之符',   price: 480000, effect: { loc: 'duat',          rareMul: 1.17 },    desc: '掛在胸前，河裡的東西就會當你已經死了。稀有度 +17%，只在黃沙冥河生效。' },
     { id: 'eq_wading',   name: '涉水釘鞋',   price: 8000,   effect: { loc: 'rapids',        sizeBonus: 0.045 }, desc: '鞋底一整排鎢鋼釘。站得住，才拉得住往下游衝的東西。體型 +4.5%，只在亂石急湍生效。' },
     { id: 'eq_viewbox',  name: '玻璃底看箱', price: 12000,  effect: { loc: 'coral_reef',    rareMul: 1.11 },    desc: '木框底下一片玻璃，壓進水面就沒有反光了。看得見哪個洞裡有東西，餌就不會白放。稀有度 +11%，只在琉璃珊瑚生效。' },
-    { id: 'eq_headlamp', name: '防水頭燈',   price: 900000, effect: { loc: 'cavern',        rareMul: 1.18 },    desc: '洞裡沒有別的光。關掉它你連自己的手都看不見，更不用說下鉤的地方。稀有度 +18%，只在鐘乳暗穴生效。' }
+    { id: 'eq_headlamp', name: '防水頭燈',   price: 900000, effect: { loc: 'cavern',        rareMul: 1.18 },    desc: '洞裡沒有別的光。關掉它你連自己的手都看不見，更不用說下鉤的地方。稀有度 +18%，只在鐘乳暗穴生效。' },
+    { id: 'eq_potline',  name: '蛸壺繩組',   price: 1800000,effect: { loc: 'dawn_port',     rareMul: 1.19 },    desc: '一串陶壺沿著繩子沉下去，隔天再收上來。壺裡有什麼你事先不會知道，但空壺很少。稀有度 +19%，只在曉日沉港生效。' }
   ];
 
   /* ============================================================
@@ -2022,7 +2155,8 @@ window.FG = window.FG || {};
     { id: 'flybox',    name: '毛鉤標本盒', price: 11000, effect: {}, desc: '純裝飾。攤開的木盒裡插著一排自己綁的毛鉤，亂石急湍用得上的全在這裡了。水豚咬過一次，之後就不咬了。' },
     { id: 'floats',    name: '玻璃浮球串', price: 16000, effect: {}, desc: '純裝飾。三顆大小不同的玻璃浮球用麻繩網起來，堆在牆角。從琉璃珊瑚的沙洲上撿的，上面還有藤壺的印子。' },
     { id: 'sarco',  name: '彩繪石棺',   price: 90000, effect: {},              desc: '純裝飾。從黃沙冥河搬回來的，裡面是空的——搬之前就是空的。' },
-    { id: 'driplamp',  name: '鐘乳石燈',   price: 120000, effect: {}, desc: '純裝飾。一段真的鐘乳石倒吊著，裡面裝了燈。末端每隔一陣子會凝一滴水掉下來——那滴水是它還活著的證據。' }
+    { id: 'driplamp',  name: '鐘乳石燈',   price: 120000, effect: {}, desc: '純裝飾。一段真的鐘乳石倒吊著，裡面裝了燈。末端每隔一陣子會凝一滴水掉下來——那滴水是它還活著的證據。' },
+    { id: 'beacon',    name: '船首航標燈', price: 160000, effect: {}, desc: '純裝飾。從曉日沉港那條船的船首拆下來的，接上電還會轉。光每隔幾秒掃過房間一次，水豚已經不再追那道光了。' }
   ];
 
   /* ============================================================

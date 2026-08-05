@@ -174,7 +174,9 @@ window.FG = window.FG || {};
       const avg = (fish.minLen + fish.maxLen) / 2;
 
       const shape = fish.shape || 'normal';
-      const density = { normal: 2.0e-5, long: 6.0e-6, round: 2.8e-5, flat: 2.4e-5, wide: 2.2e-5, ray: 2.0e-5 }[shape] || 2.0e-5;
+      // 魚王的專屬體型一律吃 fallback 2.0e-5，唯一的例外是 octopus：章魚的「體長」
+      // 算的是腕展，而牠幾乎整隻是水，用魚的密度會跑出一噸多，是唯一一個看得出荒謬的
+      const density = { normal: 2.0e-5, long: 6.0e-6, round: 2.8e-5, flat: 2.4e-5, wide: 2.2e-5, ray: 2.0e-5, octopus: 1.0e-6 }[shape] || 2.0e-5;
       const weight = Math.pow(len, 3) * density;
 
       const shiny = !fish.junkArt && Math.random() < 0.03;
