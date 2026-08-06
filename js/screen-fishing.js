@@ -78,6 +78,11 @@ window.FG = window.FG || {};
           '</div>' +
         '</div>' +
         '<div id="castBar">' +
+          // 下注列用 seg-scroll：選項最多 19 檔，等分擠壓一定會折行（見 wiki 08）
+          '<div class="bet-row" id="betRow">' +
+            '<span class="bet-label">下注</span>' +
+            '<div class="seg seg-scroll" id="betSeg"></div>' +
+          '</div>' +
           '<div class="gear-row" id="gearRow">' +
             '<button class="gear-slot" id="rodSlot"><span class="k">釣竿</span><span class="v"></span></button>' +
             '<button class="gear-slot" id="baitSlot"><span class="k">餌料</span><span class="v"></span></button>' +
@@ -165,7 +170,36 @@ window.FG = window.FG || {};
         }
       }
       this.el.querySelector('#gearRow').style.display = this.auto ? 'none' : '';
+      this.el.querySelector('#betRow').style.display = this.auto ? 'none' : '';
+      this.renderBets();
       this.renderAutoStats();
+    },
+
+    // 下注選擇列。選項只有「≥ 該釣點 minBet」的檔位——minBet 就是舊版 castCost 的角色，
+    // 是進程門檻；門檻之上玩家自己決定要押多少。
+    renderBets: function () {
+      const seg = this.el.querySelector('#betSeg');
+      if (!seg || this.auto) return;
+      const st = FG.state, loc = st.loc();
+      const cur = st.bet(loc);
+      const self = this;
+      seg.innerHTML = '';
+      let curBtn = null;
+      st.betOptions(loc).forEach(function (v) {
+        // 用 fmt 不用 fmtShort：fmtShort 會把 10000 寫成「1萬」，跟前一格的「9,000」
+        // 混在同一列裡看起來像兩種單位，玩家要多想一秒才知道哪個大
+        const b = FG.el('button', v === cur ? 'on' : '', FG.fmt(v));
+        if (v === cur) curBtn = b;
+        b.onclick = function () {
+          if (self.phase !== 'idle') return;   // 演出中改注會讓已抽好的結果對不上下注額
+          FG.sfx.click();
+          st.setBet(v);
+        };
+        seg.appendChild(b);
+      });
+      // 先把選中的檔位捲進可視範圍，**再**算邊緣漸層（順序反了會蓋在錯的一側，wiki 11 §22）
+      if (curBtn) seg.scrollLeft = curBtn.offsetLeft - (seg.clientWidth - curBtn.offsetWidth) / 2;
+      FG.ui.scrollEdges(seg);
     },
 
     /* ---------------- 拋竿 ---------------- */
@@ -192,14 +226,15 @@ window.FG = window.FG || {};
         if (chk.why === 'bait') {
           FG.ui.confirm('餌料用完了', '沒有餌就釣不到魚。要去商店補貨嗎？', '前往商店', function () { FG.go('shop', 'bait'); });
         } else {
-          FG.ui.confirm('籌碼不足', '拋竿需要 <span class="money">' + FG.fmt(st.castCost()) + '</span> 籌碼。<br>目前只有 <span class="money">' + FG.fmt(st.data.chips) + '</span>。',
+          FG.ui.confirm('籌碼不足', '這一竿要押 <span class="money">' + FG.fmt(st.castCost()) + '</span> 籌碼。<br>目前只有 <span class="money">' + FG.fmt(st.data.chips) +
+            '</span>。<br><span class="mute tiny">也可以把下注額調低——這個釣點最低 ' + FG.fmt(st.loc().minBet) + '。</span>',
             '取得籌碼', function () { FG.openTopup(); }, 'gold');
         }
         return;
       }
 
       const cost = st.castCost(loc);
-      st.pay(cost);
+      st.wager(cost);          // 不是 pay()：下注額要記進 RTP 的分母（wiki 03）
       st.useBait();
       st.data.stats.casts++;
       if (this.auto) this.auto.cost += cost;
@@ -466,7 +501,7 @@ window.FG = window.FG || {};
       });
       wrap.appendChild(inRow);
       box.appendChild(wrap);
-      box.appendChild(note('目前持有 <span class="money">' + FG.fmt(st.data.chips) + '</span> 籌碼，單次拋竿 ' +
+      box.appendChild(note('目前持有 <span class="money">' + FG.fmt(st.data.chips) + '</span> 籌碼，單次下注 ' +
         FG.fmt(st.castCost()) + ' 籌碼。'));
 
       box.appendChild(seg('播放速度', [
@@ -724,8 +759,7 @@ window.FG = window.FG || {};
         row.appendChild(th);
         const info = FG.el('div', 'info');
         info.innerHTML = '<div class="nm">' + FG.esc(b.name) + ' <span class="tag">×' + n + '</span></div>' +
-          '<div class="ds">稀有 ×' + b.rareMul.toFixed(2) + '　雜物 ×' + b.junkMul.toFixed(2) +
-          (b.kingMul > 1 ? '　魚王 ×' + b.kingMul.toFixed(1) : '') + '</div>';
+          '<div class="ds">大獎倍率 ×' + b.jackpotMul.toFixed(2) + '　雜物 ×' + b.junkMul.toFixed(2) + '</div>';
         row.appendChild(info);
         const act = FG.el('div', 'act');
         if (n > 0) {
@@ -745,29 +779,43 @@ window.FG = window.FG || {};
     },
 
     /* ---------------- 費率表 ---------------- */
+    // 固定 RTP 之後這張表多了「賠付」欄。玩家真正該看的是「這一階賠幾倍」，
+    // 光有機率沒有倍率，看不出各釣點的差別（各釣點的 RTP 都是 98%，差的是分布）。
     rateModal: function () {
       const st = FG.state, loc = st.loc();
       const rows = st.rarityTable(loc);
+      const b = st.bonus(loc);
+      const norm = st.rtpNorm(loc, rows);
+      const bet = st.bet(loc);
+
       const box = FG.el('div');
       const tbl = FG.el('table', 'rate-tbl');
+      const th = FG.el('tr');
+      th.innerHTML = '<td class="mute tiny">稀有度</td><td class="mute tiny">機率</td>' +
+        '<td class="mute tiny">平均賠付</td>';
+      tbl.appendChild(th);
       rows.slice().reverse().forEach(function (r) {
+        const mul = r.fish.reduce(function (s, f) { return s + st.payoutMult(f, b); }, 0) / r.fish.length * norm;
         const tr = FG.el('tr');
         tr.appendChild(FG.el('td', '', '<span style="color:' + r.rarity.color + '">■</span> ' + r.rarity.name +
           ' <span class="mute tiny">(' + r.fish.length + ' 種)</span>'));
         tr.appendChild(FG.el('td', '', (r.pct * 100).toFixed(2) + ' %'));
+        tr.appendChild(FG.el('td', '', '×' + (mul >= 10 ? Math.round(mul) : mul.toFixed(2)) +
+          ' <span class="mute tiny">' + FG.fmtShort(Math.round(mul * bet)) + '</span>'));
         tbl.appendChild(tr);
       });
       box.appendChild(tbl);
 
-      const b = st.bonus(loc);
       const note = FG.el('div', 'tiny mute');
       note.style.cssText = 'margin-top:10px;line-height:1.8';
       note.innerHTML =
-        '目前加成：稀有度 ×' + (b.rareMul * st.bait().rareMul).toFixed(2) +
-        '　價值 ×' + (b.valueMul * st.bait().valueMul).toFixed(2) +
+        '賠付倍率是相對<b>下注額</b>的倍數，目前下注 <span class="money">' + FG.fmt(bet) + '</span>。<br>' +
+        '目前加成：大獎倍率 ×' + b.jackpotMul.toFixed(2) +
+        '　魚王出現率 ×' + b.kingMul.toFixed(2) +
         '　體型 +' + Math.round(b.sizeBonus * 100) + '%<br>' +
-        '機率會隨著釣竿、餌料、裝備與家園裝飾即時變動。<br>' +
-        '另有 3% 機率釣起「閃光」個體，價值 ×3。';
+        '實際賠付還會乘上體長係數（體型越大賠越多），另有 3% 機率釣起「閃光」個體，賠付 ×3。<br>' +
+        '<b>換裝備只會改變分布，不會改變長期期望值</b>——每個釣點、每個下注額的長期回收率都固定是 ' +
+        Math.round(FG.RTP_TARGET * 100) + '%。';
       box.appendChild(note);
 
       FG.ui.modal({ title: loc.name + '｜中獎機率', body: box, buttons: [{ label: '知道了', cls: 'ghost' }] });

@@ -28,6 +28,28 @@
 
 順序由 `main.js › SCREENS` 陣列決定。
 
+### 釣魚 · screen-fishing.js 的 `#castBar`
+
+底部操作區由上到下四層：
+
+```
+#betRow    下注列：「下注」標籤 ＋ .seg.seg-scroll（19 檔）
+#gearRow   釣竿 / 餌料 / 中獎機率 三顆 .gear-slot
+#autoStats 自動模式進行中才顯示
+.cast-row  拋竿鈕 ＋ 自動鈕
+```
+
+**下注列一定要用 `.seg-scroll`**：選項最多 19 檔（`FG.BETS`），用等分的 `.seg` 會把「10,000」壓到折行，跟圖鑑的釣點切換列是同一個坑（[11 §21](11-invariants-and-gotchas.md)）。實測 320px 下 19 顆按鈕全部 29px 高、寬度 40～57px、可橫向捲、body 沒有橫向溢出。
+
+三個實作細節：
+
+- **只列出 `≥ loc.minBet` 的檔位**（`state.betOptions(loc)`）。換釣點時列表會重建，選中的檔位由 `state.bet(loc)` 決定（低於門檻會自動抬高）。
+- **選中的檔位要捲進可視範圍**，而且 `scrollEdges()` 一定要在動過 `scrollLeft` **之後**才呼叫（[11 §22](11-invariants-and-gotchas.md)）。
+- **演出中不能改注**（`renderBets()` 的 onclick 檢查 `phase !== 'idle'` 就 return）。結果在 `cast()` 當下就抽好了，中途改注會讓賠付跟下注額對不上。
+- 按鈕文字用 `FG.fmt()` 不用 `fmtShort()`——後者會把 10000 寫成「1萬」，跟前一格的「9,000」混在同一列看起來像兩種單位。
+
+「中獎機率」彈窗（`rateModal()`）除了機率之外還有一欄**平均賠付**（倍率 ＋ 目前下注額的換算）。固定 RTP 之後光有機率看不出釣點差別（所有釣點的 RTP 都是 98%，差的是分布），所以倍率那一欄是必要的。
+
 ### 每日 · screen-daily.js
 
 - **簽到**：七格網格。已領 `.got`（打勾＋降透明度）、今天可領 `.today`（金色框）。索引邏輯是 `streak % 7`。
@@ -78,7 +100,9 @@
 
 ## 會隨釣點數量成長的介面
 
-釣點會持續增加，而畫面寬度不會。**兩個地方會因此壞掉，各自用不同的方式解決。**
+釣點會持續增加，而畫面寬度不會。**三個地方會因此壞掉，各自用不同的方式解決。**
+
+> **第三個是釣魚畫面的下注列**（`#betRow`，19 檔）。它跟第一個用同一套解法（`.seg-scroll` ＋ `scrollEdges()`），細節寫在上方 [§釣魚 · screen-fishing.js 的 `#castBar`](#釣魚--screen-fishingjs-的-castbar)。它成長的來源不是釣點數而是 `FG.BETS` 的長度，但撞牆的機制一模一樣。
 
 ### 一 · 圖鑑的釣點切換列 · `.seg-scroll`
 
@@ -211,6 +235,7 @@ FG.ui.scrollEdges(el, axis)       // 捲動容器的邊緣漸層提示，見 §�
 | `.item` | 商品／漁獲列（縮圖 + 資訊 + 動作按鈕） |
 | `.seg` / `.seg-sm` | 分段選擇器（等分擠壓） |
 | `.seg.seg-scroll` | 橫向捲動的分段選擇器，**選項數量會成長的一律用這個** |
+| `.bet-row` / `.bet-label` | 釣魚畫面的下注列（標籤 ＋ 內嵌一條 `.seg-scroll`） |
 | `.loc-list` | 可捲動的釣點清單容器 |
 | `.tag` `.money` `.tiny` `.dim` `.mute` `.center` | 行內修飾 |
 | `.bar > i` | 進度條 |

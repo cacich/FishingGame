@@ -247,6 +247,13 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   border-top: 3px solid var(--line);
   padding: 8px 10px 10px;
 }
+/* 下注列。選項最多 19 檔（FG.BETS），所以右邊那條一定要用 .seg-scroll——
+   用等分的 .seg 會把「10K」壓到折行，跟釣點切換列是同一個坑（wiki 11 §21）。 */
+.bet-row { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+.bet-label { flex: 0 0 auto; font-size: 10px; color: var(--ink-mute); letter-spacing: 1px; }
+.bet-row .seg { flex: 1 1 auto; min-width: 0; margin: 0; }
+.bet-row .seg-scroll button { padding: 6px 10px; font-size: 12px; }
+
 .gear-row { display: flex; gap: 6px; margin-bottom: 8px; }
 .gear-slot {
   flex: 1;

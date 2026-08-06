@@ -129,7 +129,9 @@ window.FG = window.FG || {};
       box.appendChild(stats);
       if (f.legend) box.appendChild(FG.el('div', 'legend', FG.esc(f.legend)));
       box.appendChild(FG.el('div', 'tiny dim', FG.esc(f.desc || '')));
-      box.appendChild(FG.el('div', 'tiny mute', '<br>基礎估價 ' + FG.fmt(f.value) + ' 籌碼'));
+      // 賠付是「下注額的倍率」，不是絕對籌碼，所以這裡標倍率並附上目前下注額的換算
+      box.appendChild(FG.el('div', 'tiny mute', '<br>基礎賠付 ×' +
+        (f.mult >= 10 ? Math.round(f.mult) : f.mult.toFixed(2)) + ' 下注額'));
     } else {
       box.appendChild(FG.el('div', 'tiny mute', '尚未捕獲。<br>體型範圍 ' + f.minLen + '–' + f.maxLen + ' cm<br><br>' +
         (f.rarity === 'king' ? '魚王極為罕見，建議備妥高階釣竿與魚王秘餌。' : '繼續在該釣點下竿吧。')));

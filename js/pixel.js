@@ -1320,6 +1320,110 @@ window.FG = window.FG || {};
     }
   };
 
+  // 每張地圖的三件雜物都保留獨立剪影：負面事件仍要能說出「它是從哪裡來的」。
+  // 這批圖刻意維持 8～14 格的簡單輪廓，和魚精靈並排時不會搶走稀有魚的視覺重量。
+  Object.assign(JUNK_MAPS, {
+    ml_notebook: { pal: { X: '#24323a', c: '#506f78', p: '#b8c7b2', l: '#d8e2ce', a: '#557b58' }, map: [
+      '...XXXXXX...', '..XccccccX..', '.XcpppppcX.', '.XcpplppcX.', '.XcpppppcX.', '.XcpplppcX.', '.XcpppppcX.', '..XaaaaaX..', '...XXXXX....'
+    ] },
+    ml_reedfloat: { pal: { X: '#253b25', r: '#b79d52', l: '#ded39a', c: '#b84b42', g: '#557d3e' }, map: [
+      '.....XX....', '....XrrX...', '....XllX...', '....XrrX...', '..XXXccXXX.', '.XggXccXggX', 'XgggXrrXgggX', '.XXX.XX.XXX.', '......gg....'
+    ] },
+    fj_buoytag: { pal: { X: '#2b3740', o: '#d66d53', l: '#f0b28a', w: '#d8e2d9', r: '#8d4b3c' }, map: [
+      '...XXXX...', '..XllllX..', '.XlooolX.', '.XlooolX.', '.XlwwwlX.', '.XlooolX.', '..XrrrrX..', '...XXXX....'
+    ] },
+    fj_tidebottle: { pal: { X: '#263f43', g: '#4d8b82', l: '#a9d5bf', o: '#dd935a', w: '#dfd2ae' }, map: [
+      '.....XX.....', '....XooX....', '....XooX....', '...XllllX...', '..XlgggglX..', '..XlgwwglX..', '..XlgggglX..', '..XloooolX..', '...XooooX...', '....XXXX.....'
+    ] },
+    fj_cleat: { pal: { X: '#28333a', m: '#6d7d80', l: '#b7c3bf', b: '#e5e2cb', g: '#567559' }, map: [
+      '..XX....XX..', '.XllX..XllX.', '.XmmXXXXmmX.', 'XmmmbbbbmmX', 'XmmXggggXmmX', '.XXXXXXXXXX.', '..XggggggX..', '...XXXXXX...'
+    ] },
+    sk_bell: { pal: { X: '#402a22', b: '#9f6b35', l: '#e3ba62', r: '#9e2d32', w: '#e6d3bd' }, map: [
+      '....XX....', '...XrrX...', '...XrrX...', '..XbllbX..', '.XbllllbX.', 'XbllllllbX', 'XbllXXllbX', '.XbbbbbbX.', '..XwXXwX..'
+    ] },
+    sk_crane: { pal: { X: '#5a3740', p: '#d9a8ae', l: '#f4d9d1', r: '#a54a59', b: '#73506b' }, map: [
+      '......X.....', '.....XlX....', '....XlllX...', '..XXlplllXX.', '.XlpppppllX.', 'XlppXlXppplX', '.XXbX.XbXX..', '...XX.XX....'
+    ] },
+    fr_thermos: { pal: { X: '#263a4b', b: '#5d8fae', l: '#c8e9ef', f: '#effcff', s: '#93b9ce' }, map: [
+      '....XXXX....', '...XllllX...', '...XlssX...', '..XlbllbX..', '..XlbllbX..', '..XlbllbX..', '..XlbllbX..', '..XlffffX..', '...XXXXXX...'
+    ] },
+    fr_jig: { pal: { X: '#233b52', s: '#9bbdcb', l: '#e9f6fa', b: '#5c8daa', r: '#c95148' }, map: [
+      '.....X.....', '....XlX....', '...XlssX...', '..XlsllsX..', '.XlssllsX..', 'XlssbbssX..', '.XssrrsX...', '..XrXXrX...', '...X..X....'
+    ] },
+    lr_jarstopper: { pal: { X: '#3a2830', r: '#8e4c59', l: '#c67e86', w: '#d5b27c', b: '#76512d' }, map: [
+      '....XXXX....', '...XrrrrX...', '..XrllllrX..', '.XrllllllrX.', 'XrllXXXXllrX', 'XrllXwwXllrX', '.XrrXbbXrrX.', '..XXXXXXXX..'
+    ] },
+    lr_lotuspod: { pal: { X: '#354133', g: '#687e4d', l: '#a6ad6a', d: '#5b4633', w: '#c6bd91' }, map: [
+      '....XX....', '...XggX...', '..XgllgX..', '.XglddlgX.', 'XglddddlgX', 'XglddddlgX', '.XgllllgX.', '..XggggX..', '....XX....'
+    ] },
+    ab_logger: { pal: { X: '#182b35', c: '#486b74', l: '#90b9ae', g: '#5ed38e', r: '#a84f54' }, map: [
+      '.XXXXXXXXX.', 'XcccccccccX', 'XclllclllcX', 'XccgccccccX', 'XccccccrccX', 'XclllclllcX', 'XcccccccccX', '.XXXXXXXXX.'
+    ] },
+    ab_cable: { pal: { X: '#17232c', c: '#343f48', b: '#507f9c', r: '#b94a4c', y: '#c8ae4d' }, map: [
+      '...XXXXX...', '.XXcccccXX.', 'XccXbbbXccX', 'XcXbryrXcX', 'XccXbbbXccX', '.XXcccccXX.', '...XXXXX...'
+    ] },
+    wr_runestone: { pal: { X: '#27352d', s: '#647366', l: '#9eab92', r: '#8d5f46', g: '#557c51' }, map: [
+      '...XXXXX...', '..XllllX...', '.XlgrglX..', '.XlrXrlX..', 'XlgrXrglX.', 'XlrrgrrlX.', '.XlggglX..', '..XssssX...', '...XXXXX...'
+    ] },
+    wr_amulet: { pal: { X: '#2b2c21', b: '#86663b', l: '#d2bd76', r: '#6c452f', g: '#56734c' }, map: [
+      '.....gg....', '....gXXg...', '...XbllX...', '..XblrrlX..', '.XblrrrlX..', 'XblrrrllbX.', '.XbllllbX..', '..XXXXXX...'
+    ] },
+    du_canopic: { pal: { X: '#3d2b1b', s: '#b99152', l: '#e2c981', b: '#76513a', r: '#9c6c46' }, map: [
+      '....XXXX....', '...XllX....', '...XlssX...', '..XlsllX...', '..XlbbblX..', '.XlblllblX.', 'XlblllllbX', 'XlbbbbbbX.', '.XXXXXXXX..'
+    ] },
+    du_papyrus: { pal: { X: '#4c3920', p: '#c8a86a', l: '#ead495', k: '#735329', r: '#a96a43' }, map: [
+      '.XXXXXXXXXX.', 'XllllllllllX', 'XlkkklkkklX', 'XlklklklklX', 'XlkkklkkklX', 'XlklklklklX', 'XlrrrrrrrlX', '.XXXXXXXXXX.'
+    ] },
+    gp_skimmer: { pal: { X: '#31454d', m: '#6c8990', l: '#c3d2cc', g: '#6e9d5b', b: '#a8b5b5' }, map: [
+      '...XX......', '..XmmX.....', '.XmllmX....', 'XmlgglmX...', 'XmlgglmX...', '.XmbbmX....', '..XmmX.....', '...XX......', '.....XXXXXX', '.....XmmmmX'
+    ] },
+    gp_feedcup: { pal: { X: '#554334', c: '#aa8c65', l: '#d9c49a', p: '#8a734f', b: '#5d4931' }, map: [
+      '...XXXX....', '..XllllX...', '.XlpppplX..', 'XlpppppplX.', 'XlppXppplX.', 'XlpppppplX.', '.XbbbbbbX..', '..XXXXXX...'
+    ] },
+    tf_crabshell: { pal: { X: '#3c3530', s: '#b88a6e', l: '#e0bea0', p: '#8b6658', a: '#d7c6ad' }, map: [
+      '....XX....', '...XllX...', '..XlsslX..', '.XlspslX..', 'XlsspsslX.', 'XlspssslX.', '.XssaassX.', '..XppppX..', '...XXXX...'
+    ] },
+    tf_seaglass: { pal: { X: '#295158', g: '#65a9a3', l: '#b5e0d1', w: '#e3f2df' }, map: [
+      '....XXXX...', '...XllllX..', '..XlgggglX.', '.XlggwwggX.', 'XlgggggglX.', 'XlgggggglX.', '.XlgggglX..', '..XXXXXX...'
+    ] },
+    fp_carabiner: { pal: { X: '#34363d', o: '#cb7047', l: '#f1a66e', d: '#824337', s: '#b7c1c2' }, map: [
+      '...XXXXX...', '..XllllX...', '.XlooolX...', 'XlooXXooX..', 'XloX..XoX..', 'XlooXXooX..', '.XldddX....', '..XssssX...', '...XXXXX...'
+    ] },
+    fp_mapcase: { pal: { X: '#36424a', c: '#6c8b91', l: '#b8d0c8', g: '#657a58', r: '#9c5d43' }, map: [
+      '...XXXX....', '..XllllX...', '.XlccccX...', 'XlccccccX..', 'XlccggccX..', 'XlccggccX..', 'XlccrrccX..', '.XllllllX..', '..XXXXXX...'
+    ] },
+    cd_obsidian: { pal: { X: '#211c2b', b: '#3a324a', l: '#81759f', g: '#8b9d5b', y: '#d9c85a' }, map: [
+      '....XXXX...', '...XllbX...', '..XlbbblX..', '.XlbbggbX..', 'XbbggyybbX.', 'XbggyybbbX.', '.XbbbbbX...', '..XXXXXX....'
+    ] },
+    cd_goggles: { pal: { X: '#2d2b28', m: '#766d54', l: '#d6ca89', y: '#c6a53e', s: '#e8ddaa' }, map: [
+      '.XXX...XXX.', 'XlllX.XlllX', 'XlylX.XlylX', 'XlllX.XlllX', '.XXXy.yXXX.', '....XyX....', '...XyyyX...'
+    ] },
+    rp_piton: { pal: { X: '#303b40', m: '#70848a', l: '#c6d4d0', g: '#63875b', r: '#9a5944' }, map: [
+      '....XXXX...', '...XllllX..', '..XlmmllX..', '.XlmggmlX..', 'XlmmmmmmlX.', '.XlmmmmlX..', '..XllrrX...', '...XrrX....', '....XX.....'
+    ] },
+    rp_mayflycase: { pal: { X: '#3b3022', w: '#a77b4c', l: '#d4b177', f: '#d9d7bf', r: '#8d5540' }, map: [
+      '.XXXXXXXXX.', 'XwllllllwX', 'XlfflffflX', 'XllffrfflX', 'XlfflffflX', 'XwllllllwX', '.XXXXXXXXX.'
+    ] },
+    cr_weight: { pal: { X: '#29353a', p: '#a05f9e', l: '#e49ad0', g: '#5bb490', s: '#9da79c' }, map: [
+      '....XX....', '...XssX...', '..XsggsX..', '.XsgppgsX.', 'XsgppppgsX', 'XsgppppgsX', '.XsggggsX.', '..XssssX..', '...XXXX....'
+    ] },
+    cr_mask: { pal: { X: '#243640', c: '#4e8a94', l: '#a8d9d3', p: '#d276b1', s: '#405b64' }, map: [
+      '.XXXXXXXXX.', 'XlccccccclX', 'XlcXlllXclX', 'XlcXlllXclX', 'XlccccccclX', '.XXXpppXXX.', '....X.X....', '...X...X...'
+    ] },
+    cv_lamp: { pal: { X: '#272928', m: '#6a7067', l: '#b4baa3', c: '#d9c77a', w: '#e8e1b6' }, map: [
+      '....XXXX....', '...XllllX...', '..XlccccX...', '.XlcwwcclX.', 'XlcwwwwclX', 'XlccccccX.', '.XlmmmmX..', '..XmmmmX..', '...XXXX....'
+    ] },
+    cv_ropeanchor: { pal: { X: '#2d302d', r: '#725e4b', l: '#b29a72', s: '#85908a', w: '#c9c7b3' }, map: [
+      '....XXXX....', '...XlssX...', '..XlsllsX..', '.XlsXXlsX..', 'XlsX..XsX..', 'XlsX..XsX..', '.XlsXXlsX..', '..XlwwlX...', '...XXXX....'
+    ] },
+    dp_signallamp: { pal: { X: '#3a3027', b: '#9a7040', l: '#d8ae66', r: '#c34d3f', g: '#6b8991' }, map: [
+      '....XXXX....', '...XbbbbX...', '..XbrrrrbX..', '.XbrgggrbX.', 'XbrggggrbX', 'XbrrrrrrbX', '.XbllllbX.', '..XbbbbbX..', '...XX.XX...'
+    ] },
+    dp_compass: { pal: { X: '#3c3528', b: '#a77c3c', l: '#e0bd69', c: '#8bb0b4', r: '#b74c43' }, map: [
+      '...XXXXXX...', '..XllllllX..', '.XllccccllX.', 'XllccrrccllX', 'XlccrllrccX', 'XllccrrccllX', '.XllccccllX.', '..XllllllX..', '...XXXXXX...'
+    ] }
+  });
+
   function buildJunk(f) {
     const def = JUNK_MAPS[f.junkArt] || JUNK_MAPS.boot;
     const s = px.mapSize(def.map);

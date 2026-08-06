@@ -31,6 +31,7 @@
 | `sw.js` | [13 PWA 與部署](13-pwa-and-deploy.md) | [11 地雷](11-invariants-and-gotchas.md) |
 | `manifest.webmanifest` | [13 PWA 與部署](13-pwa-and-deploy.md) | |
 | `tools/make-icons.py` · `icons/` | [13 PWA 與部署](13-pwa-and-deploy.md) | |
+| `tools/generate-image-prompts.js` | [15 全圖鑑產圖外觀描述](15-image-prompts.md) | [07 資料規格](07-data-schema.md)（魚類美術欄位） |
 | `assets/scenes/` | [06 像素引擎](06-pixel-engine.md)、[13 PWA 與部署](13-pwa-and-deploy.md) | [07 資料規格](07-data-schema.md)、[09 操作手冊](09-recipes.md)、[11 地雷](11-invariants-and-gotchas.md) |
 | **新增任何 js 檔** | [01 架構](01-architecture.md)、[wiki README](README.md) 檔案總覽、[根 README](../README.md) 檔案結構、**本頁補一列**，並更新 `sw.js › ASSETS` | |
 
@@ -47,18 +48,20 @@
 | 情況 | 額外要做的事 |
 |---|---|
 | **新增／刪除／改名任何前端資產** | 更新 `sw.js › ASSETS` 清單 ＋ **把 `VERSION` 加一** |
-| 動到任何影響機率／價格／成本的數值 | 跑 [10 §模擬腳本](10-balance-tuning.md#模擬腳本)，**更新基準表** |
+| 動到任何影響機率／賠付／波動度的數值 | **RTP 不用驗**（`rtpNorm()` 的恆等式保證 98%）。跑 [10 §驗證](10-balance-tuning.md#驗證驗恆等式不要驗統計量) 的全組合掃描確認沒寫壞，**更新 [10](10-balance-tuning.md) 與 [03](03-economy.md) 的分布表**。⚠️ **不要用蒙地卡羅量 RTP**（[11 §43](11-invariants-and-gotchas.md)） |
+| **新增 effect key** | 先讀 [11 §41 §42](11-invariants-and-gotchas.md)。會改變「玩家付出多少」的**一律不行**（打破 98%）；只改變分布的必須**同時加進 `state.js › rtpNorm()` 的 rawEV**，並更新 [03 §五](03-economy.md)、[12](12-glossary.md) |
+| **改 `FG.RTP_TARGET`** | 那是唯一能改變 RTP 的地方。改完更新 [03](03-economy.md)、[10](10-balance-tuning.md)、兩份 README |
 | 新增 shape / pattern / special / junkArt | [06](06-pixel-engine.md) 加說明 ＋ [07](07-data-schema.md) 加可用值 ＋ [12](12-glossary.md) 加清單 |
 | 新增「會往魚身體外延伸」的 special | 上面那一列全做，**再加 `buildFish()` 的 `HEAD_ROOM` 一列**（見 [11 §19](11-invariants-and-gotchas.md)） |
 | **新增釣點** | ★ **必須一次生出一整套**：釣點＋魚種＋釣竿＋餌料＋裝備＋家園裝飾＋**魚王 cut-in**，規則與理由見 [09 §新增一個釣點](09-recipes.md#新增一個釣點--一次要生出一整套)。文件要更新 [07](07-data-schema.md) 釣點表＋配色規則表＋四張裝備表、[10](10-balance-tuning.md) 基準表＋模擬腳本、[12](12-glossary.md) id 前綴、[04](04-fishing-loop.md) 魚王 cut-in 分配表、[wiki README](README.md) 三十秒版本、**[根 README](../README.md) 的釣點表（一列）＋魚種總數＋圖鑑總數＋數值平衡段的倍率鏈**，並**在 320px 寬檢查 [08](08-ui-and-screens.md#會隨釣點數量成長的介面) 列的兩處** |
-| **把釣點插在既有兩個之間**（不是接在尾巴） | 上面那一列全做，**再加**：後段可用的滿裝倍率窗口只有 0.009～0.05，比模擬噪音還窄，**必須用 [10 §精確版](10-balance-tuning.md#精確版不用模擬直接把期望值算出來) 的解析解校正**，理由見 [11 §28](11-invariants-and-gotchas.md#28-插隊的釣點模擬的噪音比可用的窗口還寬)。**前段（400～1,800）還有 0.067～0.087 的窗口**，那裡插隊輕鬆得多 |
+| **把釣點插在既有兩個之間**（不是接在尾巴） | 上面那一列全做，**再加**：換算腳本用 `LOCATIONS` 的索引算波動度曲線的 `v`，所以插隊會讓**後面所有釣點的曲線位置位移**——必須**整批重跑換算**，不能只算新的那一個。（舊版那個「倍率窗口只剩 0.009 比噪音還窄」的問題已隨固定 RTP 消失，見 [11 §28](11-invariants-and-gotchas.md)） |
 | **新增會在水面上放東西的地形** | 先讀 [11 §31](11-invariants-and-gotchas.md)：這一版的水面是平塗，物件必須自己帶著水下的體積，否則會浮在半空。連續兩個地形踩過 |
 | **新增會在水下放東西的地形** | 先讀 [11 §36](11-invariants-and-gotchas.md)：水下物件的明度必須**跨過水色**，差不到一階等於沒畫（`wreck` 的水下船身踩過）。半透明的淺色疊層另有 alpha 上限 0.3 的陷阱，見 [06 §reef](06-pixel-engine.md#reef-的三個設計決定) |
 | **寫「不合格就重抽」的取樣迴圈** | 先讀 [11 §35](11-invariants-and-gotchas.md)：要確認取樣範圍跟排除區沒有完全重疊，**並且加迴圈上限**。有 `bgCache` 的地方特別難發現 |
 | **新增魚王** | `cutin.js › KING` 補一筆（`motif` / `particle` / `title` / `tone`）＋ [04](04-fishing-loop.md) 的分配表加一列。**漏了不報錯**，只是那位魚王的登場演出跟別人一樣 |
 | 改 cut-in 的長度或動畫 | `cutin.js › DUR_*` 與 `styles.css` 的 keyframes **必須一起改**（[11 §26](11-invariants-and-gotchas.md)）＋ [04 §時間軸](04-fishing-loop.md#時間軸) 的表 ＋ [08](08-ui-and-screens.md) |
-| 新增釣竿／餌料 | [07](07-data-schema.md) 的表；**維持 price 遞增**；`screen-shop.js › rodIcon()` 的**兩張色表要同步加長，而且 `% N` 那個硬寫的數字也要跟著改**（[11 §24](11-invariants-and-gotchas.md)） |
-| 新增**裝備** | [07](07-data-schema.md) 的表 ＋ `screen-shop.js › EQUIP_ART` 圖示。**釣點專屬的一律綁 `effect.loc` 且只給一個效果**，否則倍率會疊乘失控（[10](10-balance-tuning.md)） |
+| 新增釣竿／餌料 | [07](07-data-schema.md) 的表；**維持 price 等差遞增**（竿 +15,000／餌 +5）；`screen-shop.js › rodIcon()` 的**兩張色表要同步加長，而且 `% N` 那個硬寫的數字也要跟著改**（[11 §24](11-invariants-and-gotchas.md)） |
+| 新增**裝備** | [07](07-data-schema.md) 的表 ＋ `screen-shop.js › EQUIP_ART` 圖示。**幅度一律 +2%～+5%**（裝備全部相乘）；**釣點專屬的一律綁 `effect.loc` 且只給一個效果**，價格用 `minBet × 40` |
 | 新增**家園裝飾** | [07](07-data-schema.md) 的表 ＋ `screen-home.js › DECO_ART` 圖示 ＋ `pixel.js › drawRoom()` 繪製碼。**釣點主題的一律純裝飾**（`effect: {}`） |
 | 新增選項數量會成長的橫向列 | 用 `.seg.seg-scroll`（**不要用 `.seg`**）＋ [08](08-ui-and-screens.md) 設計語彙表加一列。步驟見 [09](09-recipes.md) |
 | **新增 `TERRAIN` 地形** | [06 §地形系統](06-pixel-engine.md) 加一列 ＋ [07](07-data-schema.md) 的 scene 表與釣點表 ＋ [12](12-glossary.md) 加清單，**並補 `locThumb()` 的 switch case** |
@@ -77,7 +80,7 @@
 | [00 上手](00-onboarding.md) | 全域概念，無特定檔案 |
 | [01 架構](01-architecture.md) | `index.html`、`util.js`、`main.js`、跨檔案契約 |
 | [02 狀態與存檔](02-state-and-save.md) | `state.js`（存檔／事件／API） |
-| [03 經濟與抽獎](03-economy.md) | `state.js`（`castCost` `bonus` `rarityTable` `rollCatch` `recordCatch`）、`data.js › FG.RARITY` |
+| [03 經濟與抽獎](03-economy.md) | `state.js`（`bet` `betOptions` `bonus` `rarityTable` `rtpNorm` `sizeMoments` `payoutMult` `rollCatch` `bufferBoost` `toBuffer` `wager` `recordCatch`）、`data.js › FG.RARITY / FG.BETS / FG.RTP_TARGET` |
 | [04 釣魚循環](04-fishing-loop.md) | `screen-fishing.js`（狀態機／演出／結果卡）、`cutin.js` 全部 |
 | [05 自動模式](05-auto-mode.md) | `screen-fishing.js`（`auto*` 系列） |
 | [06 像素引擎](06-pixel-engine.md) | `pixel.js` 全部 ＋ 各分頁檔的字元圖常數 |
@@ -89,3 +92,4 @@
 | [12 名詞表](12-glossary.md) | key 值速查 |
 | [13 PWA 與部署](13-pwa-and-deploy.md) | `manifest.webmanifest`、`sw.js`、`js/pwa.js`、`tools/make-icons.py`、GitHub Pages |
 | [14 開發者面板](14-devtools.md) | `devtools.js` 全部 |
+| [15 全圖鑑產圖外觀描述](15-image-prompts.md) | `tools/generate-image-prompts.js`、`data.js` 的魚／雜物外觀欄位 |

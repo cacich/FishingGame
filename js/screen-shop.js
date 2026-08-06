@@ -53,7 +53,7 @@ window.FG = window.FG || {};
     renderRods: function (root) {
       const st = FG.state;
       const p = FG.el('div', 'panel');
-      p.appendChild(FG.el('div', 'panel-title', '釣竿 <span class="sub">影響稀有度與體型</span>'));
+      p.appendChild(FG.el('div', 'panel-title', '釣竿 <span class="sub">同時只有一支生效</span>'));
       FG.RODS.forEach(function (rod) {
         const owned = st.data.rods.indexOf(rod.id) >= 0;
         const using = st.data.rod === rod.id;
@@ -70,9 +70,9 @@ window.FG = window.FG || {};
           '<div class="nm">' + FG.esc(rod.name) +
           (rod.loc ? ' <span class="tag">' + FG.esc(FG.locById(rod.loc).name) + '主題</span>' : '') +
           (using ? ' <span class="tag" style="color:#5fd08a">使用中</span>' : '') + '</div>' +
-          '<div class="ds">' + FG.esc(rod.desc) + '<br>稀有 ×' + rod.rareMul.toFixed(2) +
-          '　體型 +' + Math.round(rod.sizeBonus * 100) + '%' +
-          (rod.kingMul > 1 ? '　魚王 ×' + rod.kingMul.toFixed(1) : '') + '</div>';
+          '<div class="ds">' + FG.esc(rod.desc) +
+          '<br>魚王出現率 ×' + rod.kingMul.toFixed(3) +
+          '　體型 +' + Math.round(rod.sizeBonus * 100) + '%</div>';
         row.appendChild(info);
 
         const act = FG.el('div', 'act');
@@ -119,9 +119,9 @@ window.FG = window.FG || {};
           '<div class="nm">' + FG.esc(b.name) + ' <span class="tag">庫存 ' + have + '</span>' +
           (b.loc ? ' <span class="tag">' + FG.esc(FG.locById(b.loc).name) + '主題</span>' : '') +
           (using ? ' <span class="tag" style="color:#5fd08a">使用中</span>' : '') + '</div>' +
-          '<div class="ds">' + FG.esc(b.desc) + '<br>稀有 ×' + b.rareMul.toFixed(2) +
-          '　雜物 ×' + b.junkMul.toFixed(2) +
-          (b.kingMul > 1 ? '　魚王 ×' + b.kingMul.toFixed(1) : '') + '</div>';
+          '<div class="ds">' + FG.esc(b.desc) +
+          '<br>大獎倍率 ×' + b.jackpotMul.toFixed(2) +
+          '　雜物 ×' + b.junkMul.toFixed(2) + '</div>';
         row.appendChild(info);
 
         const act = FG.el('div', 'act');
@@ -144,7 +144,7 @@ window.FG = window.FG || {};
       root.appendChild(p);
 
       const tip = FG.el('div', 'panel');
-      tip.innerHTML = '<div class="tiny mute" style="line-height:1.8">餌料越貴，抽到稀有魚與魚王的權重越高、雜物越少。' +
+      tip.innerHTML = '<div class="tiny mute" style="line-height:1.8">餌料越貴，傳說與魚王的賠付倍率越高、雜物越少。' +
         '可在釣魚畫面點「餌料」快速切換，或在此查看即時倍率。</div>';
       root.appendChild(tip);
     },

@@ -16,6 +16,83 @@
 
 ---
 
+## 2026-08-06 · 改成固定 98% RTP 的下注制（經濟系統整個換掉）
+
+**改了什麼**：
+
+1. **玩家自選下注額。** 新增 `FG.BETS`（19 檔：100～1,000 每格 +100、1,000～10,000 每格 +1,000，**刻意不用倍增**）。釣點的 `castCost` 改名為 `minBet`（400→192,000 變成 100→7,000），語意從「拋竿費」變成「最低下注」——門檻之上玩家自己決定押多少。釣魚畫面底部加一條 `.seg-scroll` 下注列。
+2. **魚的 `value` 改成 `mult`。** 從絕對籌碼變成**相對下注額的賠付倍率**。370 條魚全部由換算腳本重生，照一條「波動度曲線」（v=0 晨霧湖 → v=1 曉日沉港）內插後對每個釣點整批縮放。
+3. **RTP 被釘死在 98%。** 新增 `state.js › rtpNorm(loc, rows, boost)`：每次抽獎前用當下的分布算出原始期望倍率，再把賠付歸一到 `bet × 目標RTP`。分子分母同源，所以 **`E[賠付] ≡ bet × 0.98` 是恆等式**，不是調出來的近似值。配套新增 `sizeMoments()`（`E[(len/avg)²]` 的數值積分，依 `sizeBonus` 快取）與 `payoutMult()`。
+4. **Buffer 池。** 商店消費（竿／餌／裝備／裝飾／魚缸）扣 2% 之後全額進 `data.buffer`（`toBuffer()`），再由每一竿墊高目標 RTP 排回去（`bufferBoost()`，上限 +0.10、每竿排 1/200）。**扣池用期望值 `bet × boost` 而不是實際賠付**，這樣長期收支相等但單次大獎不會把池打穿。玩家端**完全沒有提示**（產品決策）。
+5. **effect key 從七個砍到四個。** 只剩 `jackpotMul`（傳說／魚王的賠付倍率）、`kingMul`（魚王權重）、`sizeBonus`（純觀感）、`showHint`。移除 `costMul`（會改變分母，把 RTP 推到 115%）、`valueMul` 與 `rareMul`（會被 `rtpNorm` 抵銷成沒有效果）。受影響的 8 件裝備、21 支竿、21 種餌、2 件裝飾全部重新定義效果。
+6. **商店價格全部改等差**（原本是倍增）：竿 0→300,000（+15,000）、餌 20→120（+5，pack 統一 10）、通用裝備 4,000→20,000（+4,000）、專屬裝備 `minBet × 40`、裝飾 5,000→75,000（+5,000）、魚缸 0→80,000（+20,000）。
+7. **裝備幅度壓到 +2%～+5%**（原本 +8%～+20%）。竿與餌因為同時只有一件生效，幅度放大（竿 `kingMul` →×2.5、餌 `jackpotMul` →×1.6）。
+8. `SAVE_VER` 1 → 2（舊存檔的魚價與拋竿費失去意義，直接重置）。`stats` 新增 `wagered` / `payout` / `shopSpent` 三個 RTP 記帳欄位；`screen-fishing.js › cast()` 改用新的 `state.wager()` 而不是 `pay()`。
+9. 費率表加一欄**平均賠付**（倍率 ＋ 目前下注額的換算）；開發者面板加 `rtpNorm` / Buffer 池 / 目標 RTP / 實測 RTP 四列。
+
+**為什麼**：產品需求是「總體 RTP 98%，商店消費當 Buffer 池回吐」。但更根本的原因是舊版那套「調出來的平衡」已經走到盡頭——
+
+- **可用窗口越調越窄**：滿裝倍率曲線收斂，插一個新釣點的可用區間從 0.348 縮到 **0.009**，比 100 萬竿模擬的噪音（±0.025）還窄。插隊實務上已經做不到。
+- **加內容就會破壞平衡**：出過兩次印鈔機事故（滿裝 ×3.25／×3.97、專屬裝備兩個乘數 ×3.13）。
+- **公式有兩份**：離線模擬腳本跟 `state.js` 各一份，改了一邊忘另一邊，基準表就騙人。
+
+固定 RTP 把三個一次消掉：窗口不存在了、加內容不可能破壞平衡、驗證腳本直接載入 `state.js` 本體。
+
+**驗證**：
+
+| 檢驗 | 結果 |
+|---|---|
+| 全組合掃描（16 釣點 × 21 竿 × 21 餌 × 3 裝備配置 × 各釣點的 bet 檔 = **243,432 組**） | RTP 與 0.980000 的最大誤差 **4.441e-16** |
+| Buffer 排空量 vs 進池量 | 980,000 vs 980,000，誤差 **5.12e-9**（15,711 竿） |
+| `boost` 0 / 0.01 / 0.05 / 0.10 的 `EV/bet` | 0.980000 / 0.990000 / 1.030000 / 1.080000，誤差 **1.110e-16** |
+| 蒙地卡羅交叉驗證（200 萬竿 × 3 配置，拆成非魚王賠付＋魚王頻率） | 晨霧湖 0.9078 vs 解析 0.9054、魚王率 0.200% vs 0.200%；曉日沉港 0.3648 vs 0.3636、0.587% vs 0.581% |
+| 320px 窄螢幕 | 19 檔下注按鈕全部 29px 高、可橫向捲、body 無溢出 |
+| 商店三個分頁 | 63 列全部有圖示，空白 0 |
+
+**動到的檔案**：`js/data.js`（`FG.BETS` `FG.RTP_TARGET` 新增、16 筆 `castCost`→`minBet`、370 筆 `value`→`mult`、`FG.RODS` `FG.BAITS` `FG.EQUIPS` `FG.DECOS` `FG.TANK_LEVELS` 全部重寫）、`js/state.js`（`freshSave` `bonus` `bet` `betOptions` `setBet` `castCost` `rarityTable` `sizeMoments` `payoutMult` `rtpNorm` `bufferBoost` `toBuffer` `wager` `rollCatch` `recordCatch` `buyRod` `buyBait` `buyEquip` `buyDeco` `upgradeTank`）、`js/screen-fishing.js`（`build` `refresh` `renderBets` `cast` `baitPicker` `rateModal`）、`js/screen-shop.js`（`renderRods` `renderBaits`）、`js/screen-codex.js`、`js/screen-daily.js`、`js/main.js › locationPicker()`、`js/devtools.js › refreshInfo()`、`styles.css`（`.bet-row` `.bet-label`）、新增 `.claude/launch.json`
+
+**已更新的 wiki**：[README](README.md)、[根 README](../README.md)、[02 狀態與存檔](02-state-and-save.md)、**[03 經濟與抽獎](03-economy.md)（整頁重寫）**、[05 自動模式](05-auto-mode.md)、[07 資料規格](07-data-schema.md)、[08 介面](08-ui-and-screens.md)、[09 操作手冊](09-recipes.md)、**[10 平衡調參](10-balance-tuning.md)（整頁重寫）**、[11 地雷](11-invariants-and-gotchas.md)（§14 改寫、§28 標記作廢、新增 §41～§44、不變式清單改寫）、[12 名詞表](12-glossary.md)、[14 開發者面板](14-devtools.md)、[`_map.md`](_map.md)
+
+**注意事項**：
+
+- **`sw.js › VERSION` 不加一**：沒有新增／刪除／改名任何前端資產，而 js/css 走的是 network-first 分支（`isCodeAsset`），改了會自動抓到新版。
+- **這一版的代價要講清楚**：竿、餌、裝備全部變成波動度旋鈕之後，**「換裝備」不再讓玩家變有錢**。進程的驅動力剩下圖鑑收集、魚王 jackpot、解鎖更高的 minBet。這是 98% 固定 RTP 的必然結果，沒有別的解。
+- **深釣點滿裝的回本率只有 4%～7%**（曉日沉港有 60% 的 EV 壓在 0.58% 的魚王身上）。這是高波動的必然，不是 bug；覺得太硬就把 [10 §波動度曲線](10-balance-tuning.md) 的 `king` 那一列壓低、`common`／`good` 拉高再重跑換算，**RTP 不會因此改變**。新手（無裝備 @晨霧湖）刻意軟得多，回本率約 39%。
+- **不要用蒙地卡羅量 RTP**，會被魚王的長尾騙到（三次都偏低是右偏分布的正常表現，不是系統性偏差）。寫進 [11 §43](11-invariants-and-gotchas.md)。
+- **插隊釣點要整批重跑換算腳本**：腳本用 `LOCATIONS` 的索引算波動度曲線的 `v`，插隊會讓後面所有釣點位移。
+- 換算腳本與驗證腳本都放在暫存目錄**不進版控**（前者跟 `data.js` 的格式綁死、後者直接載入 `state.js` 本體，兩者留在 repo 裡都只會製造失同步的機會）。重建方式寫在 [10](10-balance-tuning.md)。
+- **舊版的調參方法論全部作廢**：「滿裝倍率單調遞增」「係數隨 castCost 遞減」「插隊要用解析解瞄窗口」「頂級餌只在頂級釣點划算」「帶頂級竿回頭刷新手池 ×3.58」——這些敘述若在別處讀到，一律以 [03](03-economy.md) 與 [10](10-balance-tuning.md) 為準。
+
+---
+
+## 2026-08-06 · 全部釣點的三件雜物改為專屬場景物件
+
+**改了什麼**：`js/data.js` 的 48 件雜物現在各自使用不同的 `junkArt`；原本跨十六張地圖重複出現的鐵罐、水草與玻璃瓶，改為 33 件新設計的場景物件，例如晨霧湖的觀察筆記與蘆葦浮標、神域的鈴鐺與紙鶴、冰湖的保溫瓶與冰釣亮片、深淵的紀錄器與聲納纜線、暗穴的乙炔燈與岩釘環、沉港的信號燈與羅盤。`pixel.js › JUNK_MAPS` 增加相對應的 33 張像素字元圖；既有的 15 張主題字元圖保留，合計 48 張在用剪影。產圖描述索引已依新資料重建。
+
+**為什麼**：舊規則把雜物視為不值得投入美術的負面事件，只要求每張地圖有一件專屬物件；因此名稱雖不同，畫面常仍是同一只罐頭或一團水草，無法傳達地點設定。新規則讓每一竿的雜物也能交代玩家所處環境、曾在那裡發生的活動，以及一條可延伸的故事線。
+
+**動到的檔案**：`js/data.js` 的 48 筆 `junkArt`／名稱／描述、`js/pixel.js › JUNK_MAPS`、`tools/generate-image-prompts.js › JUNK_ART`、`wiki/15-image-prompts.md`。
+
+**已更新的 wiki**：[像素引擎](06-pixel-engine.md#雜物字元圖清單--junk_maps)、[資料規格](07-data-schema.md#雜物)、[操作手冊](09-recipes.md)、[全圖鑑產圖外觀描述](15-image-prompts.md)。
+
+**注意事項**：後續新增釣點時，三件雜物都要新增自己的 `junkArt`；不能用不同名稱重複使用另一張地圖的雜物剪影。
+
+---
+
+## 2026-08-06 · 新增全圖鑑產圖外觀描述索引
+
+**改了什麼**：新增 `tools/generate-image-prompts.js`，從 `js/data.js` 的 16 個釣點資料自動產生 `wiki/15-image-prompts.md`。索引目前收錄 370 個可釣項目：322 種魚與 48 件雜物；每筆都有可直接複製的像素風產圖短提示，包含固定構圖、輪廓、花紋、精確色碼、特殊器官、尺寸、釣點氛圍與既有描述。
+
+**為什麼**：產圖描述若獨立手寫，魚的 `shape`／`pattern`／`colors`／`special` 調整後很容易與遊戲實際美術脫節。由資料表重建可把描述視為同一份資料的衍生品，保留一致的遊戲素材規格，且新增魚或雜物只需重跑一次。
+
+**動到的檔案**：`tools/generate-image-prompts.js`、`wiki/15-image-prompts.md`。
+
+**已更新的 wiki**：[全圖鑑產圖外觀描述](15-image-prompts.md)、[wiki README](README.md)、[原始碼 ↔ wiki 對照表](_map.md)。
+
+**注意事項**：不要直接編輯 `15-image-prompts.md`；更新魚類資料或描述詞彙後，執行 `node tools/generate-image-prompts.js`，再用 `node tools/generate-image-prompts.js --check` 驗證同步狀態。
+
+---
+
 ## 2026-08-06 · 釣點選單開窗自動捲到目前釣點；DEBUG 標記移到頂部列正中央
 
 **改了什麼**：

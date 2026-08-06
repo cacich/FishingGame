@@ -8,7 +8,7 @@
 | 項目 | 值 |
 |---|---|
 | localStorage key | `fg_save_v1`（常數 `SAVE_KEY`） |
-| 版本欄位 | `data.ver`，常數 `SAVE_VER = 1` |
+| 版本欄位 | `data.ver`，常數 `SAVE_VER = 2` |
 | 另一個獨立 key | `fg_seen_intro`（開場說明看過沒，**不在存檔內**） |
 
 `init()` 的載入邏輯：
@@ -25,11 +25,18 @@ this.data = (raw && raw.ver === SAVE_VER)
 
 ## 存檔結構（`freshSave()`）
 
+> **`SAVE_VER` 在 2026-08-06 從 1 跳到 2。** 遊戲改成固定 RTP 的下注制之後，舊存檔的
+> 魚價基準與拋竿費全部失去意義（魚的 `value` 變成 `mult`、`castCost` 變成 `minBet`），
+> 沒有合理的遷移路徑，所以直接跳版讓舊檔重置。這也順便讓新增的巢狀欄位
+> （`stats.wagered` / `stats.payout` / `stats.shopSpent`）不必寫補值碼。
+
 ```js
 {
-  ver: 1,
+  ver: 2,
   chips: 20000,                    // 籌碼餘額
   loc: 'mist_lake',                // 目前釣點 id
+  bet: 100,                        // ★ 玩家選的下注額（FG.BETS 裡的一格）
+  buffer: 0,                       // ★ Buffer 池餘額，見 03 §九
   unlocked: ['mist_lake'],         // 已解鎖釣點 id 陣列
   rods: ['rod_bamboo'],            // 已擁有釣竿 id 陣列
   rod: 'rod_bamboo',               // 目前裝備的釣竿 id
@@ -43,7 +50,8 @@ this.data = (raw && raw.ver === SAVE_VER)
   packsBought: {},                 // 籌碼包購買次數：packId → n（限購判斷用）
   signin: { date: '', streak: 0 }, // 簽到：最後領取日期字串、連續天數
   daily: { date: '', prog: {}, claimed: {} },  // 每日任務：日期、track→進度、missionId→已領
-  stats: { casts, caught, sold, earned, spent, kings },  // 生涯統計
+  // 生涯統計。後三個是 RTP 的分子分母（見 03 §一），簽到／任務／儲值的贈送不列入
+  stats: { casts, caught, sold, earned, spent, kings, wagered, payout, shopSpent },
   auto: { rounds, sellMode, stopChips, stopRarity, speed, autoBuyBait },  // 自動模式設定，見 05
   sfx: true                        // 音效開關
 }
@@ -60,8 +68,8 @@ this.data = (raw && raw.ver === SAVE_VER)
   locId:    'mist_lake',   // 在哪釣到的
   len:      38.4,          // 體長 cm（小數 1 位）
   weight:   1.13,          // 重量 kg（小數 2 位）
-  value:    412,           // 估價／售價（籌碼）
-  shiny:    false,         // 閃光個體（3%，價值 ×3）
+  value:    412,           // 賠付（籌碼）= bet × mult × (len/avg)² × rtpNorm × (閃光?3:1)
+  shiny:    false,         // 閃光個體（3%，賠付 ×3）
   isNew:    true,          // 是否為圖鑑新紀錄（抽獎當下判定）
   isRecord: false,         // 是否刷新該魚種的最大體長
   rarity:   'good',        // 冗餘欄位，方便不查 data 就能判斷
@@ -113,20 +121,25 @@ FG.state.emit(evt, payload);
 
 ### 加成彙總 · `bonus(loc?)`
 
-把**釣竿 + 裝備 + 家園裝飾**的效果乘算成一包：
+把**釣竿 + 餌料 + 裝備 + 家園裝飾**的效果乘算成一包：
 
 ```js
-{ rareMul, valueMul, costMul, sizeBonus, kingMul, showHint }
+{ jackpotMul, kingMul, sizeBonus, showHint }
 ```
 
 **`loc` 參數是必要的**：裝備可以是「釣點專屬」（`effect.loc`），只在該釣點生效，所以彙總時必須知道在算哪個釣點。接受釣點物件或 id 字串，**省略時退回 `data.loc`**（目前所在釣點），所以既有呼叫端不用全部改。
 
-呼叫端一律要把 loc 傳進去：`castCost(loc)` / `rarityTable(loc)` / `rollCatch(loc)` 內部都是 `this.bonus(loc)`。漏傳的症狀是「在 A 釣點看到 B 釣點專屬裝備的加成」——不會報錯，只會數字不對。
+呼叫端一律要把 loc 傳進去：`rarityTable(loc)` / `rtpNorm(loc)` / `rollCatch(loc)` 內部都是 `this.bonus(loc)`。漏傳的症狀是「在 A 釣點看到 B 釣點專屬裝備的加成」——不會報錯，只會數字不對。
 
-> ⚠️ **餌料的加成不在 `bonus()` 裡。** 餌料是「每次消耗」的東西，效果在 `rarityTable()` 與 `rollCatch()` 裡另外乘上去。要計算實際總加成，必須自己 `bonus().rareMul * bait().rareMul`。這個不對稱是刻意的（餌料可即時切換、其他是持久狀態），但很容易寫錯。
+> 🔴 **2026-08-06：`rareMul` / `valueMul` / `costMul` 已從這一包移除**，理由見 [03 §為什麼裝備不能加 EV](03-economy.md#為什麼裝備不能加-ev這一節是本頁最重要的)。
+>
+> **餌料的 `jackpotMul` 現在在 `bonus()` 裡面了**（舊版所有餌料加成都在外面另外乘）。所以 `bonus(loc).jackpotMul` 已經是最終值，**不要再乘一次 `bait().jackpotMul`**。
+> **但 `junkMul` 仍然在外面**——它是階級權重，`rarityTable()` 直接讀 `bait()`。這個不對稱要記住。
 
 ### 抽獎與經濟
-`castCost()` / `rarityTable()` / `rollCatch()` / `recordCatch()` — 全部詳見 [03 經濟與抽獎](03-economy.md)。
+`bet()` / `betOptions()` / `setBet()` / `rarityTable()` / `rtpNorm()` / `sizeMoments()` / `payoutMult()` / `rollCatch()` / `bufferBoost()` / `toBuffer()` / `wager()` / `recordCatch()` — 全部詳見 [03 經濟與抽獎](03-economy.md)。
+
+`castCost(loc)` 仍在，但它現在只是 `bet(loc)` 的別名（拋竿費 = 下注額）。
 
 ### 魚缸
 | 方法 | 說明 |

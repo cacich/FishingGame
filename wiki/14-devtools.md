@@ -29,7 +29,7 @@
 | 演出 | 立即播放 cut-in | 選任一傳說／魚王直接播，**不用真的釣到、不動存檔**。有普通版與閃光版 |
 | 資源 | 籌碼 ±、餌料 +99、魚缸拉到最大 | |
 | 圖鑑 | 全部解鎖 / 全部清空 | 清空會跳確認，只動 `data.codex` |
-| 目前數值 | `bonus(loc)` 的實際回傳值 | rareMul / kingMul / valueMul / costMul / sizeBonus / showHint，調完裝備直接對答案，不用開 console |
+| 目前數值 | `bonus(loc)` 的實際回傳值 ＋ RTP 相關 | jackpotMul / kingMul / sizeBonus / showHint、**`rtpNorm`（正規化因子）、Buffer 池餘額與 boost、目標 RTP、實測 RTP**（`stats.payout / stats.wagered`），調完裝備直接對答案，不用開 console |
 
 ## 兩個設計原則
 

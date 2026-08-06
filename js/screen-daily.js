@@ -99,7 +99,7 @@ window.FG = window.FG || {};
         const info = FG.el('div', 'lc-info');
         info.innerHTML = '<div class="nm">' + FG.esc(loc.name) +
           (cur ? ' <span class="tag" style="color:#ffc44d">目前</span>' : '') + '</div>' +
-          '<div class="ds">' + FG.esc(loc.subtitle) + '<br>單次拋竿 ' + FG.fmt(loc.castCost) + ' 籌碼</div>';
+          '<div class="ds">' + FG.esc(loc.subtitle) + '<br>最低下注 ' + FG.fmt(loc.minBet) + ' 籌碼</div>';
         card.appendChild(info);
         const act = FG.el('div');
         if (loc.comingSoon) {

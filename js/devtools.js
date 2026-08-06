@@ -312,17 +312,24 @@ window.FG = window.FG || {};
       const b = st.bonus(L);
       const prog = st.codexProgress(L);
       info.innerHTML = '<table class="rate-tbl">' +
-        tr('釣點', L.name + '（拋竿 ' + FG.fmt(st.castCost(L)) + '）') +
+        tr('釣點', L.name + '（下注 ' + FG.fmt(st.bet(L)) + ' / 最低 ' + FG.fmt(L.minBet) + '）') +
         tr('籌碼', FG.fmt(st.data.chips)) +
         tr('餌料', st.bait().name + ' ×' + st.baitCount()) +
         tr('魚缸', 'Lv.' + st.data.tankLevel + '　' + st.data.tank.length + '/' + st.tankCap()) +
         tr('圖鑑', prog.got + '/' + prog.total) +
-        tr('rareMul', b.rareMul.toFixed(3)) +
+        tr('jackpotMul', b.jackpotMul.toFixed(3)) +
         tr('kingMul', b.kingMul.toFixed(3)) +
-        tr('valueMul', b.valueMul.toFixed(3)) +
-        tr('costMul', b.costMul.toFixed(3)) +
         tr('sizeBonus', b.sizeBonus.toFixed(3)) +
         tr('showHint（聲納）', b.showHint ? '有' : '無') +
+        // rtpNorm 是固定 RTP 的正規化因子：賠付都會乘上它，所以 EV 恆等於 bet × 目標RTP
+        tr('rtpNorm', st.rtpNorm(L).toFixed(4)) +
+        tr('Buffer 池', FG.fmt(Math.round(st.data.buffer || 0)) +
+          '（boost +' + (st.bufferBoost() * 100).toFixed(2) + '%）') +
+        tr('目標 RTP', ((FG.RTP_TARGET + st.bufferBoost()) * 100).toFixed(2) + '%') +
+        tr('實測 RTP', st.data.stats.wagered > 0
+          ? (st.data.stats.payout / st.data.stats.wagered * 100).toFixed(2) + '%　' +
+            '<span class="mute tiny">' + FG.fmtShort(st.data.stats.payout) + ' / ' + FG.fmtShort(st.data.stats.wagered) + '</span>'
+          : '（還沒下注）') +
         '</table>';
     }
     refreshInfo();
