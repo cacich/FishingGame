@@ -16,6 +16,20 @@
 
 ---
 
+## 2026-08-06 · 支援點陣釣點背景，晨霧湖完成第一張替換
+
+**改了什麼**：`js/pixel.js` 新增共用圖片非同步載入快取，`scene.art.background` 成功後只替換 `bgCache` 的靜態底層，既有水面反光、船身、釣線、浮標、漣漪、躍魚與 cut-in 繼續逐幀疊上；載入中或失敗時保留程序化地形。`locThumb()` 同步支援獨立橫式縮圖，載入完成後覆寫原 canvas。晨霧湖加入一張 200×340 主背景與一張 76×50 縮圖，並用獨立的 `art.horizon: 0.32` 對準圖片水線。`sw.js` 升到 v8 並預快取兩張新資產。
+
+**為什麼**：要讓後續 AI 產生的像素圖可以實際替換釣點背景，同時保留目前最重要的動態水光與完整釣魚演出；非同步載入＋程序化備援則維持「雙擊可玩」與離線容錯，不讓單張圖片變成啟動依賴。
+
+**動到的檔案**：`js/pixel.js › loadImage()`／`getBg()`／`locThumb()`、`js/data.js › FG.LOCATIONS[mist_lake].scene.art`、`assets/scenes/mist-lake-background.png`、`assets/scenes/mist-lake-thumbnail.png`、`sw.js › VERSION / ASSETS`。
+
+**已更新的 wiki**：[06 像素引擎](06-pixel-engine.md#選用的點陣場景底圖--sceneart)、[07 資料規格](07-data-schema.md#scene-調色盤)、[09 操作手冊](09-recipes.md#替換一個釣點的點陣背景)、[11 地雷](11-invariants-and-gotchas.md#38-點陣背景的圖片水線與-scenehorizon-不一致水光會爬上岸)、[13 PWA 與部署](13-pwa-and-deploy.md#service-worker-策略)、[wiki README](README.md)、[原始碼 ↔ wiki 對照表](_map.md)、[根 README](../README.md)。
+
+**注意事項**：主背景與縮圖比例不同，必須各自準備；只換主圖會讓釣點選單與家園掛畫維持舊的程序化縮圖。圖片走 cache-first，日後覆蓋同名 PNG 時仍要提升 SW `VERSION`。
+
+---
+
 ## 2026-08-06 · 擴充一般魚的 shape／pattern 素材庫，並重新分配約 60 條既有魚
 
 **改了什麼**：

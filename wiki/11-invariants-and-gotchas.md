@@ -513,6 +513,18 @@ console.log(shapeCount, patternCount);
 
 ---
 
+### 38. 點陣背景的圖片水線與 `scene.horizon` 不一致，水光會爬上岸
+
+**症狀**：產圖本身看起來正常，但動態反光橫線出現在樹林、岩岸或天空；或者船像浮在岸線前面。
+
+**原因**：`drawSparkle()` 不分析圖片內容，只相信背景快取回傳的 `horizon`。程序化背景的水線來自 `scene.horizon`，外部 PNG 則可能因生成、裁切或縮放落在另一列。兩者共用同一個值時，只要差 5～10px 就看得出來。
+
+**對策**：在 `scene.art.horizon` 記錄 PNG 的實際水線，與程序化備援的 `scene.horizon` 分開。修改裁切後要重新量；200×340 圖的水線列除以 340 就是值。晨霧湖圖片水線約在 y 109，所以用 `0.32`。
+
+另外，點陣圖片是**選用覆蓋層，不是程序化系統的替代品**。不可因為主圖已存在就刪掉 `terrain`、`sky`、水色與地形色：圖片非同步解碼前、載入失敗或離線快取缺圖時都靠它們維持可玩畫面。`background` 也不可預先畫入船、釣具或魚，因為 `drawScene()` 會再畫一次動態層。
+
+---
+
 ## 必須維持的不變式
 
 ### 資料
@@ -534,6 +546,7 @@ console.log(shapeCount, patternCount);
 
 - **不引入 ES module / bundler / npm / CDN。** 破壞「雙擊 index.html 就能跑」這個核心約束。
 - **新增／刪除任何前端資產（js / css / 圖片），必須同步更新 `sw.js › ASSETS` 清單並把 `VERSION` 加一。** 漏掉的檔案在離線時會抓不到，整個 App 開不起來。
+- **`scene.art` 永遠要保留完整程序化備援，而且 `art.horizon` 必須對準 PNG 的實際水線。** 圖片只替換靜態背景；動態水光、船與釣魚演出仍由 canvas 每幀疊上，見 §38。
 - **`manifest.webmanifest` 的 `start_url` / `scope` 與 SW 註冊路徑一律用相對路徑。** 寫死 `/` 會讓 GitHub Pages 子路徑部署失效。
 - **狀態只能透過 `FG.state` 的方法修改**，方法內部負責 `save()` + `emit()`。直接改 `FG.state.data` 不會存檔也不會刷新 UI。
 - **只有 active 分頁的 `frame()` 會被呼叫。** 不要在 `frame()` 裡放「必須持續執行」的邏輯（自動模式刻意利用了這點來實現切頁暫停）。

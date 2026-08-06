@@ -80,6 +80,7 @@
 | 欄位 | 型別 | 說明 |
 |---|---|---|
 | `horizon` | 0～1 | 地平線在畫布高度的比例。0.30 = 天空佔上方 30% |
+| `art` | 物件（選用） | 點陣場景資產。提供時優先顯示圖片，缺檔或載入失敗仍以 `terrain` 程序化繪製備援 |
 | `sky` | 色碼陣列 | 由上而下的漸層停駐點，**至少 2 個**，會逐列內插 |
 | `terrain` | key | **地形產生器**：`forest`（預設）`pond` `cliff` `shrine` `tidal` `ice` `waterfall` `karst` `caldera` `night` `yggdrasil` `desert` `rapids` `reef` `cavern` `wreck`。見 [06 §地形系統](06-pixel-engine.md#三之二--地形系統--terrain) |
 | `hill` | 色碼 | 遠山剪影（`forest` 的山稜、`shrine` 的錐形雪山）。省略則不畫 |
@@ -91,6 +92,16 @@
 | `waterDeep` | 色碼 | 中央深水區塊，以 35% 透明度疊上 |
 | `highlight` `highlight2` | 色碼 | 水面反光橫線的兩種顏色 |
 | `boat` `boatRim` `boatDark` | 色碼 | 船身三段色（主體／上緣／陰影） |
+
+`art` 的欄位：
+
+| 欄位 | 型別 | 說明 |
+|---|---|---|
+| `background` | 相對路徑 | `200×340` 的不透明 PNG，只含靜態場景；不得含船、人物、釣具、魚、文字或 UI |
+| `thumbnail` | 相對路徑 | `76×50` 的橫式釣點縮圖，用於釣點選單、每日頁與家園掛畫 |
+| `horizon` | 0～1（選用） | 點陣主圖的實際水線。省略時沿用外層 `scene.horizon` |
+
+即使有 `art`，`terrain` 與整套調色盤也不能刪：它們是圖片載入前、缺檔、`file://` 瀏覽器限制或離線快取不完整時的可玩備援；`highlight`／`highlight2` 與船身三色也仍由逐幀動態層使用。
 
 `farTree` / `midTree` / `nearTree` 是**由遠而近的三層剪影色**，名字沿用自最早的樹林實作；在其他地形裡它們分別代表崖壁層、冰川與冰脊、櫻花林等等。改名會動到十六個釣點的資料，**目前刻意不改**——知道這件事就好。
 

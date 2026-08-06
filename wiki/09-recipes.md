@@ -165,6 +165,29 @@
 
 ---
 
+## 替換一個釣點的點陣背景
+
+1. 準備兩張像素 PNG：主圖固定 `200×340`，縮圖固定 `76×50`。主圖只畫靜態環境，**不要畫船、人物、水豚、釣竿、釣線、浮標、魚、文字或 UI**。
+2. 主圖中央與下半部要留給船（約 x 52～146、y 221～268）、浮標（約 x 152、y 208）與躍魚弧線；`#stage` 使用 `object-fit: cover`，重要地標不要貼畫面外緣。
+3. 放進 `assets/scenes/`，命名用 location id 可辨識的 kebab-case。
+4. 在 `data.js › FG.LOCATIONS[].scene` 加：
+   ```js
+   art: {
+     background: 'assets/scenes/xx-background.png',
+     thumbnail: 'assets/scenes/xx-thumbnail.png',
+     horizon: 0.32
+   }
+   ```
+   `art.horizon` 要對準圖片的實際水線；`scene.horizon` 保留給程序化備援。
+5. 把兩張圖加入 `sw.js › ASSETS` 並把 `VERSION` 加一。圖片走 cache-first，只換檔案但不升版會繼續看到舊圖。
+6. 驗證閒置、拋竿、咬鉤、收線與 cut-in；再用 320px 寬確認裁切，並打開釣點選單確認橫式縮圖。
+
+`pixel.js › loadImage()` 會在圖片載入前與失敗時保留程序化地形，所以不要刪掉原本的 `terrain`／調色盤。這個備援是為了維持「雙擊 `index.html` 就能跑」與 PWA 離線可玩，不是暫時過渡碼。
+
+📝 **要更新**：[06 像素引擎](06-pixel-engine.md)（場景來源或規格有變時）、[07 資料規格](07-data-schema.md)（`scene.art`）、[13 PWA 與部署](13-pwa-and-deploy.md)（ASSETS／VERSION），新增資產還要維護 [`_map.md`](_map.md) 與 CHANGELOG。
+
+---
+
 ## 新增一件裝備
 
 1. `js/data.js › FG.EQUIPS` 加一筆，`effect` 只能用既有的 key（`rareMul` `valueMul` `costMul` `sizeBonus` `showHint`）。

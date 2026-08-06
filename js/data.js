@@ -1613,6 +1613,11 @@ window.FG = window.FG || {};
       scene: {
         terrain: 'forest',
         horizon: 0.30,
+        art: {
+          background: 'assets/scenes/mist-lake-background.png',
+          thumbnail: 'assets/scenes/mist-lake-thumbnail.png',
+          horizon: 0.32
+        },
         sky: ['#2f4a5e', '#4d6f7f', '#7d9aa2'],
         hill: '#3d5560',
         farTree: '#33534b',

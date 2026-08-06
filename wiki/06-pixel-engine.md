@@ -3,15 +3,16 @@
 > 涵蓋：`js/pixel.js`（1460 行，全專案最大的檔案）
 > 相關：[07 資料規格](07-data-schema.md)（魚的欄位）、[09 操作手冊](09-recipes.md)
 
-**專案裡沒有任何圖片檔。** 所有美術都是 canvas 在低解析度上逐像素畫出來，再交給 CSS `image-rendering: pixelated` 整數放大。這是整個專案最核心的技術決策——加內容的成本因此接近零。
+魚、圖示、房間與全部地形仍由 canvas 在低解析度上逐像素畫出來，再交給 CSS `image-rendering: pixelated` 整數放大。釣點場景另外支援**選用的點陣底圖**：有設定就把 PNG 放進既有的靜態背景快取，沒有設定或載入失敗就回到程序化地形。這讓外部產圖可以只替換美術底層，不碰釣魚動畫與遊戲邏輯。
 
-## 三種產圖方式
+## 四種產圖方式
 
 | 方式 | 用途 | 入口 |
 |---|---|---|
 | **字元圖**（char map） | 固定造型的小物：介面圖示、雜物、人物、水豚、裝備／裝飾圖示 | `px.drawMap()` |
 | **程序化生成** | 魚：由參數算出輪廓與上色 | `px.sprite()` → `buildFish()` |
 | **參數化繪製** | 場景：釣點風景、家園房間、地點縮圖 | `px.drawScene()` / `drawRoom()` / `locThumb()` |
+| **點陣場景資產** | 選用的釣點靜態背景與橫式縮圖 | `scene.art` → `loadImage()`；失敗時退回參數化繪製 |
 
 ## 基礎工具
 
@@ -378,7 +379,7 @@ px.drawSprite(ctx, f, x, y, scale, flip)      // 畫到任意 ctx，以 (x,y) �
 ### 分層
 
 ```
-靜態（有快取，buildBackground → bgCache[loc.id]）
+靜態（有快取；scene.art.background 或 buildBackground → bgCache[loc.id]）
   ├ 天空漸層（loc.scene.sky 陣列逐段內插）
   ├ ★ 地形 above()（依 loc.scene.terrain 分派，見下）
   ├ 岸線
@@ -397,6 +398,18 @@ px.drawSprite(ctx, f, x, y, scale, flip)      // 畫到任意 ctx，以 (x,y) �
 ```
 
 **背景一定要快取**：樹林要畫 230 棵、倒影要跑 `getImageData`，每幀重算會掉幀。`bgCache` 以 `loc.id` 為 key。改了 `loc.scene` 的顏色或 `terrain` 後**必須重新整理**才看得到（同 [精靈快取](#快取) 的問題）。
+
+### 選用的點陣場景底圖 · `scene.art`
+
+`loc.scene.art` 可以提供 `background`、`thumbnail` 與選用的 `horizon`。目前晨霧湖是第一個使用者：主圖 `200×340`，縮圖 `76×50`。
+
+載入刻意是**非阻塞且有雙重備援**：`getBg()` 第一次仍同步建立程序化背景，同時用 `loadImage()` 解碼 PNG；圖片成功後覆寫同一個 `bgCache[loc.id]`，下一個動畫幀自然換圖。載入失敗則保留程序化背景並只寫一筆 console warning。縮圖也先回傳程序化 canvas，圖片完成後覆寫同一張 canvas，因此不必讓 `main.js › boot()` 變成 async，也不會因一張壞圖讓 `file://` 或離線啟動卡住。
+
+點陣圖**只替換靜態層**。`drawScene()` 後面的水面反光、船身晃動、水豚愛心、釣竿／釣線、浮標、漣漪、躍魚與 DOM cut-in 全部照舊。主圖不得把這些東西預先畫進去，否則會出現兩艘船或兩個浮標。
+
+`art.horizon` 是圖片水線的位置，跟程序化備援用的 `scene.horizon` 分開。產圖的水線若沒有對準這個比例，`drawSparkle()` 會把反光畫到岸上。主圖與縮圖比例差三倍以上，所以縮圖使用獨立資產，不直接裁主圖；這沿用原本 `locThumb()` 不把 200×340 場景硬縮成 76×50 的設計理由。
+
+場景資產的完整操作步驟見 [09 §替換一個釣點的點陣背景](09-recipes.md#替換一個釣點的點陣背景)。
 
 ### 為什麼倒影用 getImageData
 

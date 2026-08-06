@@ -1417,6 +1417,35 @@ window.FG = window.FG || {};
 
   const SCENE_W = 200, SCENE_H = 340;
   const bgCache = {};
+  const bgImageRequested = {};
+  const imageCache = {};
+
+  // 場景圖是選用資產；載入期間與失敗時都保留程序化版本，
+  // 才不會讓 file://、離線缺檔或單張圖片損壞變成整個釣魚頁的白畫面。
+  function loadImage(src, onReady) {
+    let entry = imageCache[src];
+    if (entry) {
+      if (entry.state === 'ready') onReady(entry.image);
+      else if (entry.state === 'loading') entry.waiters.push(onReady);
+      return;
+    }
+
+    const img = new Image();
+    entry = imageCache[src] = { state: 'loading', image: img, waiters: [onReady] };
+    img.decoding = 'async';
+    img.onload = function () {
+      entry.state = 'ready';
+      const waiters = entry.waiters.slice();
+      entry.waiters.length = 0;
+      waiters.forEach(function (fn) { fn(img); });
+    };
+    img.onerror = function () {
+      entry.state = 'error';
+      entry.waiters.length = 0;
+      console.warn('[pixel] 場景圖片載入失敗，使用程序化備援：', src);
+    };
+    img.src = src;
+  }
 
   px.sceneSize = { w: SCENE_W, h: SCENE_H };
 
@@ -3741,6 +3770,18 @@ window.FG = window.FG || {};
 
   function getBg(loc) {
     if (!bgCache[loc.id]) bgCache[loc.id] = buildBackground(loc);
+    const art = loc.scene && loc.scene.art;
+    if (art && art.background && bgImageRequested[loc.id] !== art.background) {
+      bgImageRequested[loc.id] = art.background;
+      loadImage(art.background, function (img) {
+        const cv = px.make(SCENE_W, SCENE_H);
+        const g = cv.getContext('2d');
+        g.imageSmoothingEnabled = false;
+        g.drawImage(img, 0, 0, SCENE_W, SCENE_H);
+        const horizon = Math.round(SCENE_H * (art.horizon !== undefined ? art.horizon : (loc.scene.horizon || 0.30)));
+        bgCache[loc.id] = { canvas: cv, horizon: horizon, image: art.background };
+      });
+    }
     return bgCache[loc.id];
   }
 
@@ -4352,6 +4393,16 @@ window.FG = window.FG || {};
       g.fillRect(Math.floor(R() * W), Math.floor(y), 1 + Math.floor(R() * 4), 1);
     }
     g.globalAlpha = 1;
+
+    // 主場景與縮圖比例差很多，因此縮圖仍使用獨立資產；載入前先顯示上方
+    // 已畫好的程序化縮圖，載入完成後直接覆寫同一張 canvas，不必重建 DOM。
+    if (P.art && P.art.thumbnail) {
+      loadImage(P.art.thumbnail, function (img) {
+        g.clearRect(0, 0, W, H);
+        g.imageSmoothingEnabled = false;
+        g.drawImage(img, 0, 0, W, H);
+      });
+    }
     return cv;
   };
 

@@ -73,7 +73,7 @@ GitHub Pages 回應標頭是 **`Cache-Control: max-age=600`**。也就是瀏覽�
 
 （不要用 `no-store`，那會連 ETag 協商都跳過，每次都下載完整內容。）
 
-圖片維持 cache-first 是因為圖示幾乎不變，又是位元組大宗。真的換圖時把 `VERSION` 加一，`install` 階段會強制重抓。
+圖片維持 cache-first 是因為圖示與釣點點陣背景幾乎不變，又是位元組大宗。真的換圖時把 `VERSION` 加一，`install` 階段會強制重抓。`assets/scenes/` 的背景與縮圖也屬於這一類，而且必須逐張列進 `ASSETS`，才能保證安裝後離線可用。
 
 ### 生命週期
 
@@ -88,7 +88,7 @@ GitHub Pages 回應標頭是 **`Cache-Control: max-age=600`**。也就是瀏覽�
 
 ### `VERSION` 什麼時候要加一
 
-`sw.js` 開頭的 `const VERSION = 'v4';`（`v3` = 新增 `js/cutin.js`、`v4` = 新增 `js/devtools.js`）
+`sw.js` 開頭目前是 `const VERSION = 'v8';`。`v8` 首次加入 `assets/scenes/` 的釣點點陣背景與縮圖；這類圖片是 cache-first，換圖一定要再升版。
 
 | 情況 | 要不要加一 |
 |---|---|

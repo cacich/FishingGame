@@ -7,7 +7,7 @@
      重新安裝並清掉舊快取。不改的話舊快取會一直留著。
    ============================================================ */
 
-const VERSION = 'v7';
+const VERSION = 'v8';
 const CACHE = 'fishing-' + VERSION;
 
 // 程式碼類資產走 network-first 時，等網路的上限（毫秒）。超時就回快取，
@@ -34,6 +34,8 @@ const ASSETS = [
   './js/pwa.js',
   './js/devtools.js',
   './js/main.js',
+  './assets/scenes/mist-lake-background.png',
+  './assets/scenes/mist-lake-thumbnail.png',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
