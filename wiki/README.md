@@ -52,7 +52,7 @@
 
 **每個釣點都配一整套專屬周邊**：主題釣竿、主題餌料、**釣點專屬裝備**、主題家園裝飾。加新釣點時這六樣要一起加——規則與（很重要的）「為什麼竿／餌可以通用但裝備必須綁釣點」見 [09 §新增一個釣點](09-recipes.md#新增一個釣點--一次要生出一整套)。
 
-魚、圖示、房間與地形仍由 canvas 在低解析度上程序化生成；釣點另支援**選用的點陣底圖**，目前晨霧湖已換成 PNG，載入失敗會自動退回原本地形（[06](06-pixel-engine.md)）。
+魚、圖示、房間與地形仍由 canvas 在低解析度上程序化生成；十六個釣點皆另配**點陣底圖**與橫式縮圖，載入失敗會自動退回原本地形（[06](06-pixel-engine.md)）。
 狀態全部集中在 `FG.state.data`，存 localStorage（[02](02-state-and-save.md)）。
 全域只有一個命名空間 `window.FG`（[01](01-architecture.md)）。
 
@@ -64,7 +64,7 @@
 | `styles.css` | 770 | 全部樣式 | [08](08-ui-and-screens.md) |
 | `js/util.js` | 140 | 亂數／色彩／格式化／DOM／存取／音效 | [01](01-architecture.md) |
 | `js/pixel.js` | 4600 | 像素美術引擎（含地形系統，16 種地形） | [06](06-pixel-engine.md) |
-| `assets/scenes/` | — | 選用的釣點主背景與橫式縮圖；目前晨霧湖一組 | [06](06-pixel-engine.md)、[13](13-pwa-and-deploy.md) |
+| `assets/scenes/` | — | 十六個釣點的主背景與橫式縮圖（各 200×340／76×50） | [06](06-pixel-engine.md)、[13](13-pwa-and-deploy.md) |
 | `js/data.js` | 2200 | 所有資料表（16 個釣點） | [07](07-data-schema.md) |
 | `js/state.js` | 370 | 存檔／經濟／抽獎 | [02](02-state-and-save.md)、[03](03-economy.md) |
 | `js/ui.js` | 120 | Toast／彈窗／捲動邊緣提示 | [08](08-ui-and-screens.md) |

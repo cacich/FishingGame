@@ -88,7 +88,7 @@ GitHub Pages 回應標頭是 **`Cache-Control: max-age=600`**。也就是瀏覽�
 
 ### `VERSION` 什麼時候要加一
 
-`sw.js` 開頭目前是 `const VERSION = 'v8';`。`v8` 首次加入 `assets/scenes/` 的釣點點陣背景與縮圖；這類圖片是 cache-first，換圖一定要再升版。
+`sw.js` 開頭目前是 `const VERSION = 'v9';`。`v9` 將十六個釣點的主背景與縮圖全數列入 `assets/scenes/` 預快取；這類圖片是 cache-first，換圖一定要再升版。
 
 | 情況 | 要不要加一 |
 |---|---|

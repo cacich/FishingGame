@@ -1646,6 +1646,7 @@ window.FG = window.FG || {};
       scene: {
         terrain: 'pond',
         horizon: 0.32,
+        art: { background: 'assets/scenes/garden-pond-background.png', thumbnail: 'assets/scenes/garden-pond-thumbnail.png', horizon: 0.32 },
         // 晴天正午：這是全遊戲最亮、最沒有戲劇性的天空。人工池塘不需要氣氛，
         // 它需要的是「什麼都看得清楚」
         sky: ['#7fa8c8', '#a8c8dc', '#d4e4ea'],
@@ -1673,6 +1674,7 @@ window.FG = window.FG || {};
         terrain: 'rapids',
         // 地平線壓高（0.28）：這個釣點的招牌全在水面——斜向流線、石頭尾流、前景巨石
         horizon: 0.28,
+        art: { background: 'assets/scenes/rapids-background.png', thumbnail: 'assets/scenes/rapids-thumbnail.png', horizon: 0.28 },
         // 山谷裡的晴天散射光，偏冷。天空窄，不需要戲劇性
         sky: ['#5f7d94', '#93b0be', '#c4d8dc'],
         hill: '#5f6f70',
@@ -1701,6 +1703,7 @@ window.FG = window.FG || {};
       scene: {
         terrain: 'cliff',
         horizon: 0.34,
+        art: { background: 'assets/scenes/sunset-fjord-background.png', thumbnail: 'assets/scenes/sunset-fjord-thumbnail.png', horizon: 0.34 },
         sky: ['#3a2a4a', '#8a4a52', '#e08a52', '#f2c06a'],
         hill: '#4a3145',
         farTree: '#3c2c3e',
@@ -1730,6 +1733,7 @@ window.FG = window.FG || {};
         terrain: 'reef',
         // 地平線壓到 0.24：陸地只有一條環礁沙洲，畫面要留給水下的礁體
         horizon: 0.24,
+        art: { background: 'assets/scenes/coral-reef-background.png', thumbnail: 'assets/scenes/coral-reef-thumbnail.png', horizon: 0.24 },
         // 熱帶正午：全遊戲最亮最藍的天空
         sky: ['#2f7fc8', '#5fa8dc', '#a8d8ea', '#e0f0f0'],
         hill: '#a8b4a8',
@@ -1757,6 +1761,7 @@ window.FG = window.FG || {};
       scene: {
         terrain: 'shrine',
         horizon: 0.38,
+        art: { background: 'assets/scenes/sakura-shrine-background.png', thumbnail: 'assets/scenes/sakura-shrine-thumbnail.png', horizon: 0.38 },
         sky: ['#221a33', '#4a3352', '#8a5670', '#d98a8a'],
         hill: '#4a3f5c',
         snow: '#e8e2ee',
@@ -1783,6 +1788,7 @@ window.FG = window.FG || {};
         terrain: 'tidal',
         // 地平線壓高（0.30）：這個釣點的重點全在水面以下那一大片灘地
         horizon: 0.30,
+        art: { background: 'assets/scenes/tide-flat-background.png', thumbnail: 'assets/scenes/tide-flat-thumbnail.png', horizon: 0.30 },
         sky: ['#5f7f9a', '#98b4c0', '#d8d4c0', '#f0dcb8'],
         hill: '#5f6a70',
         farTree: '#9a8f74', midTree: '#7f7460', nearTree: '#5f5a4c',
@@ -1804,6 +1810,7 @@ window.FG = window.FG || {};
       scene: {
         terrain: 'ice',
         horizon: 0.36,
+        art: { background: 'assets/scenes/frost-lake-background.png', thumbnail: 'assets/scenes/frost-lake-thumbnail.png', horizon: 0.36 },
         sky: ['#1e2a3e', '#3c5a78', '#9dc0d6'],
         hill: '#4a6a84',
         farTree: '#5b7c92', midTree: '#3f5e74', nearTree: '#2c4658',
@@ -1827,6 +1834,7 @@ window.FG = window.FG || {};
         // 地平線壓到 0.44：這個場景的主角是岩壁與瀑布，水面只要夠放船就好。
         // 其他釣點多半在 0.30～0.38，這裡刻意讓陸地佔掉四成四
         horizon: 0.44,
+        art: { background: 'assets/scenes/fall-pool-background.png', thumbnail: 'assets/scenes/fall-pool-thumbnail.png', horizon: 0.44 },
         // 峽谷裡看到的是「被岩壁夾住的一線天」，所以天空只留很窄一段，
         // 而且要夠亮——瀑布後方的逆光全靠它撐
         sky: ['#6a8894', '#9fbcbe', '#cfe2dc', '#eaf4ec'],
@@ -1858,6 +1866,7 @@ window.FG = window.FG || {};
       scene: {
         terrain: 'karst',
         horizon: 0.34,
+        art: { background: 'assets/scenes/lotus-river-background.png', thumbnail: 'assets/scenes/lotus-river-thumbnail.png', horizon: 0.34 },
         // 陰天的煙雨天光：整條漸層都壓在灰綠白，不出現藍天，這是水墨感的來源
         sky: ['#5f7484', '#93a8b2', '#c8d4d4', '#e2e6dc'],
         hill: '#6e8290',
@@ -1884,6 +1893,7 @@ window.FG = window.FG || {};
       scene: {
         terrain: 'caldera',
         horizon: 0.38,
+        art: { background: 'assets/scenes/caldera-background.png', thumbnail: 'assets/scenes/caldera-thumbnail.png', horizon: 0.38 },
         // 火山灰把天空壓成一片黃濁，最上方留一點冷色當對比
         sky: ['#3a3040', '#6a5450', '#a8845f', '#d8b878'],
         hill: '#4a3f48',
@@ -1904,6 +1914,7 @@ window.FG = window.FG || {};
       scene: {
         terrain: 'night',
         horizon: 0.22,
+        art: { background: 'assets/scenes/abyss-background.png', thumbnail: 'assets/scenes/abyss-thumbnail.png', horizon: 0.22 },
         sky: ['#050a12', '#0b1826', '#123048'],
         hill: '#0a1622',
         farTree: '#0d1c28', midTree: '#091520', nearTree: '#060f18',
@@ -1925,6 +1936,7 @@ window.FG = window.FG || {};
         terrain: 'yggdrasil',
         // 地平線刻意壓到最低（0.44）：極光與樹幹都在水面以上，要把天空的空間讓出來
         horizon: 0.44,
+        art: { background: 'assets/scenes/world-root-background.png', thumbnail: 'assets/scenes/world-root-thumbnail.png', horizon: 0.44 },
         sky: ['#070b1a', '#101a33', '#1d2c4a', '#2c3f58'],
         hill: '#141d30',
         farTree: '#1a2436', midTree: '#131b2a', nearTree: '#0d141f',
@@ -1948,6 +1960,7 @@ window.FG = window.FG || {};
       scene: {
         terrain: 'desert',
         horizon: 0.40,
+        art: { background: 'assets/scenes/duat-background.png', thumbnail: 'assets/scenes/duat-thumbnail.png', horizon: 0.40 },
         // 全遊戲唯一整片暖色的天空：日沒的赭紫 → 落日橘 → 砂金
         sky: ['#2e1e3a', '#5f2f42', '#a8543a', '#d88f4a', '#f0c87f'],
         hill: '#8f6a44',
@@ -1974,6 +1987,7 @@ window.FG = window.FG || {};
         terrain: 'cavern',
         // 地平線壓到 0.52：這是全遊戲最低的一條，因為洞頂與鐘乳石要佔掉一半以上
         horizon: 0.52,
+        art: { background: 'assets/scenes/cavern-background.png', thumbnail: 'assets/scenes/cavern-thumbnail.png', horizon: 0.52 },
         // 「天空」在這裡是洞口漏進來的那一點光。above() 會把它幾乎整片蓋掉，
         // 只留中央遠處一個拱形缺口——所以這條漸層只有缺口那一塊會被看見
         sky: ['#0a1216', '#16323a', '#4a8f96', '#a8dcdc'],
@@ -2003,6 +2017,7 @@ window.FG = window.FG || {};
         // 0.46：太陽盤（半徑 34）要有三分之二在地平線以上，船的上部構造又要站得住，
         // 所以天空不能壓得像鐘乳暗穴那麼低
         horizon: 0.46,
+        art: { background: 'assets/scenes/dawn-port-background.png', thumbnail: 'assets/scenes/dawn-port-thumbnail.png', horizon: 0.46 },
         // 破曉：頂端還是夜的靛藍，往下經過紫紅到地平線的金。**日盤本身比這條漸層更亮**
         sky: ['#1a1a3a', '#3f2a52', '#7f3a4a', '#c86a44', '#f0a85a'],
         hill: '#241f2e',

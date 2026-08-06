@@ -16,6 +16,20 @@
 
 ---
 
+## 2026-08-06 · 十六個釣點全部換上點陣背景
+
+**改了什麼**：將其餘十五筆 `FG.LOCATIONS[].scene.art` 補齊 200×340 主背景與 76×50 橫式縮圖，連同既有晨霧湖共十六組。深淵海溝、鐘乳暗穴與曉日沉港的原稿先裁去少量上方天空以對齊遊戲 10:17 畫布；每張主圖都保留船位的中下方水面。`sw.js` 升至 v9，預快取全部 32 張場景 PNG。
+
+**為什麼**：正式美術必須讓每一個釣點有清楚的視覺身分，同時不能破壞原本由 canvas 疊出的船、反光、浮標、漣漪、躍魚與天候效果。把船位視為構圖保留區，避免背景雖好看卻使船像停在海床、沙洲或礁石上。
+
+**動到的檔案**：`js/data.js › FG.LOCATIONS[].scene.art`、`assets/scenes/` 的 30 張新增 PNG、`sw.js › VERSION / ASSETS`。
+
+**已更新的 wiki**：[06 像素引擎](06-pixel-engine.md#選用的點陣場景底圖--sceneart)、[07 資料規格](07-data-schema.md#scene-調色盤)、[09 操作手冊](09-recipes.md#替換一個釣點的點陣背景)、[11 地雷](11-invariants-and-gotchas.md#38-點陣背景的圖片水線與-scenehorizon-不一致水光會爬上岸)、[13 PWA 與部署](13-pwa-and-deploy.md#service-worker-策略)、[wiki README](README.md)、[根 README](../README.md)。
+
+**注意事項**：所有背景 PNG 都是 cache-first；日後替換同名圖檔時仍要提升 `sw.js › VERSION`，並以閒置、拋竿與 320px 寬度各驗一次。
+
+---
+
 ## 2026-08-06 · 支援點陣釣點背景，晨霧湖完成第一張替換
 
 **改了什麼**：`js/pixel.js` 新增共用圖片非同步載入快取，`scene.art.background` 成功後只替換 `bgCache` 的靜態底層，既有水面反光、船身、釣線、浮標、漣漪、躍魚與 cut-in 繼續逐幀疊上；載入中或失敗時保留程序化地形。`locThumb()` 同步支援獨立橫式縮圖，載入完成後覆寫原 canvas。晨霧湖加入一張 200×340 主背景與一張 76×50 縮圖，並用獨立的 `art.horizon: 0.32` 對準圖片水線。`sw.js` 升到 v8 並預快取兩張新資產。

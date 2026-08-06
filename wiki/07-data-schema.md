@@ -28,24 +28,24 @@
 
 ### 目前的十六個釣點
 
-| id | 名稱 | terrain | castCost | unlock | 魚種數（含雜物） | 圖鑑分母 | 前綴 |
-|---|---|---|---|---|---|---|---|
-| `mist_lake` | 晨霧湖 | `forest` | 400 | `free` | 24 | 21 | `ml_` |
-| `garden_pond` | 澄澈方池 | `pond` | 700 | `free` | 23 | 20 | `gp_` |
-| `rapids` | 亂石急湍 | `rapids` | 900 | `free` | 23 | 20 | `rp_` |
-| `sunset_fjord` | 落霞峽灣 | `cliff` | 1,100 | `free` | 24 | 21 | `fj_` |
-| `coral_reef` | 琉璃珊瑚 | `reef` | 1,400 | `free` | 23 | 20 | `cr_` |
-| `sakura_shrine` | 宵櫻神域 | `shrine` | 1,800 | `free` | 23 | 20 | `sk_` |
-| `tide_flat` | 潮落礁灘 | `tidal` | 2,300 | `free` | 23 | 20 | `tf_` |
-| `frost_lake` | 幽藍冰湖 | `ice` | 3,000 | `free` | 23 | 20 | `fr_` |
-| `fall_pool` | 懸瀑深潭 | `waterfall` | 4,400 | `free` | 23 | 20 | `fp_` |
-| `lotus_river` | 煙雨蓮江 | `karst` | 6,000 | `free` | 23 | 20 | `lr_` |
-| `caldera` | 硫煙湯湖 | `caldera` | 9,000 | `free` | 23 | 20 | `cd_` |
-| `abyss` | 深淵海溝 | `night` | 12,000 | `free` | 23 | 20 | `ab_` |
-| `world_root` | 世界樹根 | `yggdrasil` | 24,000 | `free` | 23 | 20 | `wr_` |
-| `duat` | 黃沙冥河 | `desert` | 48,000 | `free` | 23 | 20 | `du_` |
-| `cavern` | 鐘乳暗穴 | `cavern` | 96,000 | `free` | 23 | 20 | `cv_` |
-| `dawn_port` | 曉日沉港 | `wreck` | 192,000 | `free` | 23 | 20 | `dp_` |
+| id              | 名稱   | terrain     | castCost | unlock | 魚種數（含雜物） | 圖鑑分母 | 前綴    |
+| --------------- | ---- | ----------- | -------- | ------ | -------- | ---- | ----- |
+| `mist_lake`     | 晨霧湖  | `forest`    | 400      | `free` | 24       | 21   | `ml_` |
+| `garden_pond`   | 澄澈方池 | `pond`      | 700      | `free` | 23       | 20   | `gp_` |
+| `rapids`        | 亂石急湍 | `rapids`    | 900      | `free` | 23       | 20   | `rp_` |
+| `sunset_fjord`  | 落霞峽灣 | `cliff`     | 1,100    | `free` | 24       | 21   | `fj_` |
+| `coral_reef`    | 琉璃珊瑚 | `reef`      | 1,400    | `free` | 23       | 20   | `cr_` |
+| `sakura_shrine` | 宵櫻神域 | `shrine`    | 1,800    | `free` | 23       | 20   | `sk_` |
+| `tide_flat`     | 潮落礁灘 | `tidal`     | 2,300    | `free` | 23       | 20   | `tf_` |
+| `frost_lake`    | 幽藍冰湖 | `ice`       | 3,000    | `free` | 23       | 20   | `fr_` |
+| `fall_pool`     | 懸瀑深潭 | `waterfall` | 4,400    | `free` | 23       | 20   | `fp_` |
+| `lotus_river`   | 煙雨蓮江 | `karst`     | 6,000    | `free` | 23       | 20   | `lr_` |
+| `caldera`       | 硫煙湯湖 | `caldera`   | 9,000    | `free` | 23       | 20   | `cd_` |
+| `abyss`         | 深淵海溝 | `night`     | 12,000   | `free` | 23       | 20   | `ab_` |
+| `world_root`    | 世界樹根 | `yggdrasil` | 24,000   | `free` | 23       | 20   | `wr_` |
+| `duat`          | 黃沙冥河 | `desert`    | 48,000   | `free` | 23       | 20   | `du_` |
+| `cavern`        | 鐘乳暗穴 | `cavern`    | 96,000   | `free` | 23       | 20   | `cv_` |
+| `dawn_port`     | 曉日沉港 | `wreck`     | 192,000  | `free` | 23       | 20   | `dp_` |
 
 > ★ **每個釣點都必須有一整套專屬周邊**：主題釣竿、主題餌料、專屬裝備、主題家園裝飾。對照表與（很重要的）三者規則差異見 [09 §新增一個釣點](09-recipes.md#新增一個釣點--一次要生出一整套)。
 
@@ -94,6 +94,8 @@
 | `boat` `boatRim` `boatDark` | 色碼 | 船身三段色（主體／上緣／陰影） |
 
 `art` 的欄位：
+
+目前十六筆 `FG.LOCATIONS[].scene` 都有 `art`。這不是刪除程序化場景，而是為每個釣點提供一致的正式美術與可離線預快取的縮圖。
 
 | 欄位 | 型別 | 說明 |
 |---|---|---|
