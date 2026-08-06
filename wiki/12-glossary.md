@@ -50,8 +50,8 @@
 
 | 欄位 | 可用值 |
 |---|---|
-| `shape` | 一般：`normal` `long` `round` `flat` `wide` `ray`／魚王專屬：`catfish` `tuna` `dragon` `pike` `abyss` `paddle` `serpent` `lungfish` `koi` `skipper` `leaper` `coelacanth` `clinger` `wrasse` `olm` `octopus` |
-| `pattern` | `none` `stripe` `band` `band2` `spot` `speck` `net` `scale` |
+| `shape` | 一般：`normal` `long` `round` `flat` `wide` `ray` `slim` `crest` `boxy` `torpedo`／魚王專屬：`catfish` `tuna` `dragon` `pike` `abyss` `paddle` `serpent` `lungfish` `koi` `skipper` `leaper` `coelacanth` `clinger` `wrasse` `olm` `octopus` |
+| `pattern` | `none` `stripe` `band` `band2` `spot` `speck` `net` `scale` `gradient` `saddle` `ocellus` `chevron` |
 | `special[]` | `glow` `spike` `whisker` `scar` `horn` `jaw` `lantern` `finlet` `mane` `frost` `rostrum` `forkTongue` `filaments` `stalkEye` `kype` `lobeFin` `sucker` `hump` `gills` `limbs` `blind` `arms` `slitEye` |
 | `junkArt` | `boot` `can` `weed` `bottle` `ice` `bone` `ema` `porcelain` `shield` `ostracon` `coins` `shell` `flask` `brimstone` `driftwood` `coralfrag` `dripstone` `porthole` |
 | `scene.terrain` | `forest` `pond` `cliff` `shrine` `tidal` `ice` `waterfall` `karst` `caldera` `night` `yggdrasil` `desert` `rapids` `reef` `cavern` `wreck` |

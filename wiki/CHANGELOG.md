@@ -16,6 +16,23 @@
 
 ---
 
+## 2026-08-06 · 擴充一般魚的 shape／pattern 素材庫，並重新分配約 60 條既有魚
+
+**改了什麼**：
+- `js/pixel.js › SHAPES` 新增 4 種一般魚體型輪廓：`slim`（刀型／鰻型）、`crest`（高冠短身圓盤）、`boxy`（箱型）、`torpedo`（小型流線紡錘）。一般魚可用 shape 從 6 種變 10 種。
+- `js/pixel.js › buildFish()` 的花紋 `switch` 新增 4 種：`gradient`（連續漸變）、`saddle`（背側鞍斑）、`ocellus`（尾柄假眼）、`chevron`（人字斜紋）。可用 pattern 從 8 種變 12 種。
+- 用腳本統計 `data.js` 現有分布後，把 46 條魚的 `shape`、21 條魚的 `pattern` 改成新選項（部分魚兩者都改）。改完非魚王魚裡 `shape: 'long'` 佔比從 36% 降到 23%，`pattern: 'none'` 從 26% 降到 19%。
+
+**為什麼**：玩家反映「常常釣到不同的魚但長得都一樣」。查 `data.js` 發現三百多條非魚王魚長期靠感覺加，`long`／`none` 是「什麼都套得上」的安全選項，沒有配額或檢查機制的欄位會自我強化到失衡（詳細分析與驗證腳本見 [11 §37](11-invariants-and-gotchas.md#37-加魚只憑手感shapepattern-會悄悄集中到一兩種)）。四種新 shape 各自補一個原本空著的輪廓座標軸（`e` 最低的箱型、對稱＋深叉尾的小型魚、只有鰭沒有尾的刀型、最高最短的圓盤型）；四種新 pattern 各自補一個原本沒有的幾何邏輯（連續漸變、只在背部的分段色塊、單一固定標記、斜向鋸齒），不跟既有八種撞。
+
+**動到的檔案**：`js/pixel.js › SHAPES`、`js/pixel.js › buildFish()`（花紋 switch）、`js/data.js`（46 條魚的 `shape`、21 條魚的 `pattern`）。
+
+**已更新的 wiki**：[06 像素引擎](06-pixel-engine.md#體型輪廓表--shapes)（骨架表＋花紋表各加一段）、[07 資料規格](07-data-schema.md#魚--locationfish)（`shape`／`pattern` 可用值＋分布檢查提醒）、[09 操作手冊](09-recipes.md#加一種-pattern)（新增「加一種 pattern」步驟）、[11 地雷](11-invariants-and-gotchas.md#37-加魚只憑手感shapepattern-會悄悄集中到一兩種)（新增 §37）、[12 名詞表](12-glossary.md)（`shape`／`pattern` 可用值清單）。
+
+**注意事項**：`coral_reef`（稀有度靠輪廓分階，junk～good 不動 shape）與 `cavern`（全場 pattern 刻意維持 `none`）兩個釣點的重新分配刻意繞開了各自的識別軸，細節見 [11 §37](11-invariants-and-gotchas.md#37-加魚只憑手感shapepattern-會悄悄集中到一兩種)。魚王的 shape／pattern 完全沒有動。
+
+---
+
 ## 2026-08-06 · 新增第十六個釣點：曉日沉港，魚王是一隻章魚
 
 **改了什麼**：一個新釣點連同它的一整套七樣東西，照 [09 §新增一個釣點](09-recipes.md#新增一個釣點--一次要生出一整套) 的清單走完。

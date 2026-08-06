@@ -169,12 +169,12 @@
   id:      'ml_bass',      // 唯一！同時是圖鑑 key 與精靈快取 key
   name:    '黑鱸',
   rarity:  'good',         // junk|common|good|rare|epic|legend|king
-  shape:   'normal',       // normal|long|round|flat|wide|ray
+  shape:   'normal',       // normal|long|round|flat|wide|ray|slim|crest|boxy|torpedo
                            // 魚王專屬：catfish|tuna|dragon|pike|abyss|paddle|serpent
                            //           lungfish|koi|skipper|leaper|coelacanth
                            //           clinger|wrasse|olm|octopus
   scale:   0.9,            // 在精靈框中的佔比，魚王建議 1.25～1.35
-  pattern: 'band',         // none|stripe|band|band2|spot|speck|net|scale
+  pattern: 'band',         // none|stripe|band|band2|spot|speck|net|scale|gradient|saddle|ocellus|chevron
   special: ['glow'],       // 選用：glow|spike|whisker|scar|horn|jaw|lantern
                            //       finlet|mane|frost|rostrum|forkTongue|filaments
                            //       stalkEye|kype|lobeFin|sucker|hump|gills|limbs|blind
@@ -192,6 +192,8 @@
 ```
 
 **只有 `colors.body` 是必填**，其餘會自動由它推導（見 [06 §上色](06-pixel-engine.md#上色)）。
+
+> **一般魚的 `shape`／`pattern` 分布要定期檢查，不要只憑感覺加。** 2026-08-06 之前 `long` 一種就佔掉全部非魚王魚的 36%（`cavern` 單一釣點 10/19），`pattern: 'none'` 佔 26%——都是因為每次加魚都順手抓最熟悉的組合，沒人統計過整體分布。查法：`node` 讀 `data.js`（`window.FG=...; eval(fs.readFileSync(...))`）後對 `FG.LOCATIONS` 裡每條非魚王、非雜物魚的 `shape`／`pattern` 計數。那次順便把 6 種一般魚 shape 擴到 10 種、8 種 pattern 擴到 12 種（見 [06 §體型輪廓表](06-pixel-engine.md#體型輪廓表--shapes)、[06 §花紋](06-pixel-engine.md#花紋--pattern)），並重新分配了約 60 條現有魚。**改現有魚的 `shape`／`pattern` 不影響機率也不影響期望值**（[11 §14](11-invariants-and-gotchas.md#14-加魚不改機率但會改期望值) 講的是「加魚」，換現有魚的造型欄位純粹是外觀），但兩個釣點要注意：`coral_reef` 的稀有度是靠輪廓分階（junk～good 只能用 `flat`/`long`/`wide`/`round`，見下方 [§琉璃珊瑚](#琉璃珊瑚唯一一個不用顏色分階的釣點)），`cavern` 全場 `pattern` 刻意留 `none`（半透明無色是識別，見 [§鐘乳暗穴](#鐘乳暗穴唯一一個高階不發光的暗色釣點)）——這兩個釣點改的時候要繞開各自的識別軸。
 
 `id` 命名慣例：釣點前綴 + 底線 + 名稱（前綴對照見上方釣點表）。**id 一旦上線就不要改**，改了等於玩家的圖鑑紀錄消失。
 

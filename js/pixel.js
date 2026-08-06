@@ -161,6 +161,24 @@ window.FG = window.FG || {};
     wide:   { bodyLen: .56, bodyH: .52, gamma: 1.10, e: .48, tailLen: .18, tailH: .86, fork: .45, dorsal: .30, dorsalAt: [.28, .58], anal: .20, analAt: [.20, .44] },
     ray:    { bodyLen: .46, bodyH: .80, gamma: 1.00, e: .30, tailLen: .36, tailH: .03, fork: .00, dorsal: .04, dorsalAt: [.34, .50], anal: .04, analAt: [.34, .50] },
 
+    // ── 2026-08-06 補的四種一般魚輪廓：原本六種撐不起 300+ 條非魚王魚，同釣點同階級常常撞型 ──
+    // 刀型（側扁窄長）：tailH .30／fork .05 幾乎沒有尾扇，靠貫穿大半個身體的背鰭＋臀鰭
+    // 讀出「刀魚／魛魚」那種長條薄片的輪廓。跟 long 的差別是 long 有正常尾巴、鰭短而集中；
+    // 這裡的尾巴幾乎收沒了，識別全交給那圈長鰭
+    slim:    { bodyLen: .58, bodyH: .30, gamma: 1.05, e: .40, tailLen: .10, tailH: .30, fork: .05, dorsal: .40, dorsalAt: [.10, .85], anal: .34, analAt: [.10, .80] },
+    // 高冠短身：gamma 1.40 把最寬處推到 t≈0.66（比 flat 的 1.24 更前傾＝額頭更陡），
+    // bodyLen 只有 .36 但 bodyH .82（全一般魚最高），配上幾乎沒有的尾巴（tailLen .12／tailH .46）——
+    // 讀起來是月魚／神仙魚那種「一個立起來的圓盤」，不是 flat 那種「有尾巴的高身魚」
+    crest:   { bodyLen: .36, bodyH: .82, gamma: 1.40, e: .38, tailLen: .12, tailH: .46, fork: .16, dorsal: .50, dorsalAt: [.16, .55], anal: .42, analAt: [.16, .48] },
+    // 箱型：e .18 是全檔（含魚王）最低，把橢圓壓成接近矩形的箱子；尾巴縮到 tailH .30／fork 0
+    // 的一根小槳，鰭也刻意收小（dorsal .20、anal .18）。讀起來是箱魨／河魨那種硬殼方塊，
+    // 跟 e .24 的 clinger（貼石巨鰍，靠 sucker identify）不會混——clinger 是扁板，這是方塊
+    boxy:    { bodyLen: .46, bodyH: .58, gamma: 1.00, e: .18, tailLen: .10, tailH: .30, fork: .00, dorsal: .20, dorsalAt: [.35, .60], anal: .18, analAt: [.32, .55] },
+    // 小型流線：gamma 1.00（前後對稱收尖，不像 normal 的 1.15 偏頭）＋ e .62（全一般魚最尖，
+    // 比 long 的 .58 更瘦），配深叉尾（fork .58，一般魚裡僅次於無、鰭刻意收小）——
+    // 讀起來是沙丁魚／鯖魚那種對稱紡錘、鰭小尾深叉的快速小型魚
+    torpedo: { bodyLen: .48, bodyH: .34, gamma: 1.00, e: .62, tailLen: .16, tailH: .68, fork: .58, dorsal: .18, dorsalAt: [.35, .55], anal: .14, analAt: [.30, .48] },
+
     // ── 以下五種是為魚王設計的專屬輪廓 ──
     // 五位魚王原本全是 shape:'wide' + glow + scar，只有配色不同，並排時完全認不出是不同的魚。
     // 體型是這個解析度下最強的辨識線索（比花紋、比配色都強），所以一王一型，不共用。
@@ -374,6 +392,35 @@ window.FG = window.FG || {};
           case 'scale':
             if (((x - x0 + (y % 2) * 2) % 4) === 0) c = FG.mix(c, FG.shade(c, -0.18), 0.9);
             break;
+          // ── 2026-08-06 補的四種花紋：原本八種裡六種是「重複紋理」，剩下兩種是「橫帶」，
+          // 同釣點同階級的魚很容易撞到同一種讀感。這四種各自换一種幾何邏輯，不重複前八種的手法 ──
+          case 'gradient':
+            // 漸層：沿 t（尾到頭）連續變色，不是離散色塊——跟其餘七種花紋都是「重複」或「帶狀」不同
+            if (v > 0.08 && v < 0.92) c = FG.mix(c, patC, t * 0.6);
+            break;
+          case 'saddle':
+            // 背側鞍斑：只長在背部（v < 0.38）的等距色塊，跟 stripe 的差別是它到不了腹部，
+            // 跟 band 的差別是它沿長度分段而不是沿高度一整條
+            if (v < 0.38 && Math.floor(t * 4.5) % 2 === 0) c = FG.mix(c, patC, 0.8);
+            break;
+          case 'ocellus': {
+            // 尾柄假眼：固定位置的單一同心圓（深色瞳 + 淺色圈），是全部花紋裡唯一的「單一標記」，
+            // 其餘都是重複或帶狀。中心用 shade 提亮，外圈用原色，讀起來才有「圈」的層次
+            const dt = (t - 0.18) * 3.4, dv = (v - 0.5) * 2.4;
+            const d = Math.sqrt(dt * dt + dv * dv);
+            if (d < 0.62) c = (d < 0.38) ? FG.shade(patC, 0.3) : patC;
+            break;
+          }
+          case 'chevron': {
+            // 人字紋：沿身體重複的 V 形斜紋（上下鏡射兩道），跟 stripe（垂直直條）在幾何上
+            // 是「斜的」對「直的」，一眼不會混
+            const seg = 0.16;
+            const localT = (t % seg) / seg;
+            const apex = Math.abs(localT - 0.5) * 2;
+            const bandV = 0.5 - apex * 0.42;
+            if (Math.abs(v - bandV) < 0.05 || Math.abs(v - (1 - bandV)) < 0.05) c = FG.mix(c, patC, 0.8);
+            break;
+          }
         }
         col[i] = c;
       }

@@ -484,6 +484,35 @@ for (let k = 2; k < 56; k += 6) console.log(k, '船', Math.round(lum(100, hz+k))
 
 ---
 
+### 37. 加魚只憑手感，`shape`／`pattern` 會悄悄集中到一兩種
+
+**症狀**：玩家反映「常常釣到不同的魚但長得都一樣」。檢查 `data.js` 才發現非魚王魚裡 `shape: 'long'` 佔了 36%（`cavern` 單一釣點 10/19 條都是 `long`），`pattern: 'none'` 佔 26%——沒有人在單一次修改裡加了這麼多重複，是**三百多次「加一條魚」各自獨立決策，每次都抓最順手的組合**慢慢疊出來的。
+
+**原因**：`shape` 跟 `pattern` 沒有配額或檢查機制（不像稀有度有 [07 §配額表](07-data-schema.md#一個釣點該放幾條魚)），加魚的人只會參考「這條魚長什麼樣」，不會去看整個 `data.js` 現在的分布，`long`／`none` 又是「什麼都套得上」的安全選項，於是自我強化。
+
+**對策**：定期跑統計，不要等玩家抱怨才發現：
+
+```js
+const fs = require('fs');
+global.window = global.window || {};
+eval(fs.readFileSync('js/data.js', 'utf8'));
+const shapeCount = {}, patternCount = {};
+for (const loc of window.FG.LOCATIONS) for (const f of loc.fish) {
+  if (f.rarity === 'king' || f.junkArt) continue;
+  shapeCount[f.shape] = (shapeCount[f.shape] || 0) + 1;
+  patternCount[f.pattern || 'none'] = (patternCount[f.pattern || 'none'] || 0) + 1;
+}
+console.log(shapeCount, patternCount);
+```
+
+2026-08-06 用這個腳本量出問題後，把一般魚 `shape` 從 6 種擴到 10 種、`pattern` 從 8 種擴到 12 種（見 [06 §體型輪廓表](06-pixel-engine.md#體型輪廓表--shapes)、[06 §花紋](06-pixel-engine.md#花紋--pattern)），並用同一支腳本的變體改寫約 60 條既有魚的 `shape`／`pattern`（純文字取代該魚那一行的欄位值，不用一條一條手改）。改完 `long` 降到 23%、`none` 降到 19%。
+
+**這類批次改造要注意兩件事**：
+1. **改現有魚的造型欄位是安全的**——不影響 `rollCatch()` 的機率也不影響期望值（那是「加魚」才會動到的東西，見 [§14](#14-加魚不改機率但會改期望值)），純粹是外觀，可以放手改。
+2. **兩個釣點的 `shape`／`pattern` 本身就是識別軸，改的時候要繞開**：`coral_reef` 用輪廓分稀有度（junk～good 只能是 `flat`/`long`/`wide`/`round`，見 [07 §琉璃珊瑚](07-data-schema.md#琉璃珊瑚唯一一個不用顏色分階的釣點)），`cavern` 全場 19 條非魚王魚的 `pattern` 都刻意是 `none`（半透明無色是那個釣點的識別，見 [07 §鐘乳暗穴](07-data-schema.md#鐘乳暗穴唯一一個高階不發光的暗色釣點)）——這次批次改造兩者都只動了前者的 `pattern`（不動 `shape`）、後者完全不動 `pattern`（只動 `shape`）。
+
+---
+
 ## 必須維持的不變式
 
 ### 資料

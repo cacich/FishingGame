@@ -47,6 +47,18 @@
    console.log(s);
    ```
 
+### 加一種 `pattern`
+
+1. `js/pixel.js › buildFish()` 上色迴圈裡的 `switch (f.pattern)`（`scale` case 之後）加一個 `case`。
+2. 迴圈當下已經算好兩個座標可以直接用：`t`（沿身體長度，0=尾根／1=吻端）與 `v`（沿身體高度，0=背／1=腹，已經做完反蔭蔽）。花紋邏輯就是拿 `t`／`v` 判斷要不要把當下像素 `c` 混進 `patC`（`FG.mix(c, patC, 強度)`）。
+3. **先想清楚新花紋要佔哪一種幾何邏輯，不要跟既有的撞**：現有八種是「週期性重複」（`stripe`/`spot`/`speck`/`net`/`scale`）或「固定橫帶」（`band`/`band2`）；2026-08-06 補的四種各自佔一個新邏輯（連續漸變／只在背部的分段色塊／單一固定標記／斜向鋸齒），見 [06 §花紋](06-pixel-engine.md#花紋--pattern)。
+4. `case` 需要局部變數（`const`）時記得包一層 `{ }`——`switch` 底下所有 `case` 共用同一個區塊作用域，兩個 `case` 都宣告 `const d` 會直接噴 `SyntaxError`。
+5. 花紋不影響輪廓（`layer` 陣列），所以不會被 `headRoom` 或畫布邊界卡到，也不用改 `HEAD_ROOM`。
+
+📝 **要更新**：[06 像素引擎](06-pixel-engine.md)（花紋表加一列）、[07 資料規格](07-data-schema.md)（`pattern` 的可用值）、[12 名詞表](12-glossary.md)（可用值清單）。
+
+---
+
 ### 加一種 `special`
 
 1. `js/pixel.js › buildFish()` 的 special 區塊（`scar` 那一段之後）加一段 `if (sp.indexOf('新key') >= 0) { ... }`。
