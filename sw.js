@@ -7,7 +7,7 @@
      重新安裝並清掉舊快取。不改的話舊快取會一直留著。
    ============================================================ */
 
-const VERSION = 'v9';
+const VERSION = 'v10';
 const CACHE = 'fishing-' + VERSION;
 
 // 程式碼類資產走 network-first 時，等網路的上限（毫秒）。超時就回快取，
@@ -34,6 +34,30 @@ const ASSETS = [
   './js/pwa.js',
   './js/devtools.js',
   './js/main.js',
+  './assets/sprites/mist-lake/ml_boot.png',
+  './assets/sprites/mist-lake/ml_can.png',
+  './assets/sprites/mist-lake/ml_weed.png',
+  './assets/sprites/mist-lake/ml_crucian.png',
+  './assets/sprites/mist-lake/ml_bluegill.png',
+  './assets/sprites/mist-lake/ml_loach.png',
+  './assets/sprites/mist-lake/ml_smallcarp.png',
+  './assets/sprites/mist-lake/ml_minnow.png',
+  './assets/sprites/mist-lake/ml_smelt.png',
+  './assets/sprites/mist-lake/ml_trout.png',
+  './assets/sprites/mist-lake/ml_bass.png',
+  './assets/sprites/mist-lake/ml_whitefish.png',
+  './assets/sprites/mist-lake/ml_perch.png',
+  './assets/sprites/mist-lake/ml_catfish.png',
+  './assets/sprites/mist-lake/ml_goldcarp.png',
+  './assets/sprites/mist-lake/ml_pike.png',
+  './assets/sprites/mist-lake/ml_koi.png',
+  './assets/sprites/mist-lake/ml_char.png',
+  './assets/sprites/mist-lake/ml_eel.png',
+  './assets/sprites/mist-lake/ml_sturgeon.png',
+  './assets/sprites/mist-lake/ml_gar.png',
+  './assets/sprites/mist-lake/ml_arowana.png',
+  './assets/sprites/mist-lake/ml_spirit.png',
+  './assets/sprites/mist-lake/ml_king_onde.png',
   './assets/scenes/mist-lake-background.png',
   './assets/scenes/mist-lake-thumbnail.png',
   './assets/scenes/garden-pond-background.png',

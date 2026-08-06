@@ -318,6 +318,12 @@ px.sprite(f)   // fishCache[f.id]，第一次生成後永久快取
 
 > ⚠️ **快取的 key 只有 `f.id`。** 改了某條魚的顏色／體型後，同一個 session 內不會重繪，必須重新整理頁面。除錯時很容易被騙。見 [11 地雷](11-invariants-and-gotchas.md#3-精靈快取)。
 
+### 選用的 AI 產圖精靈 · `EXTERNAL_SPRITES`
+
+`pixel.js › EXTERNAL_SPRITES` 是少量已完成美術的覆寫表，目前收錄晨霧湖的 24 個可釣項目（21 種魚與 3 件雜物），檔案在 `assets/sprites/mist-lake/<fish id>.png`。每張 PNG 都已去背並固定成 96×56，故能與程序化精靈使用同一套 `drawSprite()`／`spriteEl()` 排版。
+
+`px.sprite()` 第一次被呼叫時仍會先同步建立程序化精靈；若該 id 在覆寫表中，則非同步載入 PNG，成功後以同一個 `fishCache[f.id]` 取代。這是刻意的**漸進式覆寫**：首幀、離線、`file://` 或缺圖時不會白掉，圖片到位後的後續繪製才改用正式美術。新增下一批時，檔案、覆寫表與 `sw.js › ASSETS` 必須一起補；圖片是 cache-first，因此也必須提升 SW `VERSION`。
+
 ### 對外 API
 
 ```js

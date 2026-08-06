@@ -65,6 +65,20 @@
 
 ---
 
+## 2026-08-06 · 晨霧湖全圖鑑改用 AI 產圖精靈
+
+**改了什麼**：依 [全圖鑑產圖外觀描述](15-image-prompts.md) 的晨霧湖提示詞，為 21 種魚與 3 件雜物各自生成一張像素風 PNG，去除洋紅／綠色鍵背景後裁切成透明的 96×56 精靈，存於 `assets/sprites/mist-lake/`。`pixel.js › EXTERNAL_SPRITES` 會在成功載入後覆寫這 24 個 id 的程序化精靈；`sw.js` 升到 `v10`，並預快取所有新 PNG。
+
+**為什麼**：產圖要真正進到遊戲畫面，而不是只停在描述文件。每項獨立產圖可保留魚種間的剪影與顏色差異，也讓未來重做一種魚時不必切割整張圖集；保留程序化首幀與載入失敗備援，則不犧牲離線與 `file://` 可玩性。
+
+**動到的檔案**：`assets/sprites/mist-lake/*.png`、`js/pixel.js › EXTERNAL_SPRITES`／`requestExternalSprite()`／`px.sprite()`、`sw.js › VERSION`／`ASSETS`。
+
+**已更新的 wiki**：[像素引擎](06-pixel-engine.md#選用的-ai-產圖精靈--external_sprites)、[PWA 與部署](13-pwa-and-deploy.md#service-worker-策略)、[wiki README](README.md)、[原始碼 ↔ wiki 對照表](_map.md)。
+
+**注意事項**：新精靈是 cache-first 圖片；開發時需 Ctrl+F5，已安裝 PWA 則等待 `v10` 接管後的自動重載。新增其他釣點的產圖時，必須同步補 PNG、覆寫表、`sw.js › ASSETS` 與本頁文件。
+
+---
+
 ## 2026-08-06 · 全部釣點的三件雜物改為專屬場景物件
 
 **改了什麼**：`js/data.js` 的 48 件雜物現在各自使用不同的 `junkArt`；原本跨十六張地圖重複出現的鐵罐、水草與玻璃瓶，改為 33 件新設計的場景物件，例如晨霧湖的觀察筆記與蘆葦浮標、神域的鈴鐺與紙鶴、冰湖的保溫瓶與冰釣亮片、深淵的紀錄器與聲納纜線、暗穴的乙炔燈與岩釘環、沉港的信號燈與羅盤。`pixel.js › JUNK_MAPS` 增加相對應的 33 張像素字元圖；既有的 15 張主題字元圖保留，合計 48 張在用剪影。產圖描述索引已依新資料重建。

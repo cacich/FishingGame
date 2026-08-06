@@ -72,7 +72,7 @@
 | `styles.css` | 770 | 全部樣式 | [08](08-ui-and-screens.md) |
 | `js/util.js` | 140 | 亂數／色彩／格式化／DOM／存取／音效 | [01](01-architecture.md) |
 | `js/pixel.js` | 4600 | 像素美術引擎（含地形系統，16 種地形） | [06](06-pixel-engine.md) |
-| `assets/scenes/` | — | 十六個釣點的主背景與橫式縮圖（各 200×340／76×50） | [06](06-pixel-engine.md)、[13](13-pwa-and-deploy.md) |
+| `assets/scenes/` · `assets/sprites/` | — | 十六個釣點的主背景／縮圖，與晨霧湖 24 張 AI 產圖精靈 | [06](06-pixel-engine.md)、[13](13-pwa-and-deploy.md) |
 | `js/data.js` | 2250 | 所有資料表（16 個釣點、下注階梯、RTP 目標） | [07](07-data-schema.md) |
 | `tools/generate-image-prompts.js` | 250 | 由魚類資料重建全圖鑑產圖提示詞 | [15](15-image-prompts.md) |
 | `js/state.js` | 560 | 存檔／經濟／抽獎／**固定 RTP 正規化**／Buffer 池 | [02](02-state-and-save.md)、[03](03-economy.md) |
