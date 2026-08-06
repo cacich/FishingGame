@@ -89,15 +89,26 @@ window.FG = window.FG || {};
   }
 
   /* ------------------------------------------------------------
-     角落的 DEBUG 標記
+     頂部列正中央的 DEBUG 標記
 
      只要有任何一個開關是開的就掛上。沒有這個東西，玩家（或三天後的自己）
      會忘記自己開著必出魚王，然後開始懷疑機率算錯了。
+
+     它是 `#topbar` 的一個 flex 項目，不是浮在畫面上的固定定位元素。原因是
+     頂部列左右兩端各有一顆按鈕（釣點 `#topLocBtn`、錢包 `#chipsBtn`），而
+     錢包的寬度會隨籌碼位數變動——用「視窗中線 ± 一半寬度」永遠猜不準會不會
+     壓到它。插進同一條 flex 列、前後各留一個等寬的 `.grow`，排版就保證了
+     「置中且不重疊」，空間不夠時標記自己縮短（樣式見 styles.css › #devFlag）。
+     那個額外的 `.grow` 是這裡插的，所以拿掉標記時要一起拿掉。
      ------------------------------------------------------------ */
   function refreshFlag() {
     let el = document.getElementById('devFlag');
     if (!dev.anyActive()) {
-      if (el && el.parentNode) el.parentNode.removeChild(el);
+      if (el) {
+        const sp = document.getElementById('devFlagSpacer');
+        if (sp && sp.parentNode) sp.parentNode.removeChild(sp);
+        if (el.parentNode) el.parentNode.removeChild(el);
+      }
       return;
     }
     if (!el) {
@@ -105,7 +116,13 @@ window.FG = window.FG || {};
       el.id = 'devFlag';
       el.title = '開發者模式進行中，點我打開面板';
       el.onclick = function () { openPanel(); };
-      document.body.appendChild(el);
+      const bar = document.getElementById('topbar');
+      const wallet = document.getElementById('chipsBtn');
+      const spacer = FG.el('div', 'grow');
+      spacer.id = 'devFlagSpacer';
+      // 插在錢包前面：既有的 .grow 在標記左邊，這個新的在右邊，兩邊等寬 → 標記置中
+      bar.insertBefore(el, wallet);
+      bar.insertBefore(spacer, wallet);
     }
     const bits = [];
     if (dev.forceFishId) {

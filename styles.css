@@ -621,6 +621,9 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
    釣點選單彈窗裡，清單長度會隨釣點數量成長，把下方的說明文字推出可視範圍。
    限制清單自己的高度並讓它捲動，說明文字就永遠在原地。 */
 .loc-list {
+  /* 定位錨點：讓卡片的 offsetParent 就是這個捲動容器，
+     main.js › FG.locationPicker() 才能用 offsetTop 直接算「捲到目前釣點」的位置 */
+  position: relative;
   max-height: 44dvh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -809,16 +812,25 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 }
 .dev-select:focus { outline: 2px solid var(--blue); outline-offset: -2px; }
 
-/* 有任何干預開著時掛在左上角。沒有這個，忘了關掉會變成查不出來的「機率壞了」 */
+/* 有任何干預開著時掛在頂部列正中央。沒有這個，忘了關掉會變成查不出來的「機率壞了」。
+
+   位置沿革：原本是 `position: fixed` 掛在左上角，正好蓋住釣點按鈕（`#topLocBtn`），
+   開著 DEBUG 就換不了釣點。
+   現在改成**塞進 `#topbar` 當一個 flex 項目**（`devtools.js › refreshFlag()` 會連同一個
+   `.grow` 一起插進去，讓標記前後的彈性空白等寬 → 自然置中）。不用 fixed + translateX(-50%)
+   的理由：那種做法只知道視窗中線、不知道兩側按鈕多寬，籌碼位數一多錢包就會被壓到標記底下。
+   交給 flex 排版就永遠不會重疊，空間不夠時標記自己縮短（`min-width: 0` ＋ 省略號）。 */
 #devFlag {
-  position: fixed;
-  left: 6px; top: 6px;
-  z-index: 60;
+  min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  border: 0;
   background: #7a2f34;
   color: #ffd9db;
-  padding: 3px 7px;
+  /* 字距與左右內距比原本（1px / 7px）緊一點：兩個開關全開時文字有 24 個字元，
+     375px 螢幕上兩顆按鈕之間只剩 149px，鬆一點就會被省略號吃掉尾巴 */
+  padding: 3px 5px;
   font-size: 10px;
-  letter-spacing: 1px;
+  letter-spacing: .5px;
   box-shadow: 0 0 0 2px var(--line);
   animation: devBlink 1.6s steps(2) infinite;
 }

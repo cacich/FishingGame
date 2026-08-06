@@ -16,6 +16,28 @@
 
 ---
 
+## 2026-08-06 · 釣點選單開窗自動捲到目前釣點；DEBUG 標記移到頂部列正中央
+
+**改了什麼**：
+- `FG.locationPicker()` 開窗時把「目前」那張 `.loc-card.on` 捲到 `.loc-list` 的可視範圍中間，頭尾兩端夾在 `[0, scrollHeight - clientHeight]`。`.loc-list` 補上 `position: relative`（讓卡片的 `offsetParent` 是清單本身）。實測 375px：第 1／2 個釣點停在 `scrollTop 0`（`at-start` 遮罩正確）、第 8 個 416、第 14 個 895、第 16 個 912（`at-end`），四種情況目標卡片都完整可見。
+- `#devFlag` 從 `position: fixed` 的左上角浮層，改成插進 `#topbar` 當 flex 項目，並由 `refreshFlag()` 一併插入／移除一個 id 為 `devFlagSpacer` 的 `.grow`，讓標記前後的彈性空白等寬而自然置中。字距 1px→.5px、左右內距 7px→5px。
+
+**為什麼**：
+- 釣點清單高 44dvh，一次只看得到三張卡，而釣點有十六個。玩到後段的玩家每次開窗都得從頭滑到底才找得到自己在哪，連續切換釣點時尤其煩。
+- DEBUG 標記在左上角**正好蓋住釣點按鈕 `#topLocBtn`**，開著 DEBUG 就換不了釣點——而「換釣點測不同魚王」正是開發者面板最常見的用途。改置中時不用 `fixed + translateX(-50%)`，是因為那種做法只知道視窗中線、不知道兩側按鈕多寬，實測 375px 籌碼三位數時就已經壓到錢包 6px（錢包寬度隨籌碼位數成長）。交給 flex 排版就永遠不會重疊。
+
+**動到的檔案**：`js/main.js › FG.locationPicker()`、`js/devtools.js › refreshFlag()`、`styles.css › .loc-list` / `#devFlag`。`sw.js › VERSION` **維持 v9**：只改 js／css 內容、沒有新增或改名資產，程式碼走 network-first 本來就拿得到新版，而升版會讓 32 張 cache-first 的場景 PNG 全部重抓（[13 §VERSION 什麼時候要加一](13-pwa-and-deploy.md#version-什麼時候要加一)）。
+
+**已更新的 wiki**：[01 架構](01-architecture.md)、[08 介面](08-ui-and-screens.md#二--釣點選單彈窗的清單--loc-list)、[11 地雷](11-invariants-and-gotchas.md#39-在-modal-的開場動畫期間量-getboundingclientrect-會量到縮放後的值)（新增 §39、§40）、[14 開發者面板](14-devtools.md#devflag--頂部列正中央的-debug-標記)。
+
+**注意事項**：
+- 捲動位置**只能用 `offsetTop` 算，不能用 `getBoundingClientRect()`**——`.modal` 開場有 `pop` 縮放動畫，那一刻的螢幕座標是被 scale 過的（§39）。這條適用於這個專案所有彈窗裡的捲動計算。
+- `devFlagSpacer` 是動態插入的，**移除標記時必須一起移除**，否則頂部列會多一塊彈性空白把錢包推歪（§40）。
+- 320px 螢幕上兩個開關全開時標記會被省略號截斷（完整內容仍在 `title`）；375px 完整顯示。
+- 每日分頁的釣點清單是[另一份幾乎相同的實作](11-invariants-and-gotchas.md#8-釣點卡有兩份實作)，它**刻意不加內層捲動**，所以這次的自動捲動沒有、也不該同步過去。
+
+---
+
 ## 2026-08-06 · 十六個釣點全部換上點陣背景
 
 **改了什麼**：將其餘十五筆 `FG.LOCATIONS[].scene.art` 補齊 200×340 主背景與 76×50 橫式縮圖，連同既有晨霧湖共十六組。深淵海溝、鐘乳暗穴與曉日沉港的原稿先裁去少量上方天空以對齊遊戲 10:17 畫布；每張主圖都保留船位的中下方水面。`sw.js` 升至 v9，預快取全部 32 張場景 PNG。

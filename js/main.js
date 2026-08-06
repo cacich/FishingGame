@@ -109,6 +109,22 @@ window.FG = window.FG || {};
     note.style.lineHeight = '1.8';
     box.appendChild(note);
     FG.ui.modal({ title: '選擇釣點', body: box });
+
+    // 開窗就把「目前」那張卡捲到可視範圍中間。清單高 44dvh，一次只看得到三張卡，
+    // 而釣點有十六個——不捲的話後段釣點的玩家每次開窗都得從頭滑到底才找得到自己在哪，
+    // 連續切換釣點時尤其煩。
+    //
+    // 用 offsetTop 而不是 getBoundingClientRect()：`.modal` 開場有 `pop` 縮放動畫，
+    // 這一刻量到的螢幕座標是被 scale 過的，算出來的距離會偏小。offsetTop 是版面值，
+    // 不受 transform 影響（`.loc-list` 因此被設成 position: relative，讓卡片的
+    // offsetParent 就是清單本身）。
+    const curCard = list.querySelector('.loc-card.on');
+    if (curCard) {
+      const want = curCard.offsetTop - (list.clientHeight - curCard.offsetHeight) / 2;
+      list.scrollTop = Math.max(0, Math.min(want, list.scrollHeight - list.clientHeight));
+    }
+    // 一定要在動過 scrollTop **之後**才算邊緣提示，否則遮罩會畫在錯的一側（scroll 事件
+    // 是非同步的，補不回這一幀）——同 screen-codex.js 的橫向捲動列
     FG.ui.scrollEdges(list, 'y');
   };
 

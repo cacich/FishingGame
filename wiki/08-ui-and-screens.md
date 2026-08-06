@@ -112,6 +112,12 @@
 
 解法是讓清單自己捲：`.loc-list { max-height: 44dvh; overflow-y: auto }`。這樣說明文字永遠固定在清單下方。
 
+**開窗時會自動把「目前」那張卡捲到可視範圍中間**（`main.js › FG.locationPicker()`）。44dvh 一次只看得到三張卡，而釣點有十六個——不捲的話，玩到後段的玩家每次開窗都得從頭滑到底才找得到自己在哪，連續切換釣點時特別煩。頭尾的釣點會被 `Math.max(0, Math.min(..., scrollHeight - clientHeight))` 夾住，所以第一個停在最上、最後一個停在最下，不會出現「上方留一片空白」。
+
+> ⚠️ 這裡的位置**必須用 `offsetTop` 算，不能用 `getBoundingClientRect()`**。`.modal` 開場有 `pop` 縮放動畫（`scale(.86) → 1`），這一刻量到的螢幕座標是被縮放過的，算出來的距離會偏小。`offsetTop` 是版面值，不受 transform 影響。配套是 `.loc-list` 要有 `position: relative`，卡片的 `offsetParent` 才會是清單本身。見 [11 §37](11-invariants-and-gotchas.md#37-在-modal-的開場動畫期間量-getboundingclientrect-會量到縮放後的值)。
+
+> ⚠️ 同 `.seg-scroll`：`scrollEdges()` 要在動過 `scrollTop` **之後**才呼叫，否則邊緣漸層會畫在錯的一側（[11 §22](11-invariants-and-gotchas.md)）。
+
 另外 320px 級螢幕上 `.loc-card` 的 `.lc-info` 只剩 96px，四個字的釣點名加副標會被擠成三行（卡片高 87px）。`@media (max-width: 359px)` 把縮圖從 76×50 縮到 58×38、按鈕拿掉 `min-width`，`.lc-info` 回到 128px、副標兩行、卡片高 69px 且**所有卡片等高**。
 
 > 每日分頁的釣點清單**刻意不加內層捲動**：那一頁本身就是一條垂直捲動的長頁，再套一層會變成巢狀捲動陷阱（手指在清單上滑不動外層）。
@@ -213,7 +219,7 @@ FG.ui.scrollEdges(el, axis)       // 捲動容器的邊緣漸層提示，見 §�
 | `.loc-card` | 釣點卡 |
 | `.catch-card` | 釣獲結果卡 |
 | `.cutin` ＋ `.cutin-legend` `.cutin-king` `.motif-*` `.pm-*` | 傳說／魚王的登場疊層，見下節 |
-| `.devpanel` `.dev-head` `.dev-select` `#devFlag` | 開發者面板（[14](14-devtools.md)）。刻意沿用 `.set-row` / `.seg-sm` / `.rate-tbl`，只補這三個類別 |
+| `.devpanel` `.dev-head` `.dev-select` `#devFlag` | 開發者面板（[14](14-devtools.md)）。刻意沿用 `.set-row` / `.seg-sm` / `.rate-tbl`，只補這三個類別。`#devFlag` 是 `#topbar` 的 flex 項目（不是固定定位的浮層），見 [14 §DEBUG 標記](14-devtools.md#devflag--頂部列正中央的-debug-標記) |
 
 ### 像素風的做法
 
