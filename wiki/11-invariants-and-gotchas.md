@@ -607,6 +607,16 @@ console.log(shapeCount, patternCount);
 
 ---
 
+### 46. 非同步替換快取，不會自動改掉已畫好的 canvas
+
+**症狀**：第一次開啟圖鑑或釣獲卡時仍看到程序化魚圖；切到別頁再回來才變成 AI PNG。
+
+**原因**：`fishCache[f.id]` 雖在圖片載入完成後換成正式精靈，但 `px.spriteEl()` 已把舊快取複製到另一張 DOM canvas。canvas 是位圖快照，不會觀察快取物件的後續變化。
+
+**對策**：`pixel.js › px.spriteEl()` 在建立 canvas 後以相同 `loadImage()` 訂閱外部檔；成功時呼叫 `paintSpriteElement()` 原地重畫，失敗時維持程序化備援。新增其他非同步美術覆寫時，也要同時檢查「動態每幀繪製」和「一次性 DOM canvas」兩條路徑。
+
+---
+
 ## 必須維持的不變式
 
 ### 資料

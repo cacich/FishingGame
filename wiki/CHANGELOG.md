@@ -16,6 +16,16 @@
 
 ---
 
+## 2026-08-07 · 首次開啟圖鑑即更新為 AI 精靈圖
+
+**改了什麼**：`pixel.js › px.spriteEl()` 現在會訂閱外部 PNG 的載入；載入完成時以 `paintSpriteElement()` 原地重畫既有 DOM canvas，不再只更新 `fishCache`。
+**為什麼**：圖鑑、結果卡與家園清單建立時會把程序化精靈複製成獨立 canvas，僅更新快取無法改變已存在的位圖，因而必須切頁才看得到新圖。
+**動到的檔案**：`js/pixel.js › px.spriteEl()`／`paintSpriteElement()`、`sw.js › VERSION`（v13 → v14）。
+**已更新的 wiki**：[像素引擎](06-pixel-engine.md)、[PWA 與部署](13-pwa-and-deploy.md)、[不變式與地雷](11-invariants-and-gotchas.md)。
+**注意事項**：圖片載入失敗仍保留程序化精靈；載入成功後不需切換介面。
+
+---
+
 ## 2026-08-07 · 校正其餘十五張地圖魚類精靈的朝向
 
 **改了什麼**：將非晨霧湖的十五張地圖共 301 張魚類 PNG 做水平鏡像，恢復為魚頭朝右；48 件雜物與晨霧湖 21 張魚類精靈保持原檔。新增 `tools/flip-sprites.py`，只接受 96×56 RGBA PNG，供未來以不重產圖的方式校正朝向。

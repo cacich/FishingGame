@@ -1486,12 +1486,22 @@ window.FG = window.FG || {};
   };
 
   // 產生一張「精靈放大版」canvas，直接塞進 DOM 用
+  function paintSpriteElement(cv, sp) {
+    const g = cv.getContext('2d');
+    g.clearRect(0, 0, cv.width, cv.height);
+    g.imageSmoothingEnabled = false;
+    g.drawImage(sp, 0, 0, cv.width, cv.height);
+  }
+
   px.spriteEl = function (f, scale) {
     const sp = px.sprite(f);
     const cv = px.make(sp.width * scale, sp.height * scale);
-    const g = cv.getContext('2d');
-    g.imageSmoothingEnabled = false;
-    g.drawImage(sp, 0, 0, cv.width, cv.height);
+    paintSpriteElement(cv, sp);
+
+    // 首次開圖鑑時 PNG 通常還在路上；訂閱同一張圖片後直接覆寫既有 canvas，
+    // 不用等玩家切頁重建卡片，也保留載入失敗時的程序化備援。
+    const src = EXTERNAL_SPRITES[f.id];
+    if (src) loadImage(src, function (img) { paintSpriteElement(cv, img); });
     return cv;
   };
 
