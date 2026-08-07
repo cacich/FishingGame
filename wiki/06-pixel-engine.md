@@ -320,7 +320,9 @@ px.sprite(f)   // fishCache[f.id]，第一次生成後永久快取
 
 ### 選用的 AI 產圖精靈 · `EXTERNAL_SPRITES`
 
-`pixel.js › EXTERNAL_SPRITES` 是少量已完成美術的覆寫表，目前收錄晨霧湖的 24 個可釣項目（21 種魚與 3 件雜物），檔案在 `assets/sprites/mist-lake/<fish id>.png`。每張 PNG 都已去背並固定成 96×56，故能與程序化精靈使用同一套 `drawSprite()`／`spriteEl()` 排版。
+`pixel.js › EXTERNAL_SPRITES` 會從 `FG.LOCATIONS` 自動建立覆寫表，十六張地圖的全部 370 個可釣項目（322 種魚與 48 件雜物）都對應到 `assets/sprites/<location id kebab-case>/<fish id>.png`。每張 PNG 都已去背並固定成 96×56，故能與程序化精靈使用同一套 `drawSprite()`／`spriteEl()` 排版。
+
+不用手寫數百筆路徑，是為了讓資料表新增釣點或魚種時自然遵循同一個命名契約；`requestExternalSprite()` 仍會先建立程序化版本，外部圖缺檔或載入失敗時便維持備援畫面，離線與 `file://` 不會出現空白精靈。
 
 `px.sprite()` 第一次被呼叫時仍會先同步建立程序化精靈；若該 id 在覆寫表中，則非同步載入 PNG，成功後以同一個 `fishCache[f.id]` 取代。這是刻意的**漸進式覆寫**：首幀、離線、`file://` 或缺圖時不會白掉，圖片到位後的後續繪製才改用正式美術。新增下一批時，檔案、覆寫表與 `sw.js › ASSETS` 必須一起補；圖片是 cache-first，因此也必須提升 SW `VERSION`。
 

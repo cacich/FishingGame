@@ -88,7 +88,7 @@ GitHub Pages 回應標頭是 **`Cache-Control: max-age=600`**。也就是瀏覽�
 
 ### `VERSION` 什麼時候要加一
 
-`sw.js` 開頭目前是 `const VERSION = 'v10';`。`v10` 在十六個釣點背景與縮圖之外，加入晨霧湖 24 張 AI 產圖精靈的預快取；這類圖片是 cache-first，換圖一定要再升版。
+`sw.js` 開頭目前是 `const VERSION = 'v11';`。`v11` 在十六個釣點背景與縮圖之外，加入全部 370 張 AI 產圖精靈的預快取；這類圖片是 cache-first，換圖一定要再升版。
 
 | 情況 | 要不要加一 |
 |---|---|

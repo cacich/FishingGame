@@ -16,6 +16,14 @@
 
 ---
 
+## 2026-08-06 · 全釣點 AI 精靈圖完成
+
+**改了什麼**：為十六張地圖的 322 種魚與 48 件雜物完成共 370 張 96×56 透明 PNG，並把 `pixel.js › EXTERNAL_SPRITES` 改為由 `FG.LOCATIONS` 自動推導 `assets/sprites/<map>/<fish id>.png`。`sw.js` 升為 `v11`，預快取全部精靈。
+**為什麼**：每個可釣項目需要具備對應地圖特性的獨立視覺，同時避免手寫數百條路徑在資料擴增時漏掛圖檔。
+**動到的檔案**：`assets/sprites/`、`tools/prepare-sprite.py`、`js/pixel.js › requestExternalSprite()`、`sw.js › ASSETS`。
+**已更新的 wiki**：[README](README.md)、[像素引擎](06-pixel-engine.md)、[PWA 與部署](13-pwa-and-deploy.md)、[_map](_map.md)。
+**注意事項**：370/370 路徑存在且均為 96×56 RGBA、透明左上角；Service Worker 預快取 370/370；`node --check` 通過。
+
 ## 2026-08-06 · 改成固定 98% RTP 的下注制（經濟系統整個換掉）
 
 **改了什麼**：

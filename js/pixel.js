@@ -1436,34 +1436,15 @@ window.FG = window.FG || {};
     return cv;
   }
 
-  // 晨霧湖第一批 AI 產圖精靈。檔案固定為 96×56、透明背景，和程序化精靈共用同一個畫布規格；
+  // 每張地圖都以資料表 id 對應到同名 PNG，省去數百筆手寫清單也不會讓新地圖漏掛圖檔。
   // 載入失敗時不清空快取，保留下方先畫好的程序化版本，讓離線與 file:// 都能照常遊玩。
-  const EXTERNAL_SPRITES = {
-    ml_boot: 'assets/sprites/mist-lake/ml_boot.png',
-    ml_can: 'assets/sprites/mist-lake/ml_can.png',
-    ml_weed: 'assets/sprites/mist-lake/ml_weed.png',
-    ml_crucian: 'assets/sprites/mist-lake/ml_crucian.png',
-    ml_bluegill: 'assets/sprites/mist-lake/ml_bluegill.png',
-    ml_loach: 'assets/sprites/mist-lake/ml_loach.png',
-    ml_smallcarp: 'assets/sprites/mist-lake/ml_smallcarp.png',
-    ml_minnow: 'assets/sprites/mist-lake/ml_minnow.png',
-    ml_smelt: 'assets/sprites/mist-lake/ml_smelt.png',
-    ml_trout: 'assets/sprites/mist-lake/ml_trout.png',
-    ml_bass: 'assets/sprites/mist-lake/ml_bass.png',
-    ml_whitefish: 'assets/sprites/mist-lake/ml_whitefish.png',
-    ml_perch: 'assets/sprites/mist-lake/ml_perch.png',
-    ml_catfish: 'assets/sprites/mist-lake/ml_catfish.png',
-    ml_goldcarp: 'assets/sprites/mist-lake/ml_goldcarp.png',
-    ml_pike: 'assets/sprites/mist-lake/ml_pike.png',
-    ml_koi: 'assets/sprites/mist-lake/ml_koi.png',
-    ml_char: 'assets/sprites/mist-lake/ml_char.png',
-    ml_eel: 'assets/sprites/mist-lake/ml_eel.png',
-    ml_sturgeon: 'assets/sprites/mist-lake/ml_sturgeon.png',
-    ml_gar: 'assets/sprites/mist-lake/ml_gar.png',
-    ml_arowana: 'assets/sprites/mist-lake/ml_arowana.png',
-    ml_spirit: 'assets/sprites/mist-lake/ml_spirit.png',
-    ml_king_onde: 'assets/sprites/mist-lake/ml_king_onde.png'
-  };
+  const EXTERNAL_SPRITES = {};
+  FG.LOCATIONS.forEach(function (loc) {
+    const folder = loc.id.replace(/_/g, '-');
+    loc.fish.forEach(function (f) {
+      EXTERNAL_SPRITES[f.id] = 'assets/sprites/' + folder + '/' + f.id + '.png';
+    });
+  });
 
   function requestExternalSprite(f) {
     const src = EXTERNAL_SPRITES[f.id];

@@ -32,6 +32,7 @@
 | `manifest.webmanifest` | [13 PWA 與部署](13-pwa-and-deploy.md) | |
 | `tools/make-icons.py` · `icons/` | [13 PWA 與部署](13-pwa-and-deploy.md) | |
 | `tools/generate-image-prompts.js` | [15 全圖鑑產圖外觀描述](15-image-prompts.md) | [07 資料規格](07-data-schema.md)（魚類美術欄位） |
+| `tools/prepare-sprite.py` | [06 像素引擎](06-pixel-engine.md)、[15 全圖鑑產圖外觀描述](15-image-prompts.md) | AI 產圖去背後裁切、置中並縮放為 96×56 RGBA 精靈 |
 | `assets/scenes/` · `assets/sprites/` | [06 像素引擎](06-pixel-engine.md)、[13 PWA 與部署](13-pwa-and-deploy.md) | [07 資料規格](07-data-schema.md)、[09 操作手冊](09-recipes.md)、[11 地雷](11-invariants-and-gotchas.md) |
 | **新增任何 js 檔** | [01 架構](01-architecture.md)、[wiki README](README.md) 檔案總覽、[根 README](../README.md) 檔案結構、**本頁補一列**，並更新 `sw.js › ASSETS` | |
 
