@@ -1545,6 +1545,24 @@ window.FG = window.FG || {};
     ]
   };
 
+  // 船上夥伴是狗；CAPY 只留給家園裡睡覺的水豚。
+  // 正常情況會使用外部待機序列圖，這張字元圖只在圖片缺失時作備援。
+  const DOG = {
+    pal: { b: '#a96f42', c: '#e8c18b', d: '#6f4228', e: '#28180f', r: '#b84438' },
+    map: [
+      '..dd......dd....',
+      '.dbbd....dbbd...',
+      '.bbbbbbbbbbbb...',
+      '.bebbbbbbbebb...',
+      '.bbbcbbbbbbbb...',
+      '.bbbrrbbbbbbb...',
+      '..bbbbbbbbbbb...',
+      '..bcbbbbbcbbb...',
+      '...dd....dd.....',
+      '..dd......dd....'
+    ]
+  };
+
   const HEART = {
     pal: { r: '#e2555f', l: '#f18c93' },
     map: [
@@ -1565,6 +1583,32 @@ window.FG = window.FG || {};
   const bgCache = {};
   const bgImageRequested = {};
   const imageCache = {};
+  const FISHING_IDLE = {
+    src: 'assets/characters/fishing-idle.png',
+    frameW: 112,
+    frameH: 64,
+    frames: 12,
+    frameMs: 100,
+    // 同一組船、人、狗母版只做 1px 微動，避免 AI 逐格生成造成輪廓漂移。
+    boatOffsetY: [0, 0, -1, -1, -1, 0, 0, 0, 1, 1, 1, 0],
+    // 握竿位置必須跟著坐姿與船身微動，而不是固定在場景座標上。
+    rodAnchor: [
+      { x: 75, y: 32 },
+      { x: 75, y: 32 },
+      { x: 75, y: 31 },
+      { x: 75, y: 30 },
+      { x: 75, y: 30 },
+      { x: 75, y: 31 },
+      { x: 75, y: 32 },
+      { x: 75, y: 32 },
+      { x: 75, y: 33 },
+      { x: 75, y: 33 },
+      { x: 75, y: 33 },
+      { x: 75, y: 32 }
+    ]
+  };
+  let fishingIdleImage = null;
+  let fishingIdleRequested = false;
 
   // 場景圖是選用資產；載入期間與失敗時都保留程序化版本，
   // 才不會讓 file://、離線缺檔或單張圖片損壞變成整個釣魚頁的白畫面。
@@ -1588,9 +1632,15 @@ window.FG = window.FG || {};
     img.onerror = function () {
       entry.state = 'error';
       entry.waiters.length = 0;
-      console.warn('[pixel] 場景圖片載入失敗，使用程序化備援：', src);
+      console.warn('[pixel] 外部圖片載入失敗，使用程序化備援：', src);
     };
     img.src = src;
+  }
+
+  function requestFishingIdle() {
+    if (fishingIdleRequested) return;
+    fishingIdleRequested = true;
+    loadImage(FISHING_IDLE.src, function (img) { fishingIdleImage = img; });
   }
 
   px.sceneSize = { w: SCENE_W, h: SCENE_H };
@@ -3951,27 +4001,31 @@ window.FG = window.FG || {};
     g.globalAlpha = 1;
   }
 
-  /* 小船 + 釣手 + 水豚 */
-  function drawBoat(g, loc, bx, by, time) {
+  function drawBoatReflection(g, bx, by, bw, bh) {
+    g.globalAlpha = 0.3;
+    for (let i = 0; i < 12; i++) {
+      const l = Math.round(i * 1.4);
+      g.fillStyle = '#0d2233';
+      g.fillRect(Math.round(bx + 8 + l), Math.round(by + bh + i), Math.round(bw - 20 - l * 2), 1);
+    }
+    g.globalAlpha = 1;
+  }
+
+  /* 外部序列圖未完成解碼或缺檔時的舊版程序化備援 */
+  function drawBoatFallback(g, loc, bx, by, time) {
     const P = loc.scene;
     function rect(x, y, w, h, c) { g.fillStyle = c; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); }
 
     const bw = 92, bh = 17;
 
-    // 船身倒影
-    g.globalAlpha = 0.3;
-    for (let i = 0; i < 12; i++) {
-      const l = Math.round(i * 1.4);
-      rect(bx + 8 + l, by + bh + i, bw - 20 - l * 2, 1, '#0d2233');
-    }
-    g.globalAlpha = 1;
+    drawBoatReflection(g, bx, by, bw, bh);
 
-    // 人物與水豚（畫在船艙內，先畫免得被船緣蓋住頭）
+    // 人物與狗（畫在船艙內，先畫免得被船緣蓋住腳）
     const bob = Math.sin(time * 0.0016) * 1;
-    px.drawMap(g, CAPY.map, CAPY.pal, bx + 12, by - 12 + bob, 1);
+    px.drawMap(g, DOG.map, DOG.pal, bx + 12, by - 12 + bob, 1);
     px.drawMap(g, ANGLER.map, ANGLER.pal, bx + 50, by - 15 + bob, 1);
 
-    // 愛心（水豚偶爾冒出）
+    // 愛心（狗偶爾冒出）
     const hp = (time % 6000) / 6000;
     if (hp < 0.35) {
       g.globalAlpha = hp < 0.28 ? 1 : (0.35 - hp) / 0.07;
@@ -3992,7 +4046,35 @@ window.FG = window.FG || {};
     rect(bx + bw - 3, by + 2 + bob, 3, 12, '#2a3540');
     rect(bx + bw - 5, by + 12 + bob, 6, 3, '#222c36');
 
-    return bob;
+    return { bob: bob, hx: bx + 60, hy: by - 8 + bob };
+  }
+
+  /* 小尺寸待機序列圖：木船 + 坐姿釣手 + 狗。釣竿／釣線仍留給逐幀動態層。 */
+  function drawBoat(g, loc, bx, by, time) {
+    requestFishingIdle();
+    if (!fishingIdleImage) return drawBoatFallback(g, loc, bx, by, time);
+
+    const frame = Math.floor(time / FISHING_IDLE.frameMs) % FISHING_IDLE.frames;
+    const dx = bx - 8;
+    const dy = by - 38;
+
+    // 船身起伏已烘進 12 格序列；倒影只同步 1px，避免再疊加正弦晃動造成抖動。
+    drawBoatReflection(g, bx, by + FISHING_IDLE.boatOffsetY[frame], 96, 17);
+    g.drawImage(
+      fishingIdleImage,
+      frame * FISHING_IDLE.frameW, 0, FISHING_IDLE.frameW, FISHING_IDLE.frameH,
+      Math.round(dx), Math.round(dy), FISHING_IDLE.frameW, FISHING_IDLE.frameH
+    );
+
+    const hp = (time % 6000) / 6000;
+    if (hp < 0.35) {
+      g.globalAlpha = hp < 0.28 ? 1 : (0.35 - hp) / 0.07;
+      px.drawMap(g, HEART.map, HEART.pal, dx + 18, dy + 9 - hp * 22, 1);
+      g.globalAlpha = 1;
+    }
+
+    const anchor = FISHING_IDLE.rodAnchor[frame];
+    return { bob: FISHING_IDLE.boatOffsetY[frame], hx: dx + anchor.x, hy: dy + anchor.y };
   }
 
   /* 釣竿、釣線、浮標 */
@@ -4042,9 +4124,9 @@ window.FG = window.FG || {};
     drawSparkle(g, loc, bg.horizon, time);
 
     const bx = 52, by = 236;
-    const bob = drawBoat(g, loc, bx, by, time);
+    const boat = drawBoat(g, loc, bx, by, time);
 
-    const hx = bx + 60, hy = by - 8 + bob;
+    const hx = boat.hx, hy = boat.hy;
     const fx = st.floatX !== undefined ? st.floatX : 150;
     const fy = (st.floatY !== undefined ? st.floatY : 206) + Math.sin(time * 0.003) * 1.2;
 

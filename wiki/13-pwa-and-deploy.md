@@ -73,7 +73,7 @@ GitHub Pages 回應標頭是 **`Cache-Control: max-age=600`**。也就是瀏覽�
 
 （不要用 `no-store`，那會連 ETag 協商都跳過，每次都下載完整內容。）
 
-圖片維持 cache-first 是因為圖示、釣點點陣背景與精靈圖幾乎不變，又是位元組大宗。真的換圖時把 `VERSION` 加一，`install` 階段會強制重抓。`assets/scenes/` 的背景／縮圖與 `assets/sprites/` 的 AI 產圖精靈都屬於這一類，而且必須逐張列進 `ASSETS`，才能保證安裝後離線可用。
+圖片維持 cache-first 是因為圖示、釣點點陣背景、魚類精靈與角色序列圖幾乎不變，又是位元組大宗。真的換圖時把 `VERSION` 加一，`install` 階段會強制重抓。`assets/scenes/` 的背景／縮圖、`assets/sprites/` 的魚類精靈與 `assets/characters/` 的角色動畫都屬於這一類，而且必須逐張列進 `ASSETS`，才能保證安裝後離線可用。
 
 ### 生命週期
 
@@ -88,7 +88,7 @@ GitHub Pages 回應標頭是 **`Cache-Control: max-age=600`**。也就是瀏覽�
 
 ### `VERSION` 什麼時候要加一
 
-`sw.js` 開頭目前是 `const VERSION = 'v14';`。`v11` 在十六個釣點背景與縮圖之外，加入全部 370 張 AI 產圖精靈的預快取；`v12` 則使修正精靈索引初始化時機的 `js/pixel.js` 重新進入快取，避免既有 PWA 繼續使用會黑屏的 v11 腳本；`v13` 使其餘十五張地圖的 301 張魚類鏡像精靈重新下載；`v14` 則讓既有圖鑑 canvas 的自動重繪修正進入快取。這類圖片與腳本都是 cache-first，改動後一定要再升版。
+`sw.js` 開頭目前是 `const VERSION = 'v17';`。`v11` 在十六個釣點背景與縮圖之外，加入全部 370 張 AI 產圖精靈的預快取；`v12` 修正精靈索引初始化時機；`v13` 重新下載其餘十五張地圖的 301 張鏡像精靈；`v14` 讓既有圖鑑 canvas 的自動重繪修正進入快取；`v15` 新增 `assets/characters/fishing-idle.png`；`v16` 再把它換成較小的坐姿釣手、狗與低船身十二格序列；`v17` 修正釣手腳部跨在外側船舷上的圖層遮擋。這類圖片與腳本都是 cache-first，改動後一定要再升版。
 
 | 情況 | 要不要加一 |
 |---|---|

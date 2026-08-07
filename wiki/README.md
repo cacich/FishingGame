@@ -60,7 +60,7 @@
 
 **每個釣點都配一整套專屬周邊**：主題釣竿、主題餌料、**釣點專屬裝備**、主題家園裝飾。加新釣點時這六樣要一起加——規則與（很重要的）「為什麼竿／餌可以通用但裝備必須綁釣點」見 [09 §新增一個釣點](09-recipes.md#新增一個釣點--一次要生出一整套)。
 
-魚、圖示、房間與地形仍由 canvas 在低解析度上程序化生成；十六個釣點皆另配**點陣底圖**與橫式縮圖，載入失敗會自動退回原本地形（[06](06-pixel-engine.md)）。
+魚、圖示、房間與地形仍由 canvas 在低解析度上程序化生成；十六個釣點另配**點陣底圖**與橫式縮圖，船上的木船／坐姿釣手／狗則使用十二格點陣待機序列，兩類外部圖片載入失敗都會自動退回程序化備援（[06](06-pixel-engine.md)）。
 狀態全部集中在 `FG.state.data`，存 localStorage（[02](02-state-and-save.md)）。
 全域只有一個命名空間 `window.FG`（[01](01-architecture.md)）。
 
@@ -71,8 +71,8 @@
 | `index.html` | 40 | 骨架＋script 載入順序 | [01](01-architecture.md) |
 | `styles.css` | 770 | 全部樣式 | [08](08-ui-and-screens.md) |
 | `js/util.js` | 140 | 亂數／色彩／格式化／DOM／存取／音效 | [01](01-architecture.md) |
-| `js/pixel.js` | 4600 | 像素美術引擎（含地形系統，16 種地形） | [06](06-pixel-engine.md) |
-| `assets/scenes/` · `assets/sprites/` | — | 十六個釣點的主背景／縮圖，以及全部 370 個可釣項目的 AI 產圖精靈 | [06](06-pixel-engine.md)、[13](13-pwa-and-deploy.md) |
+| `js/pixel.js` | 4900 | 像素美術引擎（含地形系統、角色序列與 16 種地形） | [06](06-pixel-engine.md) |
+| `assets/scenes/` · `assets/sprites/` · `assets/characters/` | — | 十六個釣點的主背景／縮圖、370 個可釣項目的 AI 精靈，以及船／釣手／狗的待機序列 | [04](04-fishing-loop.md)、[06](06-pixel-engine.md)、[13](13-pwa-and-deploy.md) |
 | `js/data.js` | 2250 | 所有資料表（16 個釣點、下注階梯、RTP 目標） | [07](07-data-schema.md) |
 | `tools/generate-image-prompts.js` | 250 | 由魚類資料重建全圖鑑產圖提示詞 | [15](15-image-prompts.md) |
 | `js/state.js` | 560 | 存檔／經濟／抽獎／**固定 RTP 正規化**／Buffer 池 | [02](02-state-and-save.md)、[03](03-economy.md) |

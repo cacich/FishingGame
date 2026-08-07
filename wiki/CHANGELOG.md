@@ -16,6 +16,34 @@
 
 ---
 
+## 2026-08-07 · 釣手下半身收進船艙
+
+**改了什麼**：十二格 `assets/characters/fishing-idle.png` 都加入前景船殼遮擋，讓坐姿釣手的彎腿留在艙內、膝下不再跨過外側船舷；遮擋跟著既有 `boatOffsetY` 逐格移動，其他角色像素與動畫時序不變。Service Worker 升為 v17。
+**為什麼**：原合成順序把人物完整疊在船殼前方，導致腳部看起來露在船外，也破壞坐姿的空間關係。
+**動到的檔案**：`assets/characters/fishing-idle.png`、`sw.js › VERSION`。
+**已更新的 wiki**：[像素引擎](06-pixel-engine.md)、[PWA 與部署](13-pwa-and-deploy.md)。
+
+---
+
+## 2026-08-07 · 待機序列縮小並改為穩定十二格坐姿動畫
+
+**改了什麼**：以原創的低船身木船、坐姿小釣手與棕色狗取代上一版大型四格資產；`assets/characters/fishing-idle.png` 改為十二格 `112×64`、每格 100ms。十二格共用同一組船／人／狗母版，只做 ±1px 微動；`pixel.js › FISHING_IDLE` 同步新增十二組握竿錨點與 `boatOffsetY`，`drawBoat()` 移除疊加的正弦晃動並讓倒影逐格同步。Service Worker 升為 v16，確保 cache-first 圖片會重新下載。
+**為什麼**：上一版人物與船在 200×340 場景中過大，四格且逐格差異明顯，造成風格不合與低幀跳動；拆層後用確定性合成能兼顧 10 FPS 流暢度與輪廓穩定。
+**動到的檔案**：`assets/characters/fishing-idle.png`、`js/pixel.js › FISHING_IDLE / drawBoat()`、`sw.js › VERSION`、`README.md`。
+**已更新的 wiki**：[釣魚循環](04-fishing-loop.md)、[像素引擎](06-pixel-engine.md)、[PWA 與部署](13-pwa-and-deploy.md)、[不變式與地雷](11-invariants-and-gotchas.md)、[wiki README](README.md)。
+
+---
+
+## 2026-08-07 · 主畫面改用精緻船／釣手／狗待機序列
+
+**改了什麼**：新增四格 `128×96` 的 `assets/characters/fishing-idle.png`，`pixel.js › drawBoat()` 改為播放木船、釣手與狗的待機序列，並以每格 `rodAnchor` 讓釣竿跟隨雙手；圖片載入中或失敗時退回 `drawBoatFallback()`。程序化備援的船上夥伴也由水豚修正為狗。Service Worker 升為 v15 並預快取新資產。
+**為什麼**：原本 11×14 的人物與程序化船在細緻背景前辨識度不足，也無法表現服裝、臉部、木板結構與狗的特徵；點陣序列能提高主角存在感，又保留動態釣線與離線備援。
+**動到的檔案**：`assets/characters/fishing-idle.png`、`js/pixel.js › FISHING_IDLE / drawBoat() / drawBoatFallback()`、`sw.js › VERSION / ASSETS`、`README.md`。
+**已更新的 wiki**：[釣魚循環](04-fishing-loop.md)、[像素引擎](06-pixel-engine.md)、[PWA 與部署](13-pwa-and-deploy.md)、[不變式與地雷](11-invariants-and-gotchas.md)、[_map](_map.md)、[wiki README](README.md)。
+**注意事項**：目前所有釣魚階段共用待機循環；未來加入拋竿／咬鉤／收線序列時，每一格都必須同步提供握竿錨點。
+
+---
+
 ## 2026-08-07 · 首次開啟圖鑑即更新為 AI 精靈圖
 
 **改了什麼**：`pixel.js › px.spriteEl()` 現在會訂閱外部 PNG 的載入；載入完成時以 `paintSpriteElement()` 原地重畫既有 DOM canvas，不再只更新 `fishCache`。
