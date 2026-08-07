@@ -1439,14 +1439,21 @@ window.FG = window.FG || {};
   // 每張地圖都以資料表 id 對應到同名 PNG，省去數百筆手寫清單也不會讓新地圖漏掛圖檔。
   // 載入失敗時不清空快取，保留下方先畫好的程序化版本，讓離線與 file:// 都能照常遊玩。
   const EXTERNAL_SPRITES = {};
-  FG.LOCATIONS.forEach(function (loc) {
-    const folder = loc.id.replace(/_/g, '-');
-    loc.fish.forEach(function (f) {
-      EXTERNAL_SPRITES[f.id] = 'assets/sprites/' + folder + '/' + f.id + '.png';
+  let externalSpritesReady = false;
+
+  function ensureExternalSprites() {
+    if (externalSpritesReady || !FG.LOCATIONS) return;
+    FG.LOCATIONS.forEach(function (loc) {
+      const folder = loc.id.replace(/_/g, '-');
+      loc.fish.forEach(function (f) {
+        EXTERNAL_SPRITES[f.id] = 'assets/sprites/' + folder + '/' + f.id + '.png';
+      });
     });
-  });
+    externalSpritesReady = true;
+  }
 
   function requestExternalSprite(f) {
+    ensureExternalSprites();
     const src = EXTERNAL_SPRITES[f.id];
     if (!src) return;
     loadImage(src, function (img) {

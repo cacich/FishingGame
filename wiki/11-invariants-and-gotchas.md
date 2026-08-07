@@ -597,6 +597,16 @@ console.log(shapeCount, patternCount);
 
 ---
 
+### 45. 初始化時跨檔讀資料，不能假設腳本已載入
+
+**症狀**：首頁只剩頂部列與空白主區，主控台先出現「Cannot read properties of undefined (reading 'forEach')」，接著其他畫面模組因像素引擎未完成初始化而連鎖失敗。
+
+**原因**：傳統 `<script>` 依 HTML 順序同步執行；`pixel.js` 先於 `data.js` 載入時，任何頂層直接迭代 `FG.LOCATIONS` 的程式都會讀到 `undefined`。這類錯誤不會只讓外部圖片缺席，而是會讓整個 IIFE 提前中止。
+
+**對策**：跨檔資料索引要在首次真正需要時建立，或明確把相依資料的 script 排在前面。現行 `pixel.js › ensureExternalSprites()` 採前者：`px.sprite()` 第一次呼叫 `requestExternalSprite()` 時才讀取已完成的 `FG.LOCATIONS`；保留既有 `EXTERNAL_SPRITES` 物件，後續取圖仍是 O(1)。新增任何頂層資料推導前，務必在瀏覽器重載一次，不要只跑 `node --check`。
+
+---
+
 ## 必須維持的不變式
 
 ### 資料

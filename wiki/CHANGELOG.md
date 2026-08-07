@@ -16,6 +16,16 @@
 
 ---
 
+## 2026-08-07 · 修正全釣點 AI 精靈圖造成的首頁黑屏
+
+**改了什麼**：`js/pixel.js › EXTERNAL_SPRITES` 改為 `ensureExternalSprites()` 延後至第一次 `requestExternalSprite()` 時，才由 `FG.LOCATIONS` 建立路徑索引。
+**為什麼**：`pixel.js` 的 `<script>` 排在 `data.js` 前面；先前在頂層直接迭代尚未定義的 `FG.LOCATIONS`，使像素引擎 IIFE 中斷並導致首頁黑屏。
+**動到的檔案**：`js/pixel.js › ensureExternalSprites()`、`sw.js › VERSION`（v11 → v12）。
+**已更新的 wiki**：[像素引擎](06-pixel-engine.md)、[PWA 與部署](13-pwa-and-deploy.md)、[不變式與地雷](11-invariants-and-gotchas.md)。
+**注意事項**：已以本機瀏覽器重載驗證首頁建立完成，主控台沒有 error；外部精靈索引會在首次繪製魚或雜物時才建立。
+
+---
+
 ## 2026-08-06 · 全釣點 AI 精靈圖完成
 
 **改了什麼**：為十六張地圖的 322 種魚與 48 件雜物完成共 370 張 96×56 透明 PNG，並把 `pixel.js › EXTERNAL_SPRITES` 改為由 `FG.LOCATIONS` 自動推導 `assets/sprites/<map>/<fish id>.png`。`sw.js` 升為 `v11`，預快取全部精靈。
