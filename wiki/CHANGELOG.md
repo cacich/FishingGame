@@ -16,6 +16,16 @@
 
 ---
 
+## 2026-08-07 · 校正其餘十五張地圖魚類精靈的朝向
+
+**改了什麼**：將非晨霧湖的十五張地圖共 301 張魚類 PNG 做水平鏡像，恢復為魚頭朝右；48 件雜物與晨霧湖 21 張魚類精靈保持原檔。新增 `tools/flip-sprites.py`，只接受 96×56 RGBA PNG，供未來以不重產圖的方式校正朝向。
+**為什麼**：程序化精靈與演出邏輯都把「原圖朝右、`flip` 才朝左」當作契約；後續產出的外部魚圖反向時，游動與演出便會視覺相反。
+**動到的檔案**：`assets/sprites/`（301 張魚類 PNG）、`tools/flip-sprites.py`、`sw.js › VERSION`（v12 → v13）。
+**已更新的 wiki**：[像素引擎](06-pixel-engine.md)、[PWA 與部署](13-pwa-and-deploy.md)、[全圖鑑產圖外觀描述](15-image-prompts.md)、[_map](_map.md)。
+**注意事項**：此為像素鏡像，不涉及 AI 重新產圖；已抽樣確認庭園池錦鯉魚頭朝右。
+
+---
+
 ## 2026-08-07 · 修正全釣點 AI 精靈圖造成的首頁黑屏
 
 **改了什麼**：`js/pixel.js › EXTERNAL_SPRITES` 改為 `ensureExternalSprites()` 延後至第一次 `requestExternalSprite()` 時，才由 `FG.LOCATIONS` 建立路徑索引。

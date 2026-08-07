@@ -326,6 +326,8 @@ px.sprite(f)   // fishCache[f.id]，第一次生成後永久快取
 
 `px.sprite()` 第一次被呼叫時仍會先同步建立程序化精靈；若該 id 在覆寫表中，則非同步載入 PNG，成功後以同一個 `fishCache[f.id]` 取代。這是刻意的**漸進式覆寫**：首幀、離線、`file://` 或缺圖時不會白掉，圖片到位後的後續繪製才改用正式美術。新增下一批時，檔案、覆寫表與 `sw.js › ASSETS` 必須一起補；圖片是 cache-first，因此也必須提升 SW `VERSION`。
 
+> **朝向契約**：所有魚類 PNG 的原始朝向必須是**魚頭朝右**，才能和 `buildFish()`、`px.drawSprite()` 的 `flip` 語意一致；雜物不套用這條規則。若只需修正已完成的產圖朝向，使用 `tools/flip-sprites.py` 對資料表中非 `junkArt` 的魚類路徑做水平鏡像，切勿重新產圖或翻轉晨霧湖已正確的檔案。
+
 ### 對外 API
 
 ```js
