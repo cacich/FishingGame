@@ -186,6 +186,186 @@ def clean_purple_outer_edge(image: Image.Image, min_value: int) -> Image.Image:
     return rgba
 
 
+def clean_colored_outer_glow(image: Image.Image, max_depth: int = 1) -> Image.Image:
+    """清除不限定色相的高彩度外光，保留正常暗描邊與主體高光。
+
+    產圖模型可能在青色魚外畫 cyan、在金色魚外畫 pink；這些不是鍵色混邊。
+    判斷必須同時滿足「最外圈」、「比最近內核更亮或更飽和」與「色差夠大」，
+    才以最近內核色替換。這避免把正常黑描邊、白色腹緣或魚身內花紋抹掉。
+    """
+    rgba = image.convert("RGBA")
+    pixels = rgba.load()
+    width, height = rgba.size
+
+    def neighbors(x: int, y: int):
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                if dx == 0 and dy == 0:
+                    continue
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < width and 0 <= ny < height:
+                    yield nx, ny
+
+    visible = {
+        (x, y)
+        for y in range(height)
+        for x in range(width)
+        if pixels[x, y][3]
+    }
+    edge = {
+        (x, y)
+        for x, y in visible
+        if any(pixels[nx, ny][3] == 0 for nx, ny in neighbors(x, y))
+    }
+    band = set(edge)
+    frontier = set(edge)
+    for _ in range(1, max_depth):
+        frontier = {
+            point
+            for x, y in frontier
+            for point in neighbors(x, y)
+            if point in visible and point not in band
+        }
+        band.update(frontier)
+    core = {
+        point
+        for point in visible
+        if point not in band
+    }
+
+    replacements = {}
+    for x, y in band:
+        red, green, blue, _ = pixels[x, y]
+        _, saturation, value = colorsys.rgb_to_hsv(red / 255, green / 255, blue / 255)
+        if saturation < 0.42 or value < 0.45:
+            continue
+
+        donor = None
+        for radius in range(1, max(8, max_depth * 3 + 1)):
+            options = [
+                (nx, ny)
+                for ny in range(max(0, y - radius), min(height, y + radius + 1))
+                for nx in range(max(0, x - radius), min(width, x + radius + 1))
+                if max(abs(nx - x), abs(ny - y)) == radius
+                and (nx, ny) in core
+                and (
+                    colorsys.rgb_to_hsv(
+                        pixels[nx, ny][0] / 255,
+                        pixels[nx, ny][1] / 255,
+                        pixels[nx, ny][2] / 255,
+                    )[2] <= value - 0.12
+                    or colorsys.rgb_to_hsv(
+                        pixels[nx, ny][0] / 255,
+                        pixels[nx, ny][1] / 255,
+                        pixels[nx, ny][2] / 255,
+                    )[1] <= saturation - 0.25
+                )
+            ]
+            if options:
+                donor = min(options, key=lambda point: (point[0] - x) ** 2 + (point[1] - y) ** 2)
+                break
+        if donor is None:
+            continue
+
+        donor_red, donor_green, donor_blue, _ = pixels[donor[0], donor[1]]
+        color_distance = (
+            (red - donor_red) ** 2
+            + (green - donor_green) ** 2
+            + (blue - donor_blue) ** 2
+        ) ** 0.5
+        if color_distance >= 45:
+            replacements[(x, y)] = (donor_red, donor_green, donor_blue)
+
+    for (x, y), (red, green, blue) in replacements.items():
+        pixels[x, y] = (red, green, blue, pixels[x, y][3])
+    return rgba
+
+
+def normalize_outer_outline(image: Image.Image) -> Image.Image:
+    """把主體最外圈統一為內縮的暗色描邊，消除任何色相的殘留亮邊。
+
+    只處理附近找得到非邊界像素的輪廓；單像素鬚、絲帶與尖刺沒有可信的
+    內側顏色，因此保留原色，避免為了清 halo 把細節整段染黑或截短。
+    """
+    rgba = image.convert("RGBA")
+    pixels = rgba.load()
+    width, height = rgba.size
+
+    def neighbors(x: int, y: int):
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                if dx == 0 and dy == 0:
+                    continue
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < width and 0 <= ny < height:
+                    yield nx, ny
+
+    visible = {
+        (x, y)
+        for y in range(height)
+        for x in range(width)
+        if pixels[x, y][3]
+    }
+    edge = {
+        (x, y)
+        for x, y in visible
+        if any(pixels[nx, ny][3] == 0 for nx, ny in neighbors(x, y))
+    }
+    interior = visible - edge
+    replacements = {}
+    for x, y in edge:
+        red, green, blue, alpha = pixels[x, y]
+        _, saturation, value = colorsys.rgb_to_hsv(red / 255, green / 255, blue / 255)
+        # 灰白腹緣與原本就夠暗的黑描邊不是彩色 halo，不必改色。
+        if saturation < 0.28 or value <= 0.18:
+            continue
+
+        donor = None
+        for radius in range(1, 5):
+            options = [
+                (nx, ny)
+                for ny in range(max(0, y - radius), min(height, y + radius + 1))
+                for nx in range(max(0, x - radius), min(width, x + radius + 1))
+                if max(abs(nx - x), abs(ny - y)) == radius
+                and (nx, ny) in interior
+            ]
+            if options:
+                donor = min(
+                    options,
+                    key=lambda point: (point[0] - x) ** 2 + (point[1] - y) ** 2,
+                )
+                break
+        if donor is None:
+            # 細鬚等沒有內側像素時只壓暗、不換色；保住輪廓與長度。
+            donor_hue = colorsys.rgb_to_hsv(red / 255, green / 255, blue / 255)[0]
+            outline_saturation = min(saturation, 0.55)
+            outline_value = 0.18
+        else:
+            donor_red, donor_green, donor_blue, _ = pixels[donor[0], donor[1]]
+            donor_hue, donor_saturation, donor_value = colorsys.rgb_to_hsv(
+                donor_red / 255,
+                donor_green / 255,
+                donor_blue / 255,
+            )
+            outline_value = min(value, donor_value * 0.55, 0.18)
+            outline_saturation = min(donor_saturation, 0.55)
+        out_red, out_green, out_blue = colorsys.hsv_to_rgb(
+            donor_hue,
+            outline_saturation,
+            outline_value,
+        )
+        replacements[(x, y)] = (
+            round(out_red * 255),
+            round(out_green * 255),
+            round(out_blue * 255),
+            alpha,
+        )
+
+    for point, color in replacements.items():
+        pixels[point[0], point[1]] = color
+    return rgba
+
+
 def keep_largest_component(image: Image.Image) -> Image.Image:
     """移除跨格殘點；每格的單一主體以 8 鄰域最大連通區為準。"""
     rgba = image.convert("RGBA")
@@ -287,6 +467,8 @@ def prepare_sprite(
 ) -> Image.Image:
     """裁掉透明邊，保留安全留白後置中到遊戲精靈畫布。"""
     cell = despill_key_fringe(cell, key_color, spill_tolerance)
+    # 母版的彩色 glow 常有 3～6px 厚；在縮小前先處理才不會壓成一圈實色邊。
+    cell = clean_colored_outer_glow(cell, max_depth=6)
     if largest_only:
         cell = keep_largest_component(cell)
     box = cell.getchannel("A").getbbox()
@@ -311,7 +493,9 @@ def prepare_sprite(
     x = (CANVAS_SIZE[0] - sprite.width) // 2
     y = (CANVAS_SIZE[1] - sprite.height) // 2
     final.alpha_composite(sprite, (x, y))
-    return clean_purple_outer_edge(final, purple_edge_value)
+    final = clean_purple_outer_edge(final, purple_edge_value)
+    final = clean_colored_outer_glow(final)
+    return normalize_outer_outline(final)
 
 
 def main() -> None:

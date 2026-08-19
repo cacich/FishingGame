@@ -16,6 +16,16 @@
 
 ---
 
+## 2026-08-19 · 完整重切中國風 46 張精靈並清除全色相外光
+
+**改了什麼**：從原始四張 3×4 母版重新輸出劍影寒潭與敦煌月泉全 46 張正式精靈，改用完整母版的連通元件重心分格，修復跨格頭尾、魚鰭與吻端被固定格線截斷。`tools/split-sprite-sheet.py` 新增 `clean_colored_outer_glow()` 與 `normalize_outer_outline()`：前者在縮小前清除任何色相的 3～6px 模型外光，後者把 96×56 成品的高彩度外圈統一成內側色衍生的暗描邊，兩者都保留 alpha。Service Worker 升為 v23。
+**為什麼**：上一輪只處理洋紅鍵色與亮紫／桃紅，仍漏掉青、藍、粉色外光；固定幾何格線也讓劍鼻青龍等跨格主體在保持合法尺寸與留白的情況下被嚴重截斷。色相不可寫死，規格檢查也不能取代深色底放大目視。
+**動到的檔案**：`assets/sprites/sword-pool/*.png`、`assets/sprites/dunhuang-spring/*.png`、`tools/split-sprite-sheet.py › clean_colored_outer_glow() / normalize_outer_outline()`、`tools/generate-image-prompts.js › buildDocument()`、`sw.js › VERSION`、`README.md`。
+**已更新的 wiki**：[wiki README](README.md)、[像素引擎](06-pixel-engine.md)、[操作手冊](09-recipes.md)、[不變式與地雷](11-invariants-and-gotchas.md)、[PWA 與部署](13-pwa-and-deploy.md)、[全圖鑑產圖描述](15-image-prompts.md)、[_map](_map.md)、[專案 README](../README.md)。
+**注意事項**：新地圖的整套正式美術必須在遊戲同款深色底做 4 倍 contact sheet；逐張檢查裁切與所有色相外光，且腳本確認 96×56 RGBA、透明／不透明像素、安全留白、近鍵色外緣與高彩度亮色外緣皆符合規格後，才能算完成。
+
+---
+
 ## 2026-08-19 · 全面清理中國風精靈的洋紅與亮紫外緣
 
 **改了什麼**：逐張重新檢查全 463 張正式精靈，確認系統性鍵色污染集中在新加入的劍影寒潭／敦煌月泉 46 張；從原始四張 3×4 母版重新切出這 46 張。`tools/split-sprite-sheet.py` 新增 `despill_key_fringe()`，只追蹤與透明背景相連的近鍵色混邊並以最近主體色填回；另新增 `clean_purple_outer_edge()`，只重著色最外圈高亮紫／桃紅 glow。46 張新舊 alpha mask 逐像素一致，近 `#FF00FF` 外緣與高亮紫外緣檢查均為 0。Service Worker 升為 v22。

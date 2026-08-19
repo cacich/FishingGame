@@ -34,7 +34,7 @@
 | `tools/generate-image-prompts.js` | [15 全圖鑑產圖外觀描述](15-image-prompts.md) | [07 資料規格](07-data-schema.md)（魚類美術欄位） |
 | `tools/prepare-sprite.py` | [06 像素引擎](06-pixel-engine.md)、[15 全圖鑑產圖外觀描述](15-image-prompts.md) | AI 產圖去背後裁切、置中並縮放為 96×56 RGBA 精靈 |
 | `tools/flip-sprites.py` | [06 像素引擎](06-pixel-engine.md)、[15 全圖鑑產圖外觀描述](15-image-prompts.md) | 保持尺寸與 alpha 的前提下，水平鏡像既有魚類精靈 |
-| `tools/split-sprite-sheet.py` | [06 像素引擎](06-pixel-engine.md)、[15 全圖鑑產圖外觀描述](15-image-prompts.md) | 將固定排列的 3×4 產圖表切格；可按幾何格線保留最大主體，或用 `--component-cells` 依完整母版的連通元件重心分格；另會以最近主體色清除鍵色混邊與最外圈高亮紫／桃紅 glow，最後輸出 96×56 RGBA 精靈且保持 alpha 輪廓 |
+| `tools/split-sprite-sheet.py` | [06 像素引擎](06-pixel-engine.md)、[15 全圖鑑產圖外觀描述](15-image-prompts.md) | 將固定排列的 3×4 產圖表切格；可按幾何格線保留最大主體，或用 `--component-cells` 依完整母版的連通元件重心分格；另會清除鍵色混邊與任何色相的模型外光、統一暗色外輪廓，最後輸出 96×56 RGBA 精靈且保持 alpha 輪廓 |
 | `assets/scenes/`（含 `sword-pool-*`／`dunhuang-spring-*`）· `assets/sprites/` | [06 像素引擎](06-pixel-engine.md)、[13 PWA 與部署](13-pwa-and-deploy.md) | [07 資料規格](07-data-schema.md)、[09 操作手冊](09-recipes.md)、[11 地雷](11-invariants-and-gotchas.md) |
 | `assets/characters/` | [04 釣魚循環](04-fishing-loop.md)、[06 像素引擎](06-pixel-engine.md)、[13 PWA 與部署](13-pwa-and-deploy.md) | [11 地雷](11-invariants-and-gotchas.md)（逐格錨點／中央安全區） |
 | **新增任何 js 檔** | [01 架構](01-architecture.md)、[wiki README](README.md) 檔案總覽、[根 README](../README.md) 檔案結構、**本頁補一列**，並更新 `sw.js › ASSETS` | |
