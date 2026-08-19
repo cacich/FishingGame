@@ -112,7 +112,7 @@ python -m http.server 5177
 
 ```
 index.html            骨架（頂部列 / 畫面容器 / 底部導覽 / script 載入順序）
-styles.css            全部樣式，手機直式優先
+styles.css            全部樣式，手機直式優先（含全螢幕釣點地圖庫）
 manifest.webmanifest  PWA 資訊清單
 sw.js                 Service Worker（離線快取）
 icons/                PWA 圖示（由 tools/make-icons.py 產生）
@@ -122,12 +122,12 @@ js/util.js            亂數、色彩、格式化、DOM、存取、WebAudio 音�
 js/pixel.js           像素美術引擎，含 18 種地形產生器（★ 見下方）
 js/data.js            所有資料表：18 個釣點、魚、商店、家園、每日、籌碼包、下注階梯
 js/state.js           存檔、經濟計算、抽獎邏輯、固定 RTP 正規化、Buffer 池
-js/ui.js              Toast、彈窗、捲動邊緣提示
+js/ui.js              Toast、一般與全螢幕彈窗、捲動邊緣提示
 js/cutin.js           傳說／魚王的登場演出（四種骨架＋每王一筆參數）
 js/screen-*.js        五個分頁：釣魚 / 每日 / 家園 / 商店 / 圖鑑
 js/devtools.js        隱藏的開發者面板（連點底部「家園」鈕 10 下開啟）
 js/pwa.js             Service Worker 註冊與安裝流程
-js/main.js            啟動、分頁切換、頂部列、儲值、主迴圈
+js/main.js            啟動、分頁切換、頂部列、全螢幕釣點地圖庫、儲值、主迴圈
 tools/make-icons.py   圖示產生器（純 Python 標準庫）
 tools/split-sprite-sheet.py  將規格化 3×4 產圖切成 96×56 透明精靈
 wiki/                 知識庫（機制、公式、資料規格、地雷）

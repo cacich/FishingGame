@@ -54,7 +54,7 @@
 
 - **簽到**：七格網格。已領 `.got`（打勾＋降透明度）、今天可領 `.today`（金色框）。索引邏輯是 `streak % 7`。
 - **任務**：進度條 `.bar > i`，完成未領顯示金色領取鍵。
-- **釣點卡**：`px.locThumb()` 縮圖＋前往按鈕（所有釣點都免費，**解鎖按鈕的分支目前跑不到**，見 [11 §15](11-invariants-and-gotchas.md#15-comingsoon-與釣點解鎖目前都沒有釣點在用)）。跟 `main.js › locationPicker()` 是**兩份幾乎相同的程式碼**——改一邊記得改另一邊（已知的技術債，見 [11](11-invariants-and-gotchas.md#8-釣點卡有兩份實作)）。這裡刻意**不加**內層捲動，理由見下節。
+- **目前釣點摘要**：只顯示當前釣點的縮圖、名稱、最低下注與圖鑑進度；點摘要或「開啟釣點地圖庫」都呼叫共用的 `main.js › FG.locationPicker()`。每日頁不再複製整份釣點清單，避免釣點數量增加時把簽到／任務頁拖成長頁，也消除了兩份切換邏輯容易不同步的技術債（[11 §8](11-invariants-and-gotchas.md#8-釣點入口只能共用地圖庫)）。
 
 ### 版面骨架的寬度前提
 
@@ -117,7 +117,7 @@
 
 同樣條件下 8 個釣點，原本的 `.seg` 會折成三行（高 67px），`.seg-scroll` 仍然是 33px。
 
-**18 個釣點 @ 320px 實測（2026-08-19）**：圖鑑切換列維持單列橫向捲動，釣點選單可把目前站捲進可視區；釣魚投注列在雪見狐湯顯示 9,000／10,000，`document.documentElement.scrollWidth === clientWidth === 320`。新增兩站沒有造成折行或 body 橫向溢出。
+**18 個釣點 @ 320px 實測（2026-08-19）**：圖鑑切換列維持單列橫向捲動；釣魚投注列在雪見狐湯顯示 9,000／10,000，`document.documentElement.scrollWidth === clientWidth === 320`。新增兩站沒有造成折行或 body 橫向溢出。
 
 > **`.seg-scroll` 的按鈕是 `flex: 0 0 auto`，所以寬高完全不隨數量變化。** 也就是說它**沒有數量上限**——加到第二十個釣點，按鈕還是 33px 高。真正的上限是玩家願意橫向捲多遠，那是體驗問題不是版面問題。
 
@@ -130,21 +130,22 @@
 
 > ⚠️ **`scrollEdges()` 必須在動過 `scrollLeft` 之後才呼叫。** 反過來會用舊的捲動位置算，漸層就蓋在錯的一側——而且 `scroll` 事件是非同步的，補不回這一幀。這個順序踩過一次，見 [11 §22](11-invariants-and-gotchas.md)。
 
-### 二 · 釣點選單彈窗的清單 · `.loc-list`
+### 二 · 全螢幕釣點地圖庫 · `.loc-atlas`
 
-`.modal` 有 `max-height: 86dvh`、`.modal-body` 有 `overflow-y: auto`，所以彈窗本身不會爆版。問題是**卡片會把下方的說明文字推出可視範圍**，玩家得先捲動整個 body 才看得到它。
+舊版 `44dvh` 彈窗一次只露出約三張大卡；即使自動捲到目前釣點，玩家要找另一站的距離仍會隨釣點數量線性增加。現在 `main.js › FG.locationPicker()` 改用 `ui.modal({ fullscreen: true })` 開啟 480px 上限的全螢幕地圖庫，頂部與每日頁共用同一入口。
 
-解法是讓清單自己捲：`.loc-list { max-height: 44dvh; overflow-y: auto }`。這樣說明文字永遠固定在清單下方。
+畫面由上到下分成四層：
 
-**開窗時會自動把「目前」那張卡捲到可視範圍中間**（`main.js › FG.locationPicker()`）。44dvh 一次只看得到三張卡，而釣點有十八個——不捲的話，玩到後段的玩家每次開窗都得從頭滑到底才找得到自己在哪，連續切換釣點時特別煩。頭尾的釣點會被 `Math.max(0, Math.min(..., scrollHeight - clientHeight))` 夾住，所以第一個停在最上、最後一個停在最下，不會出現「上方留一片空白」。
+1. 固定標題與關閉鍵；
+2. 搜尋框＋「全部／入門／進階／深釣」篩選；
+3. 選中釣點的大型預覽，顯示最低下注、圖鑑進度、可釣項目與描述；
+4. 唯一可垂直捲動的 2～3 欄卡片網格。
 
-> ⚠️ 這裡的位置**必須用 `offsetTop` 算，不能用 `getBoundingClientRect()`**。`.modal` 開場有 `pop` 縮放動畫（`scale(.86) → 1`），這一刻量到的螢幕座標是被縮放過的，算出來的距離會偏小。`offsetTop` 是版面值，不受 transform 影響。配套是 `.loc-list` 要有 `position: relative`，卡片的 `offsetParent` 才會是清單本身。見 [11 §37](11-invariants-and-gotchas.md#37-在-modal-的開場動畫期間量-getboundingclientrect-會量到縮放後的值)。
+**分類不是依陣列索引硬切六筆**，而是依 `minBet` 判斷：入門 `≤ 600`、進階 `700～3,000`、深釣 `≥ 4,000`。現行剛好各六站；未來尾端新增更高門檻的釣點會自然落進深釣，不會因為插隊導致分類錯位。搜尋會比對名稱、副標、描述與格式化前後的最低下注額。
 
-> ⚠️ 同 `.seg-scroll`：`scrollEdges()` 要在動過 `scrollTop` **之後**才呼叫，否則邊緣漸層會畫在錯的一側（[11 §22](11-invariants-and-gotchas.md)）。
+卡片在 `< 420px` 為兩欄，`≥ 420px` 為三欄；320px 另縮短邊距與縮圖高度，短於 650px 的螢幕會壓縮標題、預覽高度並隱藏描述，優先保住至少一段可操作的網格。點卡片只更新預覽，**不會立刻切換地點**；玩家必須再按一次「前往 ○○」，避免密集網格誤觸。解鎖與 `comingSoon` 分支雖然現行十八站用不到，仍保留在預覽主按鈕上供未來資料使用。
 
-另外 320px 級螢幕上 `.loc-card` 的 `.lc-info` 只剩 96px，四個字的釣點名加副標會被擠成三行（卡片高 87px）。`@media (max-width: 359px)` 把縮圖從 76×50 縮到 58×38、按鈕拿掉 `min-width`，`.lc-info` 回到 128px、副標兩行、卡片高 69px 且**所有卡片等高**。
-
-> 每日分頁的釣點清單**刻意不加內層捲動**：那一頁本身就是一條垂直捲動的長頁，再套一層會變成巢狀捲動陷阱（手指在清單上滑不動外層）。
+地圖庫的卡片與預覽都用 `pixel.js › px.locThumb()`。它會把正式的 76×50 PNG 直接 `drawImage()` 到 canvas，因此呼叫端必須維持 **76:50 的內部比例**，再由 CSS `object-fit: cover` 裁切成卡片需要的寬景；直接傳超寬尺寸會把地形水平拉扁（[11 §50](11-invariants-and-gotchas.md#50-locthumb-要保留-7650-內部比例)）。
 
 ---
 
@@ -167,6 +168,7 @@ FG.ui.modal({
   buttons:     [{ label, cls, close, onClick(handle) }],
   dismissable: true,                  // false = 點外面不關（結果卡用）
   cardClass:   '',
+  fullscreen:  false,                 // true = root 去留白，卡片可佔滿 100dvh
   onClose:     fn
 });
 // 回傳 { el, body, close() }
@@ -174,6 +176,7 @@ FG.ui.modal({
 
 - `cls` 用 `.btn` 的變體：`primary`（綠）／`gold`（金）／`danger`（紅）／`ghost`（灰）。
 - `close: false` → 按了不自動關閉，讓 `onClick` 自己決定（收藏失敗時要留在原地跳 toast）。
+- `fullscreen: true` 只改 `#modalRoot` 的留白與卡片尺寸，仍走同一個 `modalStack`。全螢幕地圖庫上開解鎖確認窗時，確認窗關閉後會以原本的 body 元素重開地圖庫，所以搜尋、選取與捲動狀態都能保留。
 
 ```js
 FG.ui.confirm(title, msg, okLabel, onOk, okCls)   // 兩顆按鈕的簡化版
@@ -236,12 +239,12 @@ FG.ui.scrollEdges(el, axis)       // 捲動容器的邊緣漸層提示，見 §�
 | `.seg` / `.seg-sm` | 分段選擇器（等分擠壓） |
 | `.seg.seg-scroll` | 橫向捲動的分段選擇器，**選項數量會成長的一律用這個** |
 | `.bet-row` / `.bet-label` | 釣魚畫面的下注列（標籤 ＋ 內嵌一條 `.seg-scroll`） |
-| `.loc-list` | 可捲動的釣點清單容器 |
+| `.loc-atlas*` | 全螢幕釣點地圖庫：標題、搜尋、分類、預覽與 2～3 欄卡片網格 |
 | `.tag` `.money` `.tiny` `.dim` `.mute` `.center` | 行內修飾 |
 | `.bar > i` | 進度條 |
 | `.empty` | 空狀態文案 |
 | `.codex-grid` `.codex-cell` | 圖鑑格 |
-| `.loc-card` | 釣點卡 |
+| `.daily-loc-summary` | 每日頁的目前釣點摘要；完整清單統一開 `.loc-atlas` |
 | `.catch-card` | 釣獲結果卡 |
 | `.cutin` ＋ `.cutin-legend` `.cutin-king` `.motif-*` `.pm-*` | 傳說／魚王的登場疊層，見下節 |
 | `.devpanel` `.dev-head` `.dev-select` `#devFlag` | 開發者面板（[14](14-devtools.md)）。刻意沿用 `.set-row` / `.seg-sm` / `.rate-tbl`，只補這三個類別。`#devFlag` 是 `#topbar` 的 flex 項目（不是固定定位的浮層），見 [14 §DEBUG 標記](14-devtools.md#devflag--頂部列正中央的-debug-標記) |

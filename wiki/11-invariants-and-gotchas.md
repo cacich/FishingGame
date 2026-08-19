@@ -62,9 +62,11 @@ if (x < 0 || x >= W || y < 0 || y >= H) continue;
 
 前者是**函式**回傳釣竿物件，後者是**字串** id。`bait` 也一樣。名稱相同但型別不同，寫錯不會報錯只會行為怪異。
 
-### 8. 釣點卡有兩份實作
+### 8. 釣點入口只能共用地圖庫
 
-`main.js › locationPicker()` 和 `screen-daily.js` 的釣點區塊是幾乎相同的程式碼。**改一邊要記得改另一邊。** 這是已知的技術債；如果第三個地方也需要，就該抽成共用函式。
+舊版 `main.js › locationPicker()` 和 `screen-daily.js` 各自生成一份完整釣點卡，版型與切換／解鎖分支幾乎相同；增加釣點後不只每日頁無限變長，兩邊也很容易只改到一份。現在完整瀏覽與切換都集中在 `main.js › FG.locationPicker()`，每日頁只顯示目前釣點摘要。
+
+**新增第三個釣點入口時只呼叫 `FG.locationPicker()`，不要再複製卡片與 `setLoc()`／`unlockLoc()` 分支。** 摘要可以依所在畫面各自呈現，但完整清單只有地圖庫一份。
 
 ### 9. 餌料加成不在 `bonus()` 裡
 
@@ -535,11 +537,11 @@ console.log(shapeCount, patternCount);
 
 ### 39. 在 `.modal` 的開場動畫期間量 `getBoundingClientRect()`，會量到縮放後的值
 
-**症狀**：釣點選單想「開窗就把目前的釣點捲到中間」，用 `rect` 算出來的偏移一律偏小，卡片停在正確位置的上方一點。
+**症狀**：舊版釣點選單想「開窗就把目前的釣點捲到中間」，用 `rect` 算出來的偏移一律偏小，卡片停在正確位置的上方一點。
 
 **原因**：`.modal` 有 `animation: pop .16s`（`scale(.86) → 1`）。`FG.ui.modal()` 是同步把節點掛進 DOM 的，緊接著量 `getBoundingClientRect()` 時動畫正停在第一格——**回傳的是被 `transform: scale()` 縮過的螢幕座標**，兩個 rect 相減得到的距離同樣被縮了 0.86 倍。而 `scrollTop` 吃的是未縮放的版面座標，兩者單位不一致。
 
-**對策**：**用 `offsetTop` / `offsetHeight` / `clientHeight`**——這些是版面值，`transform` 完全影響不到它們。配套是讓捲動容器帶 `position: relative`（`.loc-list` 就是為此加的），子元素的 `offsetParent` 才會是容器本身，`offsetTop` 才是「相對於容器內容頂端」。
+**對策**：**用 `offsetTop` / `offsetHeight` / `clientHeight`**——這些是版面值，`transform` 完全影響不到它們。配套是讓捲動容器帶 `position: relative`，子元素的 `offsetParent` 才會是容器本身，`offsetTop` 才是「相對於容器內容頂端」。現行全螢幕地圖庫不再依賴手算置中，但其他 modal 若新增同類功能仍要遵守。
 
 **一般化**：只要元素或它的祖先掛著 `transform`（動畫或靜態都算），`getBoundingClientRect()` 與 `offset*` 就會分家。**跟捲動位置有關的計算一律走 `offset*`。** 這個專案所有彈窗都吃 `pop` 動畫，所以「在 modal 裡算捲動位置」永遠適用這條。
 
@@ -646,6 +648,18 @@ console.log(shapeCount, patternCount);
 **對策**：換算腳本必須沿用 `state.js › sizeMoments()`／`esize()` 的同一套 4096 點體型動差，並對非 `junkArt` 套 1.06；完成後同時斷言替換筆數（目前 417）與每站基礎 `rtpNorm` 接近 1。朱楓天守／雪見狐湯加入後的正確縮放範圍是 1.067～1.102，基礎 `rtpNorm` 為 0.9992～1.0010。
 
 **一般化**：資料表的「標稱倍率」只在把所有隱含乘數納入時才可拿來校正；任何會進實際賠付公式的期望項都不能從離線換算器省略。
+
+---
+
+### 50. `locThumb()` 要保留 76:50 內部比例
+
+**症狀**：地圖庫的大型預覽雖然鋪滿寬度，山、塔、樹與魚池卻像被水平壓扁或拉長；正式縮圖與程序化備援都一起變形。
+
+**原因**：`pixel.js › px.locThumb(loc, w, h)` 不是回傳原圖再交給 CSS 排版，而是直接建立 `w × h` canvas，最後把 76×50 正式 PNG `drawImage(img, 0, 0, w, h)`。呼叫時若傳入 420×132 之類的超寬比例，內容在 canvas 內就已經被拉伸；後續 `object-fit` 無法救回原比例。
+
+**對策**：呼叫 `locThumb()` 時維持 **76:50**（例如預覽 304×200、卡片 152×100），視覺容器再用 CSS `object-fit: cover` 裁成需要的寬景。這同時保證正式 PNG 與程序化縮圖的地形比例一致。
+
+**一般化**：任何函式若把來源畫進「呼叫端指定尺寸」的 canvas，尺寸就是繪圖座標系，不只是 CSS 盒子；先保比例繪製，再在外層裁切。
 
 ---
 

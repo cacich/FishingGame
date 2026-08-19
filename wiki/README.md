@@ -69,7 +69,7 @@
 | 檔案 | 行數量級 | 職責 | 主要 wiki 頁 |
 |---|---|---|---|
 | `index.html` | 40 | 骨架＋script 載入順序 | [01](01-architecture.md) |
-| `styles.css` | 770 | 全部樣式 | [08](08-ui-and-screens.md) |
+| `styles.css` | 1050 | 全部樣式（含全螢幕釣點地圖庫） | [08](08-ui-and-screens.md) |
 | `js/util.js` | 140 | 亂數／色彩／格式化／DOM／存取／音效 | [01](01-architecture.md) |
 | `js/pixel.js` | 5100 | 像素美術引擎（含地形系統、角色序列與 18 種地形） | [06](06-pixel-engine.md) |
 | `assets/scenes/` · `assets/sprites/` · `assets/characters/` | — | 十八個釣點的主背景／縮圖、417 個可釣項目的 AI 精靈，以及船／釣手／狗的待機序列 | [04](04-fishing-loop.md)、[06](06-pixel-engine.md)、[13](13-pwa-and-deploy.md) |
@@ -77,7 +77,7 @@
 | `tools/generate-image-prompts.js` | 250 | 由魚類資料重建全圖鑑產圖提示詞 | [15](15-image-prompts.md) |
 | `tools/split-sprite-sheet.py` | 150 | 將 3×4 產圖切格、去背並輸出 96×56 RGBA 精靈 | [06](06-pixel-engine.md)、[15](15-image-prompts.md) |
 | `js/state.js` | 560 | 存檔／經濟／抽獎／**固定 RTP 正規化**／Buffer 池 | [02](02-state-and-save.md)、[03](03-economy.md) |
-| `js/ui.js` | 120 | Toast／彈窗／捲動邊緣提示 | [08](08-ui-and-screens.md) |
+| `js/ui.js` | 160 | Toast／一般與全螢幕彈窗／捲動邊緣提示 | [08](08-ui-and-screens.md) |
 | `js/cutin.js` | 150 | 傳說／魚王的登場演出（四種骨架＋每王一筆參數） | [04](04-fishing-loop.md) |
 | `js/screen-fishing.js` | 850 | 釣魚分頁＋下注選擇器＋自動模式 | [04](04-fishing-loop.md)、[05](05-auto-mode.md)、[08](08-ui-and-screens.md) |
 | `js/screen-daily.js` | 120 | 每日分頁 | [08](08-ui-and-screens.md) |
@@ -86,7 +86,7 @@
 | `js/screen-codex.js` | 118 | 圖鑑分頁 | [08](08-ui-and-screens.md) |
 | `js/devtools.js` | 325 | 隱藏的開發者面板（連點家園鈕 10 下） | [14](14-devtools.md) |
 | `js/pwa.js` | 130 | Service Worker 註冊、安裝流程 | [13](13-pwa-and-deploy.md) |
-| `js/main.js` | 275 | 啟動／分頁／頂部列／儲值／主迴圈 | [01](01-architecture.md) |
+| `js/main.js` | 450 | 啟動／分頁／頂部列／全螢幕釣點地圖庫／儲值／主迴圈 | [01](01-architecture.md) |
 | `sw.js` | 120 | Service Worker（離線快取） | [13](13-pwa-and-deploy.md) |
 | `manifest.webmanifest` | 40 | PWA 資訊清單 | [13](13-pwa-and-deploy.md) |
 | `tools/make-icons.py` | 250 | 圖示產生器（純 Python 標準庫） | [13](13-pwa-and-deploy.md) |

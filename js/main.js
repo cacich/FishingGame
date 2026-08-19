@@ -58,74 +58,212 @@ window.FG = window.FG || {};
     document.getElementById('topLocBtn').onclick = function () { FG.sfx.click(); FG.locationPicker(); };
   }
 
-  /* ---------------- 釣點選單 ---------------- */
+  /* ---------------- 全螢幕釣點地圖庫 ---------------- */
   FG.locationPicker = function () {
     const st = FG.state;
-    const box = FG.el('div');
-    // 卡片放進自己的捲動容器：釣點數量會成長，直接堆在 modal-body 裡會把下方的
-    // 說明文字推出可視範圍（彈窗有 max-height，超出的部分要捲整個 body 才看得到）
-    const list = FG.el('div', 'loc-list');
-    box.appendChild(list);
-    FG.LOCATIONS.forEach(function (loc) {
-      const unlocked = st.isUnlocked(loc);
-      const cur = st.data.loc === loc.id;
-      const card = FG.el('div', 'loc-card' + (cur ? ' on' : '') + (unlocked ? '' : ' lock'));
-      card.appendChild(FG.px.locThumb(loc, 76, 50));
-      const info = FG.el('div', 'lc-info');
-      info.innerHTML = '<div class="nm">' + FG.esc(loc.name) +
-        (cur ? ' <span class="tag" style="color:#ffc44d">目前</span>' : '') + '</div>' +
-        '<div class="ds">' + FG.esc(loc.subtitle) + '<br>最低下注 ' + FG.fmt(loc.minBet) + ' 籌碼</div>';
-      card.appendChild(info);
+    const atlas = FG.el('div', 'loc-atlas');
+    const head = FG.el('header', 'loc-atlas-head');
+    const closeBtn = FG.el('button', 'loc-atlas-close', '‹');
+    closeBtn.setAttribute('aria-label', '關閉釣點地圖庫');
+    const title = FG.el('div', 'loc-atlas-title');
+    title.innerHTML = '<span>FISHING ATLAS</span><b>釣點地圖庫</b>';
+    head.appendChild(closeBtn);
+    head.appendChild(title);
+    head.appendChild(FG.el('div', 'loc-atlas-count', FG.LOCATIONS.length + ' 個釣點'));
+    atlas.appendChild(head);
 
-      const act = FG.el('div');
-      if (loc.comingSoon) {
-        act.appendChild(FG.el('div', 'tiny mute', '即將<br>開放'));
+    const tools = FG.el('div', 'loc-atlas-tools');
+    const search = FG.el('input', 'loc-atlas-search');
+    search.type = 'search';
+    search.placeholder = '搜尋釣點、景觀或最低下注';
+    search.setAttribute('aria-label', '搜尋釣點');
+    tools.appendChild(search);
+
+    // 分組以最低下注描述進程，而不是把陣列硬切成固定六筆；未來增加更深釣點時
+    // 會自然落在「深釣」，不必為了 UI 回頭改分組索引。
+    const tiers = [
+      { id: 'all', label: '全部', test: function () { return true; } },
+      { id: 'entry', label: '入門', test: function (loc) { return loc.minBet <= 600; } },
+      { id: 'advanced', label: '進階', test: function (loc) { return loc.minBet >= 700 && loc.minBet <= 3000; } },
+      { id: 'deep', label: '深釣', test: function (loc) { return loc.minBet >= 4000; } }
+    ];
+    let tierId = 'all';
+    let selected = st.loc();
+    const tierBar = FG.el('div', 'loc-atlas-tiers');
+    tools.appendChild(tierBar);
+    atlas.appendChild(tools);
+
+    const preview = FG.el('section', 'loc-atlas-preview');
+    atlas.appendChild(preview);
+
+    const resultsHead = FG.el('div', 'loc-atlas-results-head');
+    const resultTitle = FG.el('b', '', '所有釣點');
+    const resultCount = FG.el('span', '', '');
+    resultsHead.appendChild(resultTitle);
+    resultsHead.appendChild(resultCount);
+    atlas.appendChild(resultsHead);
+
+    const scroller = FG.el('div', 'loc-atlas-scroll');
+    const grid = FG.el('div', 'loc-atlas-grid');
+    scroller.appendChild(grid);
+    atlas.appendChild(scroller);
+
+    function tier() {
+      return tiers.filter(function (x) { return x.id === tierId; })[0] || tiers[0];
+    }
+
+    function matches(loc) {
+      if (!tier().test(loc)) return false;
+      const q = search.value.trim().toLowerCase().replace(/,/g, '');
+      if (!q) return true;
+      const hay = [loc.name, loc.subtitle, loc.desc, String(loc.minBet), FG.fmt(loc.minBet)]
+        .join(' ').toLowerCase().replace(/,/g, '');
+      return hay.indexOf(q) >= 0;
+    }
+
+    function riskLabel(loc) {
+      if (loc.minBet <= 600) return '入門水域';
+      if (loc.minBet <= 3000) return '進階水域';
+      return '深釣水域';
+    }
+
+    function renderPreview() {
+      preview.innerHTML = '';
+      if (!selected) {
+        preview.appendChild(FG.el('div', 'loc-atlas-empty', '沒有符合搜尋條件的釣點'));
+        return;
+      }
+
+      const cur = selected.id === st.data.loc;
+      const unlocked = st.isUnlocked(selected);
+      const hero = FG.el('div', 'loc-atlas-hero');
+      // 釣點縮圖的原始比例是 76:50；先用同倍率畫，再由 CSS cover 裁切，
+      // 不能直接畫成超寬比例，否則地形會被水平拉扁。
+      hero.appendChild(FG.px.locThumb(selected, 304, 200));
+      const heroText = FG.el('div', 'loc-atlas-hero-text');
+      heroText.innerHTML = '<span>' + FG.esc(riskLabel(selected)) + '</span><b>' + FG.esc(selected.name) + '</b>' +
+        '<small>' + FG.esc(selected.subtitle) + '</small>';
+      hero.appendChild(heroText);
+      if (cur) hero.appendChild(FG.el('div', 'loc-atlas-current', '目前釣點'));
+      preview.appendChild(hero);
+
+      const prog = st.codexProgress(selected);
+      const detail = FG.el('div', 'loc-atlas-detail');
+      const meta = FG.el('div', 'loc-atlas-meta');
+      meta.innerHTML = '<span>最低下注<b>' + FG.fmt(selected.minBet) + '</b></span>' +
+        '<span>圖鑑收集<b>' + prog.got + '/' + prog.total + '</b></span>' +
+        '<span>可釣項目<b>' + selected.fish.length + '</b></span>';
+      detail.appendChild(meta);
+      const bar = FG.el('div', 'bar loc-atlas-progress');
+      bar.innerHTML = '<i style="width:' + (prog.total ? prog.got / prog.total * 100 : 0) + '%"></i>';
+      detail.appendChild(bar);
+      detail.appendChild(FG.el('p', 'loc-atlas-desc', FG.esc(selected.desc)));
+
+      let action;
+      if (selected.comingSoon) {
+        action = FG.el('button', 'btn ghost block', '即將開放');
+        action.disabled = true;
+      } else if (cur) {
+        action = FG.el('button', 'btn ghost block', '目前正在這裡釣魚');
+        action.disabled = true;
       } else if (unlocked) {
-        const b = FG.el('button', 'btn ' + (cur ? 'ghost' : 'primary'), cur ? '目前' : '前往');
-        b.disabled = cur;
-        b.onclick = function () {
-          FG.sfx.click(); st.setLoc(loc); FG.ui.closeAll(); FG.go('fishing');
-          FG.ui.toast('已前往 ' + loc.name, 'good');
+        action = FG.el('button', 'btn primary block', '前往 ' + selected.name);
+        action.onclick = function () {
+          FG.sfx.click();
+          st.setLoc(selected);
+          FG.ui.closeAll();
+          FG.go('fishing');
+          FG.ui.toast('已前往 ' + selected.name, 'good');
         };
-        act.appendChild(b);
       } else {
-        const b = FG.el('button', 'btn gold', FG.fmtShort(loc.unlock.chips));
+        action = FG.el('button', 'btn gold block', '解鎖 · ' + FG.fmt(selected.unlock.chips) + ' 籌碼');
+        action.onclick = function () {
+          FG.sfx.click();
+          const target = selected;
+          FG.ui.confirm('解鎖 ' + target.name,
+            FG.esc(target.desc) + '<br><br>花費 <span class="money">' + FG.fmt(target.unlock.chips) + '</span> 籌碼永久解鎖？',
+            '解鎖', function () {
+              const r = st.unlockLoc(target);
+              if (r === 'ok') {
+                FG.sfx.win(); st.setLoc(target); FG.ui.closeAll(); FG.go('fishing');
+                FG.ui.toast('已解鎖 ' + target.name + '！', 'gold', 2200);
+              } else if (r === 'poor') {
+                FG.sfx.fail(); FG.openTopup('籌碼不足');
+              }
+            }, 'gold');
+        };
+      }
+      detail.appendChild(action);
+      preview.appendChild(detail);
+    }
+
+    function renderTierBar() {
+      tierBar.innerHTML = '';
+      tiers.forEach(function (t) {
+        const n = FG.LOCATIONS.filter(t.test).length;
+        const b = FG.el('button', t.id === tierId ? 'on' : '', t.label + ' ' + n);
         b.onclick = function () {
           FG.sfx.click();
-          FG.ui.confirm('解鎖 ' + loc.name, FG.esc(loc.desc) + '<br><br>花費 <span class="money">' + FG.fmt(loc.unlock.chips) + '</span> 籌碼永久解鎖？', '解鎖', function () {
-            const r = st.unlockLoc(loc);
-            if (r === 'ok') { FG.sfx.win(); st.setLoc(loc); FG.ui.closeAll(); FG.go('fishing'); FG.ui.toast('已解鎖 ' + loc.name + '！', 'gold', 2200); }
-            else if (r === 'poor') { FG.sfx.fail(); FG.openTopup('籌碼不足'); }
-          }, 'gold');
+          tierId = t.id;
+          renderResults(true);
         };
-        act.appendChild(b);
-      }
-      card.appendChild(act);
-      list.appendChild(card);
-    });
-    // 數字由陣列長度算出來，加釣點就不用回來改文案（原本寫死「四個」，第五個上線後就錯了）
-    const note = FG.el('div', 'tiny mute',
-      FG.LOCATIONS.length + ' 個釣點都可以自由切換，不需要解鎖。每個釣點有專屬魚種與魚王，拋竿成本與產出也不同。');
-    note.style.lineHeight = '1.8';
-    box.appendChild(note);
-    FG.ui.modal({ title: '選擇釣點', body: box });
-
-    // 開窗就把「目前」那張卡捲到可視範圍中間。清單高 44dvh，一次只看得到三張卡，
-    // 而釣點有十六個——不捲的話後段釣點的玩家每次開窗都得從頭滑到底才找得到自己在哪，
-    // 連續切換釣點時尤其煩。
-    //
-    // 用 offsetTop 而不是 getBoundingClientRect()：`.modal` 開場有 `pop` 縮放動畫，
-    // 這一刻量到的螢幕座標是被 scale 過的，算出來的距離會偏小。offsetTop 是版面值，
-    // 不受 transform 影響（`.loc-list` 因此被設成 position: relative，讓卡片的
-    // offsetParent 就是清單本身）。
-    const curCard = list.querySelector('.loc-card.on');
-    if (curCard) {
-      const want = curCard.offsetTop - (list.clientHeight - curCard.offsetHeight) / 2;
-      list.scrollTop = Math.max(0, Math.min(want, list.scrollHeight - list.clientHeight));
+        tierBar.appendChild(b);
+      });
     }
-    // 一定要在動過 scrollTop **之後**才算邊緣提示，否則遮罩會畫在錯的一側（scroll 事件
-    // 是非同步的，補不回這一幀）——同 screen-codex.js 的橫向捲動列
-    FG.ui.scrollEdges(list, 'y');
+
+    function renderResults(resetScroll) {
+      const list = FG.LOCATIONS.filter(matches);
+      if (!selected || list.indexOf(selected) < 0) selected = list[0] || null;
+      resultTitle.textContent = search.value.trim() ? '搜尋結果' : tier().label + '釣點';
+      resultCount.textContent = list.length + ' / ' + FG.LOCATIONS.length;
+      grid.innerHTML = '';
+
+      list.forEach(function (loc) {
+        const cur = loc.id === st.data.loc;
+        const chosen = selected && loc.id === selected.id;
+        const unlocked = st.isUnlocked(loc);
+        const idx = FG.LOCATIONS.indexOf(loc) + 1;
+        const card = FG.el('button', 'loc-atlas-card' + (chosen ? ' selected' : '') + (cur ? ' current' : '') + (unlocked ? '' : ' locked'));
+        card.type = 'button';
+        card.setAttribute('aria-label', '查看' + loc.name + '，最低下注 ' + FG.fmt(loc.minBet));
+        const art = FG.el('div', 'loc-atlas-card-art');
+        art.appendChild(FG.px.locThumb(loc, 152, 100));
+        art.appendChild(FG.el('span', 'loc-atlas-index', '#' + String(idx).padStart(2, '0')));
+        if (cur) art.appendChild(FG.el('span', 'loc-atlas-pin', '目前'));
+        if (loc.comingSoon) art.appendChild(FG.el('span', 'loc-atlas-pin soon', '即將開放'));
+        card.appendChild(art);
+        const text = FG.el('span', 'loc-atlas-card-text');
+        text.innerHTML = '<b>' + FG.esc(loc.name) + '</b><small>' + FG.esc(loc.subtitle) + '</small>' +
+          '<em>最低下注 ' + FG.fmt(loc.minBet) + '</em>';
+        card.appendChild(text);
+        card.onclick = function () {
+          FG.sfx.click();
+          selected = loc;
+          renderResults(false);
+        };
+        grid.appendChild(card);
+      });
+
+      if (!list.length) grid.appendChild(FG.el('div', 'loc-atlas-empty', '找不到符合條件的釣點，試著縮短關鍵字。'));
+      if (resetScroll) scroller.scrollTop = 0;
+      renderTierBar();
+      renderPreview();
+    }
+
+    search.oninput = function () { renderResults(true); };
+    const handle = FG.ui.modal({
+      title: false,
+      body: atlas,
+      dismissable: false,
+      cardClass: 'loc-atlas-modal',
+      fullscreen: true
+    });
+    closeBtn.onclick = function () { FG.sfx.click(); handle.close(); };
+    renderResults(false);
+
+    // 全部模式仍會先把目前釣點放進可視區；切到分組或搜尋時則從結果頂端開始。
+    const currentCard = grid.querySelector('.loc-atlas-card.current');
+    if (currentCard) currentCard.scrollIntoView({ block: 'nearest' });
   };
 
   /* ---------------- 儲值（測試版：點擊直接發放） ---------------- */

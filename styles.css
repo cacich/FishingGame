@@ -624,27 +624,6 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 .seg-scroll::-webkit-scrollbar-track { background: #0c141d; }
 .seg-scroll::-webkit-scrollbar-thumb { background: var(--panel-3); }
 
-/* ---------- 可捲動的釣點清單 ----------
-   釣點選單彈窗裡，清單長度會隨釣點數量成長，把下方的說明文字推出可視範圍。
-   限制清單自己的高度並讓它捲動，說明文字就永遠在原地。 */
-.loc-list {
-  /* 定位錨點：讓卡片的 offsetParent 就是這個捲動容器，
-     main.js › FG.locationPicker() 才能用 offsetTop 直接算「捲到目前釣點」的位置 */
-  position: relative;
-  max-height: 44dvh;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: var(--panel-3) transparent;
-  margin-bottom: 10px;
-}
-.loc-list::-webkit-scrollbar { width: 5px; }
-.loc-list::-webkit-scrollbar-track { background: #0c141d; }
-.loc-list::-webkit-scrollbar-thumb { background: var(--panel-3); }
-.loc-list .loc-card:last-child { margin-bottom: 0; }
-/* 捲動容器內部要留一點右側間距，卡片的外框才不會被捲軸切到 */
-.loc-list.scrollable { padding-right: 6px; }
-
 /* ---------- 圖鑑格 ---------- */
 .codex-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
 .codex-cell {
@@ -677,6 +656,11 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
   padding: 16px;
 }
 #modalRoot.on { display: flex; }
+#modalRoot.fullscreen {
+  align-items: stretch;
+  padding: 0;
+  background: #05080d;
+}
 .modal {
   width: 100%; max-width: 380px;
   max-height: 86dvh;
@@ -696,6 +680,198 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 .modal-body { padding: 12px; overflow-y: auto; }
 .modal-foot { padding: 10px 12px; border-top: 2px solid var(--line); display: flex; gap: 8px; }
 .modal-foot .btn { flex: 1; text-align: center; }
+
+/* ---------- 全螢幕釣點地圖庫 ---------- */
+#modalRoot.fullscreen .loc-atlas-modal {
+  width: 100%;
+  max-width: 480px;
+  height: 100vh;
+  height: 100dvh;
+  max-height: none;
+  margin: 0 auto;
+  background: var(--bg);
+  animation: atlasIn .18s steps(4);
+  box-shadow: 0 0 0 1px #101a26, 0 0 60px rgba(0,0,0,.8);
+}
+@keyframes atlasIn { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+.loc-atlas-modal .modal-body { flex: 1 1 auto; min-height: 0; padding: 0; overflow: hidden; }
+.loc-atlas {
+  height: 100%; min-height: 0;
+  display: flex; flex-direction: column;
+  background:
+    linear-gradient(rgba(9,15,22,.96), rgba(7,12,18,.98)),
+    repeating-linear-gradient(0deg, transparent 0 15px, rgba(89,166,255,.035) 15px 16px);
+}
+.loc-atlas-head {
+  flex: 0 0 auto;
+  min-height: 58px;
+  display: flex; align-items: center; gap: 10px;
+  padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 8px;
+  background: linear-gradient(#1d2c3d, #121d29);
+  border-bottom: 3px solid var(--line);
+}
+.loc-atlas-close {
+  width: 34px; height: 34px; flex: 0 0 34px;
+  border: 0; padding: 0 2px 3px 0;
+  background: var(--panel-3); color: var(--ink);
+  font: inherit; font-size: 29px; line-height: 1;
+  box-shadow: inset -2px -2px 0 rgba(0,0,0,.4), inset 2px 2px 0 rgba(255,255,255,.08), 0 0 0 2px var(--line);
+}
+.loc-atlas-close:active { transform: translateY(2px); }
+.loc-atlas-title { min-width: 0; display: flex; flex-direction: column; }
+.loc-atlas-title span { color: var(--blue); font-size: 8px; letter-spacing: 2.5px; line-height: 1.2; }
+.loc-atlas-title b { font-size: 17px; letter-spacing: 2px; line-height: 1.3; }
+.loc-atlas-count {
+  margin-left: auto; flex: 0 0 auto;
+  padding: 4px 6px; font-size: 10px; color: var(--ink-dim);
+  background: #0d1620; box-shadow: 0 0 0 1px #314155;
+}
+.loc-atlas-tools { flex: 0 0 auto; padding: 9px 10px 8px; background: #0c141d; border-bottom: 2px solid var(--line); }
+.loc-atlas-search {
+  display: block; width: 100%; height: 34px;
+  border: 0; border-radius: 0; outline: 0;
+  padding: 0 10px;
+  background: #172332; color: var(--ink);
+  font: inherit; font-size: 12px;
+  user-select: text; -webkit-user-select: text;
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,.35), 0 0 0 2px var(--line);
+}
+.loc-atlas-search::placeholder { color: var(--ink-mute); }
+.loc-atlas-search:focus { box-shadow: inset 2px 2px 0 rgba(0,0,0,.35), 0 0 0 2px var(--blue); }
+.loc-atlas-tiers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 8px; }
+.loc-atlas-tiers button {
+  min-width: 0; border: 0; padding: 6px 2px;
+  background: #172332; color: var(--ink-mute);
+  font: inherit; font-size: 10.5px; white-space: nowrap;
+  box-shadow: inset -2px -2px 0 rgba(0,0,0,.35), 0 0 0 1px #26384b;
+}
+.loc-atlas-tiers button.on { background: #284767; color: #d8ecff; box-shadow: inset 0 -2px 0 var(--blue), 0 0 0 1px #3f6f9c; }
+
+.loc-atlas-preview {
+  flex: 0 0 auto;
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  margin: 9px 10px 0;
+  background: var(--panel);
+  box-shadow: 0 0 0 2px var(--line);
+}
+.loc-atlas-hero { position: relative; height: 112px; overflow: hidden; background: #102334; }
+.loc-atlas-hero::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(5,9,14,.78) 0, rgba(5,9,14,.2) 58%, rgba(5,9,14,.05)), linear-gradient(0deg, rgba(5,9,14,.7), transparent 55%);
+  pointer-events: none;
+}
+.loc-atlas-hero canvas { display: block; width: 100%; height: 100%; object-fit: cover; }
+.loc-atlas-hero-text { position: absolute; z-index: 1; left: 10px; bottom: 9px; display: flex; flex-direction: column; align-items: flex-start; }
+.loc-atlas-hero-text span { color: #9fcfff; font-size: 9px; letter-spacing: 1.5px; }
+.loc-atlas-hero-text b { margin-top: 2px; font-size: 20px; letter-spacing: 2px; text-shadow: 2px 2px 0 #05080d; }
+.loc-atlas-hero-text small { margin-top: 2px; color: #c2d0dd; font-size: 10px; }
+.loc-atlas-current {
+  position: absolute; z-index: 2; top: 8px; right: 8px;
+  padding: 4px 6px; background: #3f310f; color: var(--gold); font-size: 10px;
+  box-shadow: 0 0 0 1px var(--gold-dark);
+}
+.loc-atlas-detail { padding: 8px 9px 9px; }
+.loc-atlas-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.loc-atlas-meta span {
+  min-width: 0; padding: 4px 3px;
+  background: #111b27; color: var(--ink-mute);
+  font-size: 9px; text-align: center;
+  box-shadow: 0 0 0 1px #243446;
+}
+.loc-atlas-meta b { display: block; margin-top: 2px; color: var(--ink); font-size: 11px; font-variant-numeric: tabular-nums; }
+.loc-atlas-progress { margin-top: 7px; height: 5px; }
+.loc-atlas-desc {
+  display: -webkit-box; margin: 7px 0 8px;
+  overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  color: var(--ink-dim); font-size: 10px; line-height: 1.45;
+}
+.loc-atlas-detail .btn { padding-top: 8px; padding-bottom: 8px; font-size: 12px; }
+.loc-atlas-results-head {
+  flex: 0 0 auto;
+  display: flex; align-items: center;
+  padding: 10px 11px 7px; color: var(--ink-dim); font-size: 11px; letter-spacing: 1px;
+}
+.loc-atlas-results-head::before { content: ''; width: 4px; height: 11px; margin-right: 6px; background: var(--gold); }
+.loc-atlas-results-head span { margin-left: auto; color: var(--ink-mute); font-size: 10px; letter-spacing: 0; }
+.loc-atlas-scroll {
+  flex: 1 1 auto; min-height: 0;
+  overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin; scrollbar-color: var(--panel-3) transparent;
+  padding: 0 10px calc(14px + var(--safe-b));
+}
+.loc-atlas-scroll::-webkit-scrollbar { width: 5px; }
+.loc-atlas-scroll::-webkit-scrollbar-track { background: #0c141d; }
+.loc-atlas-scroll::-webkit-scrollbar-thumb { background: var(--panel-3); }
+.loc-atlas-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.loc-atlas-card {
+  min-width: 0; border: 0; padding: 0;
+  background: var(--panel-2); color: var(--ink); text-align: left; font: inherit;
+  box-shadow: inset -2px -2px 0 rgba(0,0,0,.35), 0 0 0 2px var(--line);
+  overflow: hidden;
+}
+.loc-atlas-card.selected { box-shadow: inset -2px -2px 0 rgba(0,0,0,.35), 0 0 0 2px var(--blue); }
+.loc-atlas-card.current { background: #28291f; }
+.loc-atlas-card.locked { filter: grayscale(.65); }
+.loc-atlas-card:active { transform: translateY(2px); }
+.loc-atlas-card-art { position: relative; height: 72px; overflow: hidden; background: #102334; border-bottom: 2px solid var(--line); }
+.loc-atlas-card-art canvas { display: block; width: 100%; height: 100%; object-fit: cover; }
+.loc-atlas-index, .loc-atlas-pin {
+  position: absolute; top: 5px; left: 5px;
+  padding: 2px 4px; background: rgba(5,9,14,.82); color: #b9cad9; font-size: 8.5px;
+}
+.loc-atlas-pin { left: auto; right: 5px; color: var(--gold); }
+.loc-atlas-pin.soon { color: var(--ink-dim); }
+.loc-atlas-card-text { display: flex; min-width: 0; flex-direction: column; padding: 6px 7px 7px; }
+.loc-atlas-card-text b { overflow: hidden; font-size: 12.5px; white-space: nowrap; text-overflow: ellipsis; }
+.loc-atlas-card-text small { overflow: hidden; margin-top: 2px; color: var(--ink-mute); font-size: 9.5px; white-space: nowrap; text-overflow: ellipsis; }
+.loc-atlas-card-text em { margin-top: 4px; color: var(--gold); font-size: 9.5px; font-style: normal; font-variant-numeric: tabular-nums; }
+.loc-atlas-empty {
+  grid-column: 1 / -1; padding: 24px 12px;
+  color: var(--ink-mute); font-size: 11px; line-height: 1.7; text-align: center;
+  background: #101923; box-shadow: 0 0 0 1px #263546;
+}
+
+/* 每日頁只顯示目前釣點摘要，完整瀏覽與切換統一交給地圖庫。 */
+.daily-loc-summary {
+  display: flex; width: 100%; min-width: 0; align-items: center; gap: 9px;
+  border: 0; padding: 8px; background: var(--panel-2); color: var(--ink); text-align: left; font: inherit;
+  box-shadow: inset -2px -2px 0 rgba(0,0,0,.35), 0 0 0 2px var(--line);
+}
+.daily-loc-summary:active { transform: translateY(2px); }
+.daily-loc-summary canvas { width: 82px; height: 54px; flex: 0 0 82px; object-fit: cover; box-shadow: 0 0 0 2px var(--line); }
+.daily-loc-info { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.daily-loc-info b { font-size: 14px; }
+.daily-loc-info small { overflow: hidden; margin-top: 2px; color: var(--ink-mute); font-size: 10px; white-space: nowrap; text-overflow: ellipsis; }
+.daily-loc-info em { margin-top: 5px; color: var(--gold); font-size: 10px; font-style: normal; }
+.daily-loc-arrow { flex: 0 0 auto; color: var(--blue); font-size: 24px; }
+
+@media (min-width: 420px) {
+  .loc-atlas-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 359px) {
+  .loc-atlas-count { display: none; }
+  .loc-atlas-title b { font-size: 16px; }
+  .loc-atlas-tools { padding-left: 8px; padding-right: 8px; }
+  .loc-atlas-preview { margin-left: 8px; margin-right: 8px; }
+  .loc-atlas-scroll { padding-left: 8px; padding-right: 8px; }
+  .loc-atlas-card-art { height: 66px; }
+  .loc-atlas-card-text { padding-left: 6px; padding-right: 6px; }
+  .daily-loc-summary canvas { width: 68px; height: 45px; flex-basis: 68px; }
+}
+
+@media (max-height: 650px) {
+  .loc-atlas-head { min-height: 50px; padding-top: calc(5px + env(safe-area-inset-top, 0px)); padding-bottom: 5px; }
+  .loc-atlas-tools { padding-top: 6px; padding-bottom: 6px; }
+  .loc-atlas-tiers { margin-top: 6px; }
+  .loc-atlas-preview { margin-top: 7px; }
+  .loc-atlas-hero { height: 78px; }
+  .loc-atlas-hero-text b { font-size: 17px; }
+  .loc-atlas-desc { display: none; }
+  .loc-atlas-detail { padding-top: 6px; padding-bottom: 7px; }
+  .loc-atlas-results-head { padding-top: 8px; padding-bottom: 6px; }
+}
 
 /* 釣獲結果 */
 .catch-card { text-align: center; }
@@ -725,28 +901,6 @@ canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
 .newbadge {
   display: inline-block; background: var(--red); color: #fff;
   font-size: 10px; padding: 1px 4px; vertical-align: middle; margin-left: 4px;
-}
-
-/* 地點選單 */
-.loc-card {
-  display: flex; gap: 9px; align-items: center;
-  padding: 9px; margin-bottom: 8px;
-  background: var(--panel-2);
-  box-shadow: inset -2px -2px 0 rgba(0,0,0,.35), 0 0 0 2px var(--line);
-}
-.loc-card canvas { width: 76px; height: 50px; flex: 0 0 76px; box-shadow: 0 0 0 2px var(--line); }
-.loc-card .lc-info { flex: 1; min-width: 0; }
-.loc-card .lc-info .nm { font-size: 14px; }
-.loc-card .lc-info .ds { font-size: 11px; color: var(--ink-mute); margin-top: 3px; line-height: 1.4; }
-.loc-card.on { box-shadow: inset -2px -2px 0 rgba(0,0,0,.35), 0 0 0 2px var(--gold); }
-.loc-card.lock canvas { filter: grayscale(.85) brightness(.6); }
-/* 窄螢幕（iPhone SE 級的 320px）把縮圖縮小，把寬度讓給文字。
-   不縮的話 .lc-info 只剩 96px，四個字的釣點名加副標會被擠成三行。 */
-@media (max-width: 359px) {
-  .loc-card { gap: 7px; padding: 8px; }
-  .loc-card canvas { width: 58px; height: 38px; flex-basis: 58px; }
-  .loc-card .lc-info .nm { font-size: 13px; }
-  .loc-card .act .btn, .loc-card .btn { min-width: 0; padding: 7px 8px; }
 }
 
 /* 費率表 */

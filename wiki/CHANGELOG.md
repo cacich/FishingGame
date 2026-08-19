@@ -16,6 +16,16 @@
 
 ---
 
+## 2026-08-19 · 釣點選擇改為全螢幕地圖庫
+
+**改了什麼**：`main.js › FG.locationPicker()` 由一次約顯示三張卡的 `44dvh` 彈窗改為全螢幕釣點地圖庫，新增名稱／景觀／最低下注搜尋、全部／入門／進階／深釣篩選、大型釣點預覽、最低下注／圖鑑／可釣項目資訊，以及 320px 兩欄、420px 以上三欄的卡片網格；點卡片只預覽，需再按「前往」才切換。`screen-daily.js` 移除重複的十八張釣點清單，改為目前釣點摘要並共用地圖庫。`ui.modal()` 新增 `fullscreen` 模式，仍沿用既有 modal 堆疊。
+**為什麼**：釣點增加到十八站後，舊清單雖能自動定位目前站，尋找另一站的滑動距離仍會線性成長；全螢幕搜尋、分組與多欄瀏覽能把查找成本固定下來，也消除頂部與每日頁兩份切換邏輯不同步的技術債。
+**動到的檔案**：`js/main.js › FG.locationPicker()`、`js/screen-daily.js › render()`、`js/ui.js › modal() / closeAll()`、`styles.css › .loc-atlas* / .daily-loc-summary / #modalRoot.fullscreen`、`README.md`。
+**已更新的 wiki**：[wiki README](README.md)、[架構](01-architecture.md)、[介面與畫面](08-ui-and-screens.md)、[操作手冊](09-recipes.md)、[不變式與地雷](11-invariants-and-gotchas.md)、[專案 README](../README.md)。
+**注意事項**：`px.locThumb()` 的內部 canvas 必須維持 76:50，再交給 CSS `object-fit: cover` 裁切；直接傳超寬尺寸會把正式圖片與程序化地形一起拉扁。
+
+---
+
 ## 2026-08-19 · 新增朱楓天守與雪見狐湯兩套和風釣場
 
 **改了什麼**：新增 `maple_keep`（朱楓天守）與 `fox_springs`（雪見狐湯），包含 47 個可釣項目、兩位魚王與專屬 cut-in、兩組正式背景／縮圖、47 張 96×56 RGBA 精靈、兩套程序化地形與雜物備援、2 支釣竿、2 種餌料、2 件專屬裝備、2 件家園裝飾；全遊戲成為 18 站、417 個可釣項目。波動度曲線依 18 站重新縮放，Service Worker 升為 v18，另新增 3×4 規格表切圖工具。

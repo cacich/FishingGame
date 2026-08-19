@@ -26,10 +26,14 @@ window.FG = window.FG || {};
   };
 
   /* ---------------- 彈窗 ---------------- */
-  // opts: { title, body(HTMLElement|string), buttons:[{label, cls, close, onClick}], dismissable, cardClass }
+  // opts: { title, body(HTMLElement|string), buttons:[{label, cls, close, onClick}], dismissable, cardClass, fullscreen }
   ui.modal = function (opts) {
     const root = document.getElementById('modalRoot');
     const wrap = FG.el('div', 'modal' + (opts.cardClass ? ' ' + opts.cardClass : ''));
+
+    // 全螢幕模式仍沿用同一套堆疊與關閉邏輯，只改 root 的留白與卡片尺寸。
+    // 這樣地圖庫上再開確認窗時，關掉確認窗仍能回到原本的搜尋／捲動狀態。
+    root.classList.toggle('fullscreen', opts.fullscreen === true);
 
     if (opts.title !== false) {
       const head = FG.el('div', 'modal-head', FG.esc(opts.title || ''));
@@ -76,6 +80,7 @@ window.FG = window.FG || {};
         // 不是最上層 → 畫面已經被更上層的彈窗接管，只從堆疊移除，不要碰 DOM
         if (!isTop) return;
         root.classList.remove('on');
+        root.classList.remove('fullscreen');
         root.innerHTML = '';
         // 若堆疊中還有上一層，重新開啟
         const prev = modalStack.pop();
@@ -105,6 +110,7 @@ window.FG = window.FG || {};
     modalStack = [];
     const root = document.getElementById('modalRoot');
     root.classList.remove('on');
+    root.classList.remove('fullscreen');
     root.innerHTML = '';
   };
 

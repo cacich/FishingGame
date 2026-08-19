@@ -18,6 +18,7 @@ window.FG = window.FG || {};
       el.innerHTML = '<div class="scroll" id="dailyBody"></div>';
       this.el = el;
       FG.state.on('daily', function () { if (S.el) S.render(); });
+      FG.state.on('loc', function () { if (S.el) S.render(); });
       return el;
     },
 
@@ -88,42 +89,26 @@ window.FG = window.FG || {};
       });
       root.appendChild(p2);
 
-      /* --- 釣點快速切換 --- */
+      /* --- 目前釣點：完整清單統一交給全螢幕地圖庫，避免釣點增加後每日頁無限變長 --- */
       const p3 = FG.el('div', 'panel');
-      p3.appendChild(FG.el('div', 'panel-title', '釣點 <span class="sub">點擊自由切換</span>'));
-      FG.LOCATIONS.forEach(function (loc) {
-        const unlocked = st.isUnlocked(loc);
-        const cur = st.data.loc === loc.id;
-        const card = FG.el('div', 'loc-card' + (cur ? ' on' : '') + (unlocked ? '' : ' lock'));
-        card.appendChild(FG.px.locThumb(loc, 76, 50));
-        const info = FG.el('div', 'lc-info');
-        info.innerHTML = '<div class="nm">' + FG.esc(loc.name) +
-          (cur ? ' <span class="tag" style="color:#ffc44d">目前</span>' : '') + '</div>' +
-          '<div class="ds">' + FG.esc(loc.subtitle) + '<br>最低下注 ' + FG.fmt(loc.minBet) + ' 籌碼</div>';
-        card.appendChild(info);
-        const act = FG.el('div');
-        if (loc.comingSoon) {
-          act.appendChild(FG.el('div', 'tiny mute', '即將開放'));
-        } else if (unlocked) {
-          const b = FG.el('button', 'btn ' + (cur ? 'ghost' : 'primary'), cur ? '釣魚中' : '前往');
-          b.disabled = cur;
-          b.onclick = function () { FG.sfx.click(); st.setLoc(loc); FG.go('fishing'); FG.ui.toast('已前往 ' + loc.name, 'good'); };
-          act.appendChild(b);
-        } else {
-          const b = FG.el('button', 'btn gold', FG.fmtShort(loc.unlock.chips));
-          b.onclick = function () {
-            FG.sfx.click();
-            FG.ui.confirm('解鎖 ' + loc.name, FG.esc(loc.desc) + '<br><br>花費 <span class="money">' + FG.fmt(loc.unlock.chips) + '</span> 籌碼永久解鎖？', '解鎖', function () {
-              const r = st.unlockLoc(loc);
-              if (r === 'ok') { FG.sfx.win(); st.setLoc(loc); FG.go('fishing'); FG.ui.toast('已解鎖 ' + loc.name + '！', 'gold', 2200); }
-              else if (r === 'poor') { FG.sfx.fail(); FG.openTopup('籌碼不足'); }
-            }, 'gold');
-          };
-          act.appendChild(b);
-        }
-        card.appendChild(act);
-        p3.appendChild(card);
-      });
+      p3.appendChild(FG.el('div', 'panel-title', '目前釣點 <span class="sub">' + FG.LOCATIONS.length + ' 個釣點</span>'));
+      const loc = st.loc();
+      const prog = st.codexProgress(loc);
+      const card = FG.el('button', 'daily-loc-summary');
+      card.type = 'button';
+      card.setAttribute('aria-label', '開啟釣點地圖庫，目前是' + loc.name);
+      card.appendChild(FG.px.locThumb(loc, 114, 75));
+      const info = FG.el('span', 'daily-loc-info');
+      info.innerHTML = '<b>' + FG.esc(loc.name) + '</b><small>' + FG.esc(loc.subtitle) + '</small>' +
+        '<em>最低下注 ' + FG.fmt(loc.minBet) + ' · 圖鑑 ' + prog.got + '/' + prog.total + '</em>';
+      card.appendChild(info);
+      card.appendChild(FG.el('span', 'daily-loc-arrow', '›'));
+      card.onclick = function () { FG.sfx.click(); FG.locationPicker(); };
+      p3.appendChild(card);
+      const openAtlas = FG.el('button', 'btn primary block', '開啟釣點地圖庫');
+      openAtlas.style.marginTop = '9px';
+      openAtlas.onclick = function () { FG.sfx.click(); FG.locationPicker(); };
+      p3.appendChild(openAtlas);
       root.appendChild(p3);
     }
   };
