@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import colorsys
+from collections import deque
 from pathlib import Path
 
 from PIL import Image
@@ -13,12 +15,17 @@ CANVAS_SIZE = (96, 56)
 MAX_SUBJECT_SIZE = (88, 48)
 
 
-def remove_key_color(image: Image.Image, hex_color: str, tolerance: int) -> Image.Image:
-    """把接近指定鍵色的像素轉透明；保留其餘像素原有 alpha。"""
+def parse_key_color(hex_color: str) -> tuple[int, int, int]:
+    """解析六位十六進位鍵色。"""
     value = hex_color.removeprefix("#")
     if len(value) != 6:
         raise ValueError("--key-color 必須是 6 位十六進位色碼")
-    key = tuple(int(value[index:index + 2], 16) for index in (0, 2, 4))
+    return tuple(int(value[index:index + 2], 16) for index in (0, 2, 4))
+
+
+def remove_key_color(image: Image.Image, hex_color: str, tolerance: int) -> Image.Image:
+    """把接近指定鍵色的像素轉透明；保留其餘像素原有 alpha。"""
+    key = parse_key_color(hex_color)
     pixels = []
     for red, green, blue, alpha in image.convert("RGBA").getdata():
         if max(abs(red - key[0]), abs(green - key[1]), abs(blue - key[2])) <= tolerance:
@@ -28,6 +35,155 @@ def remove_key_color(image: Image.Image, hex_color: str, tolerance: int) -> Imag
     result = Image.new("RGBA", image.size)
     result.putdata(pixels)
     return result
+
+
+def despill_key_fringe(
+    image: Image.Image,
+    hex_color: str,
+    tolerance: int,
+) -> Image.Image:
+    """把與透明背景相連的鍵色混色邊緣改成最近的主體顏色。
+
+    只處理能沿著「接近鍵色」像素走到透明區的部分，因此魚身內部刻意使用的
+    紫色不會被整片抹掉。污染區由內側非污染像素向外做多源填色，保留原輪廓，
+    不用直接刪除一圈像素讓細鰭與鬚變短。
+    """
+    rgba = image.convert("RGBA")
+    key = parse_key_color(hex_color)
+    pixels = rgba.load()
+    width, height = rgba.size
+
+    def neighbors(x: int, y: int):
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                if dx == 0 and dy == 0:
+                    continue
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < width and 0 <= ny < height:
+                    yield nx, ny
+
+    candidates = set()
+    for y in range(height):
+        for x in range(width):
+            red, green, blue, alpha = pixels[x, y]
+            if alpha and max(
+                abs(red - key[0]),
+                abs(green - key[1]),
+                abs(blue - key[2]),
+            ) <= tolerance:
+                candidates.add((x, y))
+    if not candidates:
+        return rgba
+
+    # 只追蹤接觸透明區的候選像素；封閉在主體內的洋紅細節保留原樣。
+    fringe = set()
+    pending = deque()
+    for point in candidates:
+        x, y = point
+        if any(pixels[nx, ny][3] == 0 for nx, ny in neighbors(x, y)):
+            fringe.add(point)
+            pending.append(point)
+    while pending:
+        x, y = pending.popleft()
+        for point in neighbors(x, y):
+            if point in candidates and point not in fringe:
+                fringe.add(point)
+                pending.append(point)
+    if not fringe:
+        return rgba
+
+    # 從污染區內緣的乾淨像素向透明背景方向傳遞顏色，避免直接削薄輪廓。
+    replacement: dict[tuple[int, int], tuple[int, int, int]] = {}
+    pending.clear()
+    for point in fringe:
+        x, y = point
+        donors = [
+            pixels[nx, ny][:3]
+            for nx, ny in neighbors(x, y)
+            if pixels[nx, ny][3] and (nx, ny) not in fringe
+        ]
+        if donors:
+            replacement[point] = max(
+                donors,
+                key=lambda color: max(
+                    abs(color[0] - key[0]),
+                    abs(color[1] - key[1]),
+                    abs(color[2] - key[2]),
+                ),
+                default=donors[0],
+            )
+            pending.append(point)
+
+    while pending:
+        x, y = pending.popleft()
+        for point in neighbors(x, y):
+            if point in fringe and point not in replacement:
+                replacement[point] = replacement[(x, y)]
+                pending.append(point)
+
+    for x, y in fringe:
+        if (x, y) in replacement:
+            red, green, blue = replacement[(x, y)]
+            pixels[x, y] = (red, green, blue, pixels[x, y][3])
+        else:
+            # 整個游離元件都是鍵色混色時沒有可信主體顏色，直接視為背景。
+            pixels[x, y] = (0, 0, 0, 0)
+    return rgba
+
+
+def clean_purple_outer_edge(image: Image.Image, min_value: int) -> Image.Image:
+    """重著色最外圈的高亮紫／桃紅像素，清掉產圖模型自帶的紫色外光。
+
+    這一層不是鍵色混色，而是模型真的畫進主體的 lavender / fuchsia glow；
+    所以只限縮到最外圈一像素，並以最近的非高亮紫主體色取代，不碰魚身內部
+    合法的敦煌紫色與花紋。
+    """
+    rgba = image.convert("RGBA")
+    pixels = rgba.load()
+    width, height = rgba.size
+
+    def neighbors(x: int, y: int):
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                if dx == 0 and dy == 0:
+                    continue
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < width and 0 <= ny < height:
+                    yield nx, ny
+
+    def is_bright_purple(color: tuple[int, int, int, int]) -> bool:
+        red, green, blue, alpha = color
+        if not alpha or max(red, green, blue) < min_value:
+            return False
+        hue, saturation, _ = colorsys.rgb_to_hsv(red / 255, green / 255, blue / 255)
+        return 235 / 360 <= hue <= 340 / 360 and saturation >= 0.35
+
+    targets = set()
+    for y in range(height):
+        for x in range(width):
+            if not is_bright_purple(pixels[x, y]):
+                continue
+            if any(pixels[nx, ny][3] == 0 for nx, ny in neighbors(x, y)):
+                targets.add((x, y))
+
+    for x, y in targets:
+        donor = None
+        for radius in range(1, 5):
+            options = []
+            for ny in range(max(0, y - radius), min(height, y + radius + 1)):
+                for nx in range(max(0, x - radius), min(width, x + radius + 1)):
+                    if max(abs(nx - x), abs(ny - y)) != radius:
+                        continue
+                    if pixels[nx, ny][3] and (nx, ny) not in targets \
+                            and not is_bright_purple(pixels[nx, ny]):
+                        options.append((nx, ny))
+            if options:
+                donor = min(options, key=lambda point: (point[0] - x) ** 2 + (point[1] - y) ** 2)
+                break
+        if donor is not None:
+            red, green, blue, _ = pixels[donor[0], donor[1]]
+            pixels[x, y] = (red, green, blue, pixels[x, y][3])
+    return rgba
 
 
 def keep_largest_component(image: Image.Image) -> Image.Image:
@@ -121,8 +277,16 @@ def split_by_component_centroid(
     return cells
 
 
-def prepare_sprite(cell: Image.Image, *, largest_only: bool = True) -> Image.Image:
+def prepare_sprite(
+    cell: Image.Image,
+    *,
+    key_color: str,
+    spill_tolerance: int,
+    purple_edge_value: int,
+    largest_only: bool = True,
+) -> Image.Image:
     """裁掉透明邊，保留安全留白後置中到遊戲精靈畫布。"""
+    cell = despill_key_fringe(cell, key_color, spill_tolerance)
     if largest_only:
         cell = keep_largest_component(cell)
     box = cell.getchannel("A").getbbox()
@@ -138,6 +302,7 @@ def prepare_sprite(cell: Image.Image, *, largest_only: bool = True) -> Image.Ima
     )
     sprite = cell.crop(box)
     sprite.thumbnail(MAX_SUBJECT_SIZE, Image.Resampling.NEAREST)
+    sprite = despill_key_fringe(sprite, key_color, spill_tolerance)
     # 傳統等分模式要再清一次跨格殘點；元件分格模式則保留同格內的合法分離部件。
     if largest_only:
         sprite = keep_largest_component(sprite)
@@ -146,7 +311,7 @@ def prepare_sprite(cell: Image.Image, *, largest_only: bool = True) -> Image.Ima
     x = (CANVAS_SIZE[0] - sprite.width) // 2
     y = (CANVAS_SIZE[1] - sprite.height) // 2
     final.alpha_composite(sprite, (x, y))
-    return final
+    return clean_purple_outer_edge(final, purple_edge_value)
 
 
 def main() -> None:
@@ -157,6 +322,18 @@ def main() -> None:
     parser.add_argument("--rows", type=int, default=4)
     parser.add_argument("--key-color", default="ff00ff", help="要移除的背景鍵色，預設 ff00ff")
     parser.add_argument("--key-tolerance", type=int, default=18, help="鍵色每色頻容差，預設 18")
+    parser.add_argument(
+        "--spill-tolerance",
+        type=int,
+        default=110,
+        help="與透明背景相連的鍵色混色邊緣容差，預設 110；會以最近主體色取代",
+    )
+    parser.add_argument(
+        "--purple-edge-value",
+        type=int,
+        default=150,
+        help="清理最外圈高亮紫／桃紅外光的最低亮度，預設 150",
+    )
     parser.add_argument(
         "--component-cells",
         action="store_true",
@@ -190,7 +367,13 @@ def main() -> None:
             top = round(sheet.height * row / args.rows)
             bottom = round(sheet.height * (row + 1) / args.rows)
             cell = sheet.crop((left, top, right, bottom))
-        prepare_sprite(cell, largest_only=component_cells is None).save(
+        prepare_sprite(
+            cell,
+            key_color=args.key_color,
+            spill_tolerance=args.spill_tolerance,
+            purple_edge_value=args.purple_edge_value,
+            largest_only=component_cells is None,
+        ).save(
             args.output_dir / f"{name}.png"
         )
 

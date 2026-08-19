@@ -75,7 +75,7 @@
 | `assets/scenes/` · `assets/sprites/` · `assets/characters/` | — | 二十個釣點的主背景／縮圖、全部 463 個可釣項目精靈，以及船／釣手／狗的待機序列 | [04](04-fishing-loop.md)、[06](06-pixel-engine.md)、[13](13-pwa-and-deploy.md) |
 | `js/data.js` | 2900 | 所有資料表（20 個釣點、下注階梯、RTP 目標） | [07](07-data-schema.md) |
 | `tools/generate-image-prompts.js` | 250 | 由魚類資料重建全圖鑑產圖提示詞 | [15](15-image-prompts.md) |
-| `tools/split-sprite-sheet.py` | 180 | 將 3×4 產圖切格、去背、清除非主體連通元件並輸出 96×56 RGBA 精靈 | [06](06-pixel-engine.md)、[15](15-image-prompts.md) |
+| `tools/split-sprite-sheet.py` | 340 | 將 3×4 產圖切格、去背、清除鍵色／亮紫外緣與非主體元件，輸出 96×56 RGBA 精靈 | [06](06-pixel-engine.md)、[15](15-image-prompts.md) |
 | `js/state.js` | 560 | 存檔／經濟／抽獎／**固定 RTP 正規化**／Buffer 池 | [02](02-state-and-save.md)、[03](03-economy.md) |
 | `js/ui.js` | 160 | Toast／一般與全螢幕彈窗／捲動邊緣提示 | [08](08-ui-and-screens.md) |
 | `js/cutin.js` | 150 | 傳說／魚王的登場演出（四種骨架＋每王一筆參數） | [04](04-fishing-loop.md) |

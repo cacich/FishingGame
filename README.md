@@ -131,7 +131,7 @@ js/devtools.js        隱藏的開發者面板（連點底部「家園」鈕 10 
 js/pwa.js             Service Worker 註冊與安裝流程
 js/main.js            啟動、分頁切換、頂部列、全螢幕釣點地圖庫、儲值、主迴圈
 tools/make-icons.py   圖示產生器（純 Python 標準庫）
-tools/split-sprite-sheet.py  將規格化 3×4 產圖切成 96×56 透明精靈
+tools/split-sprite-sheet.py  將規格化 3×4 產圖切成 96×56 透明精靈，並清除鍵色／亮紫外緣
 wiki/                 知識庫（機制、公式、資料規格、地雷）
 ```
 
