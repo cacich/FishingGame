@@ -117,7 +117,7 @@
 
 同樣條件下 8 個釣點，原本的 `.seg` 會折成三行（高 67px），`.seg-scroll` 仍然是 33px。
 
-**16 個釣點 @ 320px 實測**：16 顆按鈕**全部 33px 高**（`offsetHeight` 只有一種值）、沒有折行，`seg.scrollWidth > clientWidth`（橫向可捲、邊緣漸層有出現），`document.body` 沒有橫向溢出；釣點選單的 16 張卡片高度也只有一種值（69px），彈窗沒有橫向溢出。跟 12／15 個釣點時的量測完全一樣——這正是 `flex: 0 0 auto` 該有的行為。
+**18 個釣點 @ 320px 實測（2026-08-19）**：圖鑑切換列維持單列橫向捲動，釣點選單可把目前站捲進可視區；釣魚投注列在雪見狐湯顯示 9,000／10,000，`document.documentElement.scrollWidth === clientWidth === 320`。新增兩站沒有造成折行或 body 橫向溢出。
 
 > **`.seg-scroll` 的按鈕是 `flex: 0 0 auto`，所以寬高完全不隨數量變化。** 也就是說它**沒有數量上限**——加到第二十個釣點，按鈕還是 33px 高。真正的上限是玩家願意橫向捲多遠，那是體驗問題不是版面問題。
 
@@ -136,7 +136,7 @@
 
 解法是讓清單自己捲：`.loc-list { max-height: 44dvh; overflow-y: auto }`。這樣說明文字永遠固定在清單下方。
 
-**開窗時會自動把「目前」那張卡捲到可視範圍中間**（`main.js › FG.locationPicker()`）。44dvh 一次只看得到三張卡，而釣點有十六個——不捲的話，玩到後段的玩家每次開窗都得從頭滑到底才找得到自己在哪，連續切換釣點時特別煩。頭尾的釣點會被 `Math.max(0, Math.min(..., scrollHeight - clientHeight))` 夾住，所以第一個停在最上、最後一個停在最下，不會出現「上方留一片空白」。
+**開窗時會自動把「目前」那張卡捲到可視範圍中間**（`main.js › FG.locationPicker()`）。44dvh 一次只看得到三張卡，而釣點有十八個——不捲的話，玩到後段的玩家每次開窗都得從頭滑到底才找得到自己在哪，連續切換釣點時特別煩。頭尾的釣點會被 `Math.max(0, Math.min(..., scrollHeight - clientHeight))` 夾住，所以第一個停在最上、最後一個停在最下，不會出現「上方留一片空白」。
 
 > ⚠️ 這裡的位置**必須用 `offsetTop` 算，不能用 `getBoundingClientRect()`**。`.modal` 開場有 `pop` 縮放動畫（`scale(.86) → 1`），這一刻量到的螢幕座標是被縮放過的，算出來的距離會偏小。`offsetTop` 是版面值，不受 transform 影響。配套是 `.loc-list` 要有 `position: relative`，卡片的 `offsetParent` 才會是清單本身。見 [11 §37](11-invariants-and-gotchas.md#37-在-modal-的開場動畫期間量-getboundingclientrect-會量到縮放後的值)。
 
@@ -274,7 +274,7 @@ box-shadow:
 - `.motif-emerge|charge|spiral|reveal` 決定魚怎麼進場、要不要黑幕／符文環。
 - `.pm-up|burst|drift` 決定粒子動線。
 
-顏色走兩個 CSS 變數 `--ci-key` / `--ci-accent`，由 `cutin.js` 從魚自己的 `colors.glow` / `colors.pattern` 寫進 style。**不要在 CSS 裡寫死稀有度顏色**——那樣十六位魚王會長得一樣。放射線與光帶用 `currentColor` 配 `color: var(--ci-key)`，因為 gradient 裡不能直接吃自訂屬性當色票。
+顏色走兩個 CSS 變數 `--ci-key` / `--ci-accent`，由 `cutin.js` 從魚自己的 `colors.glow` / `colors.pattern` 寫進 style。**不要在 CSS 裡寫死稀有度顏色**——那樣十八位魚王會長得一樣。放射線與光帶用 `currentColor` 配 `color: var(--ci-key)`，因為 gradient 裡不能直接吃自訂屬性當色票。
 
 三個硬性約束：
 

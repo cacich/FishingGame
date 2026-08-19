@@ -56,11 +56,11 @@
 
 | 欄位 | 可用值 |
 |---|---|
-| `shape` | 一般：`normal` `long` `round` `flat` `wide` `ray` `slim` `crest` `boxy` `torpedo`／魚王專屬：`catfish` `tuna` `dragon` `pike` `abyss` `paddle` `serpent` `lungfish` `koi` `skipper` `leaper` `coelacanth` `clinger` `wrasse` `olm` `octopus` |
+| `shape` | 一般：`normal` `long` `round` `flat` `wide` `ray` `slim` `crest` `boxy` `torpedo`／魚王專屬：`catfish` `oni_catfish` `tuna` `dragon` `kitsune_dragon` `pike` `abyss` `paddle` `serpent` `lungfish` `koi` `skipper` `leaper` `coelacanth` `clinger` `wrasse` `olm` `octopus` |
 | `pattern` | `none` `stripe` `band` `band2` `spot` `speck` `net` `scale` `gradient` `saddle` `ocellus` `chevron` |
 | `special[]` | `glow` `spike` `whisker` `scar` `horn` `jaw` `lantern` `finlet` `mane` `frost` `rostrum` `forkTongue` `filaments` `stalkEye` `kype` `lobeFin` `sucker` `hump` `gills` `limbs` `blind` `arms` `slitEye` |
-| `junkArt` | `boot` `can` `weed` `bottle` `ice` `bone` `ema` `porcelain` `shield` `ostracon` `coins` `shell` `flask` `brimstone` `driftwood` `coralfrag` `dripstone` `porthole` |
-| `scene.terrain` | `forest` `pond` `cliff` `shrine` `tidal` `ice` `waterfall` `karst` `caldera` `night` `yggdrasil` `desert` `rapids` `reef` `cavern` `wreck` |
+| `junkArt` | 每件雜物都有 key；新和風站新增 `mk_kawara` `mk_hairpin` `mk_leafnet` `fs_yunohana` `fs_ema` `fs_geta`，完整表見 [06 §雜物字元圖](06-pixel-engine.md#雜物字元圖清單--junk_maps) |
+| `scene.terrain` | `forest` `pond` `cliff` `shrine` `tidal` `ice` `waterfall` `karst` `caldera` `night` `yggdrasil` `desert` `rapids` `reef` `cavern` `wreck` `keep` `rotenburo` |
 | `colors` | `body`(必填) `back` `belly` `fin` `pattern` `glow` `hornColor` `scar` `tooth` `frost` `lantern` `mane` `rostrum` `tongue` `filament` `kype` `lobe` `eyeWhite` `pupil` |
 
 會觸發 `headRoom`（吻端前方預留空間）的 special：`whisker`(12px)、`forkTongue`(12px)、`kype`(10px)、`rostrum`(24px)。**`arms` 不在裡面**——腕往尾側長，那張表只管吻端前方。
@@ -84,7 +84,7 @@
 | `motif` | `legend`／魚王四選一：`emerge` `charge` `spiral` `reveal` |
 | `particle` | 粒子動線：`up` 上浮／`burst` 四散／`drift` 橫流 |
 
-十六位魚王的分配表在 [04 §cut-in](04-fishing-loop.md#cut-in--傳說以上的登場演出)（四種 `motif` 目前是 emerge 5／charge 3／spiral 4／reveal 4）。
+十八位魚王的分配表在 [04 §cut-in](04-fishing-loop.md#cut-in--傳說以上的登場演出)（四種 `motif` 目前是 emerge 5／charge 4／spiral 5／reveal 4）。
 
 ## 事件名
 
@@ -128,6 +128,8 @@
 | `cr_` | 琉璃珊瑚的魚 |
 | `cv_` | 鐘乳暗穴的魚 |
 | `dp_` | 曉日沉港的魚 |
+| `mk_` | 朱楓天守的魚 |
+| `fs_` | 雪見狐湯的魚 |
 | `rod_` `bait_` `eq_` | 釣竿／餌料／裝備 |
 | `FG.screenXxx` | 分頁模組 |
 | `px.` | `FG.px` 像素引擎命名空間 |

@@ -16,6 +16,16 @@
 
 ---
 
+## 2026-08-19 · 新增朱楓天守與雪見狐湯兩套和風釣場
+
+**改了什麼**：新增 `maple_keep`（朱楓天守）與 `fox_springs`（雪見狐湯），包含 47 個可釣項目、兩位魚王與專屬 cut-in、兩組正式背景／縮圖、47 張 96×56 RGBA 精靈、兩套程序化地形與雜物備援、2 支釣竿、2 種餌料、2 件專屬裝備、2 件家園裝飾；全遊戲成為 18 站、417 個可釣項目。波動度曲線依 18 站重新縮放，Service Worker 升為 v18，另新增 3×4 規格表切圖工具。
+**為什麼**：兩站分別用晚秋城郭與雪夜露天湯呈現不同的和風辨識軸，並維持「每站一整套內容、正式圖片失敗仍可玩、固定 98% RTP」三項既有設計契約。
+**動到的檔案**：`js/data.js › FG.LOCATIONS / FG.RODS / FG.BAITS / FG.EQUIPS / FG.DECOS`、`js/pixel.js › SHAPES / JUNK_MAPS / TERRAIN / locThumb() / drawRoom()`、`js/cutin.js › KING`、`js/screen-shop.js › rodIcon() / EQUIP_ART`、`js/screen-home.js › DECO_ART`、`tools/generate-image-prompts.js`、`tools/split-sprite-sheet.py`、`assets/scenes/`、`assets/sprites/`、`sw.js › VERSION / ASSETS`。
+**已更新的 wiki**：[wiki README](README.md)、[架構](01-architecture.md)、[狀態與存檔](02-state-and-save.md)、[經濟與抽獎](03-economy.md)、[釣魚循環](04-fishing-loop.md)、[像素引擎](06-pixel-engine.md)、[資料規格](07-data-schema.md)、[介面與畫面](08-ui-and-screens.md)、[操作手冊](09-recipes.md)、[平衡調參](10-balance-tuning.md)、[不變式與地雷](11-invariants-and-gotchas.md)、[名詞表](12-glossary.md)、[PWA 與部署](13-pwa-and-deploy.md)、[全圖鑑產圖描述](15-image-prompts.md)、[_map](_map.md)、[專案 README](../README.md)。
+**注意事項**：批量切圖只保證尺寸、鍵色與檔名；格序與魚頭朝右仍需人工驗證。重算 `mult` 時不可漏掉體型動差與非雜物的閃光期望 1.06。
+
+---
+
 ## 2026-08-07 · 釣手下半身收進船艙
 
 **改了什麼**：十二格 `assets/characters/fishing-idle.png` 都加入前景船殼遮擋，讓坐姿釣手的彎腿留在艙內、膝下不再跨過外側船舷；遮擋跟著既有 `boatOffsetY` 逐格移動，其他角色像素與動畫時序不變。Service Worker 升為 v17。

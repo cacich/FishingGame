@@ -64,7 +64,9 @@ window.FG = window.FG || {};
     cv_king_chosoku:     { motif: 'emerge', particle: 'up',    title: '長　息', tone: [175, 220, 262, 330] },
     // 名字本身就是一段演出：圓的橘色東西從水裡浮起來。所以 motif 用 emerge，
     // 音階是一路上行的大調（其他 emerge 三位都收在較低的音）
-    dp_king_sunrise:     { motif: 'emerge', particle: 'up',    title: '日　出', tone: [262, 330, 392, 523, 659] }
+    dp_king_sunrise:     { motif: 'emerge', particle: 'up',    title: '日　出', tone: [262, 330, 392, 523, 659] },
+    mk_king_momijigari:  { motif: 'charge', particle: 'burst', title: '楓　鬼', tone: [196, 247, 294, 392, 523] },
+    fs_king_hakugin:     { motif: 'spiral', particle: 'drift', title: '白　狐', tone: [659, 523, 784, 988, 1175] }
   };
 
   // 新增的魚王忘了補 KING 表時用這個。刻意不報錯——少一筆資料不該讓玩家

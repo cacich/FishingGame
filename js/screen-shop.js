@@ -205,17 +205,17 @@ window.FG = window.FG || {};
     // ⚠️ 這兩張色表必須跟 FG.RODS 一樣長，而且順序對齊。
     // 原本只有 5 筆、又是用 cols[idx] 直接取（沒有取餘數），加第 6 支竿就會拿到
     // undefined → 圖示整個消失。加竿子時記得同步補一組配色。
-    const idx = FG.RODS.indexOf(rod) % 21;
-    // ★ 兩張表的長度必須等於 FG.RODS.length（目前 21）。插新竿子時要把配色
+    const idx = FG.RODS.indexOf(rod) % 23;
+    // ★ 兩張表的長度必須等於 FG.RODS.length（目前 23）。插新竿子時要把配色
     //   插在同一個位置，否則後面所有竿子的圖示顏色會整排位移。
     const cols = ['#8a6a3a', '#9aa86a', '#7f9a5f', '#5f8f5a', '#5fb0a8', '#4a7a86', '#a89478',
                   '#7f6a4a', '#4f7a70', '#3a3a44', '#8f7a90', '#c88fa8',
                   '#9ab6c8', '#9ab6c8', '#6fa87f', '#3f5a6a', '#8a3a4a',
-                  '#7f6f4a', '#d8b45a', '#5f5a52', '#a4552e'];
+                  '#7f6f4a', '#d8b45a', '#5f5a52', '#a4552e', '#b33b2d', '#d8e8f0'];
     const grip = ['#5a4020', '#5f6a34', '#4a5f30', '#3a5f38', '#2f6a68', '#33505a', '#6a5c44',
                   '#4f4028', '#2f524c', '#22222a', '#5a4a5c', '#8a5a70',
                   '#6a8494', '#6a8494', '#3f6a50', '#243848', '#5a2430',
-                  '#4f4428', '#8f7020', '#38342c', '#6a3418'];
+                  '#4f4428', '#8f7020', '#38342c', '#6a3418', '#68251f', '#8f3540'];
     const cv = FG.px.make(16, 16);
     const g = cv.getContext('2d');
     for (let i = 0; i < 13; i++) {
@@ -296,7 +296,13 @@ window.FG = window.FG || {};
       '..bccb.bccb.bccb', '...bb...bb...bb.', '................', '................' ] },
     eq_headlamp: { pal: { a: '#3a3a42', b: '#e8e0a8', c: '#fbf6d0' }, map: [
       '................', '...aaaaaaaaa....', '..aaaaaaaaaaa...', '..aa.......aa...', '.....aaaaa..cc..',
-      '.....abbba.ccc..', '.....abcba.cccc.', '.....abbba.ccc..', '.....aaaaa..cc..' ] }
+      '.....abbba.ccc..', '.....abcba.cccc.', '.....abbba.ccc..', '.....aaaaa..cc..' ] },
+    eq_maplelantern: { pal: { a: '#a63128', b: '#f0b04f', c: '#4a2b24', d: '#df6a32' }, map: [
+      '................', '......cc........', '.....cccc.......', '...aaaaaaaa.....', '...abbbbbba.....',
+      '...abdbdbba.....', '...abbbbbba.....', '...aaaaaaaa.....', '.....c..c.......' ] },
+    eq_foxmask: { pal: { a: '#eef3f4', b: '#cf4338', c: '#75a9c8', d: '#242a34' }, map: [
+      '...aa......aa...', '..aaaa....aaaa..', '.aaaabaaaabaaaa.', '.aaabbbbbbbbaaa.', '..aabcaacbaaa...',
+      '..aadaddadaaa...', '...aaabaaaaa....', '....aabbaa......', '.....aaaa.......' ] }
   };
 
   function equipIcon(e) {

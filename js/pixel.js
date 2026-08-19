@@ -184,8 +184,12 @@ window.FG = window.FG || {};
     // 體型是這個解析度下最強的辨識線索（比花紋、比配色都強），所以一王一型，不共用。
     // gamma < 1 把最寬處推向尾部、> 1 推向頭部，是拉開輪廓差異最有效的旋鈕。
     catfish: { bodyLen: .62, bodyH: .44, gamma: 1.42, e: .34, tailLen: .18, tailH: .50, fork: .02, dorsal: .18, dorsalAt: [.50, .68], anal: .32, analAt: [.06, .42] },
+    // 楓鬼大鯰：比翁德更短、更高，尾扇像兜鍪的後錏；正式 PNG 缺檔時仍不能退回同一個魚王輪廓。
+    oni_catfish: { bodyLen: .56, bodyH: .55, gamma: 1.62, e: .28, tailLen: .20, tailH: .72, fork: .08, dorsal: .30, dorsalAt: [.38, .66], anal: .38, analAt: [.08, .44] },
     tuna:    { bodyLen: .52, bodyH: .50, gamma: 1.08, e: .52, tailLen: .22, tailH: 1.05, fork: .72, dorsal: .54, dorsalAt: [.36, .52], anal: .30, analAt: [.20, .34] },
     dragon:  { bodyLen: .66, bodyH: .32, gamma: 1.18, e: .56, tailLen: .18, tailH: .95, fork: .22, dorsal: .52, dorsalAt: [.16, .82], anal: .30, analAt: [.12, .50] },
+    // 白狐龍魚：比八尋更細、更對稱，短尾柄接九尾般的深叉大扇，讓雪地備援剪影一眼可辨。
+    kitsune_dragon: { bodyLen: .70, bodyH: .26, gamma: 1.02, e: .64, tailLen: .22, tailH: 1.08, fork: .48, dorsal: .40, dorsalAt: [.18, .76], anal: .26, analAt: [.16, .48] },
     pike:    { bodyLen: .66, bodyH: .34, gamma: 0.78, e: .60, tailLen: .16, tailH: .72, fork: .34, dorsal: .38, dorsalAt: [.08, .26], anal: .28, analAt: [.06, .22] },
     abyss:   { bodyLen: .60, bodyH: .52, gamma: 1.70, e: .40, tailLen: .22, tailH: .48, fork: .12, dorsal: .24, dorsalAt: [.16, .50], anal: .22, analAt: [.10, .36] },
     // 鱘／鱘形目：背鰭與臀鰭都極靠尾、深叉尾。身體刻意畫短，長度靠 rostrum 補回來
@@ -1421,6 +1425,24 @@ window.FG = window.FG || {};
     ] },
     dp_compass: { pal: { X: '#3c3528', b: '#a77c3c', l: '#e0bd69', c: '#8bb0b4', r: '#b74c43' }, map: [
       '...XXXXXX...', '..XllllllX..', '.XllccccllX.', 'XllccrrccllX', 'XlccrllrccX', 'XllccrrccllX', '.XllccccllX.', '..XllllllX..', '...XXXXXX...'
+    ] },
+    mk_kawara: { pal: { X: '#29272b', s: '#55545a', l: '#8b898d', r: '#d24b2f' }, map: [
+      '..XXXXXXXX..', '.XllllllllX.', 'XlssssssssX', 'XlsXXssXXsX', 'XlssssssssX', '.XssssssXX..', '..XXXXXX....', '.....XrX....', '....XrrrX...'
+    ] },
+    mk_hairpin: { pal: { X: '#38201b', r: '#ad3028', l: '#df7251', g: '#d5aa48' }, map: [
+      '..........X.', '.........XrX', '........XrrX', '.......XrrX.', '......XrrX..', '.....XrrX...', '..XgX.XrrX..', '.XglgXXrX...', 'XglllgXX....', '.XgXgX......'
+    ] },
+    mk_leafnet: { pal: { X: '#34261c', w: '#a87c49', n: '#766a54', r: '#c43b27', o: '#df782e' }, map: [
+      '......XXXX..', '....XXnnnnX.', '..XXnXnnXnX.', '.XnnnnnnnnX.', 'XnnXnnXnnnX.', '.XnnnnnnnnX.', '..XnXnnXnX..', '...XXnnXX...', '....XwrX....', '....XwoX....', '.....XX.....'
+    ] },
+    fs_yunohana: { pal: { X: '#303741', s: '#8395aa', l: '#c7dbea', w: '#eef7fb' }, map: [
+      '....XX......', '..XXwwXX....', '.XwllllwX...', 'XwllwwllX...', 'XllwwwwlXX..', '.XwllllwwlX.', '..XssssssX..', '...XXXXXX...'
+    ] },
+    fs_ema: { pal: { X: '#3b291e', w: '#a77d4f', l: '#d0a36b', r: '#a63a35' }, map: [
+      '....XrrX....', '...XrrrrX...', '...XXrrXX...', '..XllllllX..', '.XlwwwwwwlX.', 'XlwwwwwwwwlX', 'XlwwwwwwwwlX', '.XlwwwwwwlX.', '..XXXXXXXX..'
+    ] },
+    fs_geta: { pal: { X: '#332922', w: '#9a754e', l: '#c5a477', s: '#dce8ee', d: '#4a4140' }, map: [
+      '..XXXXXXXX..', '.XllllllllX.', 'XlwwwwwwwwlX', 'XlwddwwddwlX', '.XlwwwwwwlX.', '..XXXXXXXX..', '...XwX.XwX..', '...XwX.XwX..', '..XssX.XssX.'
     ] }
   });
 
@@ -3874,6 +3896,139 @@ window.FG = window.FG || {};
     }
   };
 
+  /* ------------------------------------------------------------
+     keep · 朱楓天守
+
+     辨識軸是「完整的城郭剖面」：石垣、白壁與瓦頂垂直疊起，
+     再用紅楓圓冠與朱橋切開硬邊。它不是 shrine 的山／塔／鳥居剪影，
+     建築本身就是地平線，所以縮成小圖仍然讀得出。
+     ------------------------------------------------------------ */
+  TERRAIN.keep = {
+    above: function (T) {
+      const { P, R, W, horizon, rect } = T;
+      const stone = P.stone || '#504a4b';
+      const wall = P.wall || '#ded8c8';
+      const roof = P.roof || '#28242b';
+
+      // 大塊石垣：上窄下寬的階梯面，每層錯縫才不會讀成一塊灰牆。
+      for (let y = horizon - 42; y < horizon; y++) {
+        const t = (y - (horizon - 42)) / 42;
+        const half = 34 + t * 22;
+        rect(W * 0.48 - half, y, half * 2, 1, FG.shade(stone, (y % 6 === 0) ? 0.12 : -0.04));
+        if (y % 6 === 0) for (let x = W * 0.48 - half; x < W * 0.48 + half; x += 11) rect(x + ((y / 6) & 1) * 5, y, 1, 5, FG.shade(stone, -0.24));
+      }
+
+      // 三層天守：白壁方體＋寬出的深色瓦檐。
+      let cy = horizon - 42;
+      [[38, 15], [30, 14], [22, 13]].forEach(function (lv) {
+        rect(W * 0.48 - lv[0] / 2, cy - lv[1], lv[0], lv[1], wall);
+        for (let x = W * 0.48 - lv[0] / 2 + 5; x < W * 0.48 + lv[0] / 2 - 2; x += 8) rect(x, cy - lv[1] + 5, 3, 3, FG.shade(roof, 0.12));
+        rect(W * 0.48 - lv[0] / 2 - 5, cy - lv[1] - 3, lv[0] + 10, 3, roof);
+        rect(W * 0.48 - lv[0] / 2 - 2, cy - lv[1] - 4, lv[0] + 4, 1, FG.shade(roof, 0.24));
+        cy -= lv[1] + 4;
+      });
+
+      // 楓林用不規則圓冠，和 shrine 稀疏的櫻花點不同，這裡必須是整塊火紅體積。
+      for (let i = 0; i < 18; i++) {
+        const left = i < 9;
+        const cx = left ? R() * W * 0.28 : W * 0.72 + R() * W * 0.28;
+        const cy2 = horizon - 10 - R() * 42;
+        const rr = 5 + R() * 9;
+        const c = R() < 0.45 ? (P.mapleLit || '#ef7b2d') : (P.maple || '#d63824');
+        for (let dy = -rr; dy <= rr; dy++) {
+          const half = Math.sqrt(Math.max(0, rr * rr - dy * dy));
+          rect(cx - half, cy2 + dy, half * 2, 1, dy < -rr * 0.3 ? FG.shade(c, 0.18) : c);
+        }
+      }
+
+      // 朱橋用拋物線橋面，位在右側避開中央釣魚動線。
+      const bx0 = W * 0.67, bx1 = W * 0.97;
+      for (let x = bx0; x <= bx1; x++) {
+        const t = (x - bx0) / (bx1 - bx0);
+        const y = horizon - 5 - Math.sin(t * Math.PI) * 12;
+        rect(x, y, 1, 3, P.bridge || '#b63227');
+        if ((x - bx0) % 8 < 1) rect(x, y - 5, 2, 8, FG.shade(P.bridge || '#b63227', -0.18));
+      }
+    },
+    below: function (T) {
+      const { P, R, W, H, horizon, rect } = T;
+      const g = T.g;
+      // 少量楓葉漂在水上；多了會與正式底圖下半部的留白相衝。
+      for (let i = 0; i < 18; i++) {
+        const x = R() * W, y = horizon + 12 + Math.pow(R(), 0.75) * (H - horizon - 24);
+        g.globalAlpha = 0.62;
+        rect(x, y, 3, 1, R() < 0.4 ? (P.mapleLit || '#ef7b2d') : (P.maple || '#d63824'));
+        rect(x + 1, y - 1, 1, 3, P.maple || '#d63824');
+      }
+      g.globalAlpha = 1;
+    }
+  };
+
+  /* ------------------------------------------------------------
+     rotenburo · 雪見狐湯
+
+     辨識軸是「雪岸的暖光小屋＋蒸氣跨過水線」。caldera 也有蒸氣，
+     但那裡的土地是黃硫與火山口；這裡的地平線則被白雪、深藍杉林、
+     紙窗暖光切成三種明度，縮圖時仍不會混在一起。
+     ------------------------------------------------------------ */
+  TERRAIN.rotenburo = {
+    above: function (T) {
+      const { P, R, W, horizon, rect } = T;
+      // 雪杉林：深色三角上加不連續白邊，避免變成整塊白金字塔。
+      for (let i = 0; i < 22; i++) {
+        const x = R() * W, h = 18 + R() * 42, w = h * 0.38;
+        for (let k = 0; k < h; k++) {
+          const ww = Math.max(1, w * (k / h));
+          rect(x - ww / 2, horizon - h + k, ww, 1, i % 2 ? P.midTree : P.nearTree);
+          if (k % 8 === 2 && k < h * 0.72) rect(x - ww / 2, horizon - h + k, ww * 0.62, 1, P.snow || '#d9e8f4');
+        }
+      }
+
+      // 左岸鳥居。它在這裡是次要地標，不搭配山形與塔，避免重演 shrine。
+      const tx = 34, torii = P.torii || '#8f342f';
+      rect(tx, horizon - 30, 3, 30, torii); rect(tx + 22, horizon - 30, 3, 30, torii);
+      rect(tx - 4, horizon - 31, 33, 3, torii); rect(tx, horizon - 36, 25, 2, FG.shade(torii, 0.12));
+      rect(tx - 5, horizon - 37, 35, 1, P.snow || '#d9e8f4');
+
+      // 右岸湯屋：深色木框包著唯一的暖色紙窗。
+      const hx = 116, hy = horizon - 42;
+      rect(hx, hy, 68, 42, P.bath || '#3c2d29');
+      rect(hx - 7, hy - 5, 82, 6, FG.shade(P.bath || '#3c2d29', -0.22));
+      rect(hx - 4, hy - 6, 76, 1, P.snow || '#d9e8f4');
+      for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++) {
+        const x = hx + 12 + c * 10, y = hy + 11 + r * 11;
+        rect(x, y, 8, 9, P.window || '#f0b56a');
+        rect(x + 3, y, 1, 9, FG.shade(P.bath || '#3c2d29', -0.2));
+      }
+
+      // 黑石雪岸。
+      for (let i = 0; i < 18; i++) {
+        const cx = R() * W, rr = 4 + R() * 9;
+        for (let dy = -rr; dy <= 0; dy++) {
+          const half = Math.sqrt(Math.max(0, rr * rr - dy * dy));
+          rect(cx - half, horizon + dy, half * 2, 1, dy < -rr * 0.45 ? (P.snow || '#d9e8f4') : (P.stone || '#303a46'));
+        }
+      }
+    },
+    below: function (T) {
+      const { P, R, W, horizon, rect } = T;
+      const g = T.g;
+      // 蒸氣要用斷開的橫帶，實心白片會蓋掉浮標與魚躍。
+      for (let i = 0; i < 12; i++) {
+        const y = horizon + 5 + R() * 48, x = R() * W, span = 10 + R() * 30;
+        g.globalAlpha = 0.10 + R() * 0.14;
+        for (let k = 0; k < span; k++) rect(x + k, y + Math.sin(k * 0.23 + i) * 2, 1, 1, P.steam || '#b9dbe5');
+      }
+      g.globalAlpha = 1;
+      for (let i = 0; i < 10; i++) {
+        const x = R() * W, y = horizon + 8 + R() * 38, rw = 4 + R() * 10;
+        g.globalAlpha = 0.35;
+        rect(x - rw, y, rw * 2, 1, P.highlight2 || '#4bb5c8');
+      }
+      g.globalAlpha = 1;
+    }
+  };
+
   function buildBackground(loc) {
     const P = loc.scene;
     const W = SCENE_W, H = SCENE_H;
@@ -4471,6 +4626,47 @@ window.FG = window.FG || {};
         break;
       }
 
+      case 'keep': {
+        // 石垣上疊三層白壁瓦頂，兩側塞滿楓冠。
+        const cx = W * 0.47;
+        for (let y = hz - 11 * S; y < hz; y++) {
+          const t = (y - (hz - 11 * S)) / (11 * S);
+          fill(cx - (9 + t * 6) * S, y, (18 + t * 12) * S, 1, P.stone || '#504a4b');
+        }
+        let cy = hz - 11 * S;
+        [[12, 4], [9, 4], [6, 4]].forEach(function (lv) {
+          fill(cx - lv[0] * S / 2, cy - lv[1] * S, lv[0] * S, lv[1] * S, P.wall || '#ded8c8');
+          fill(cx - (lv[0] + 3) * S / 2, cy - (lv[1] + 1) * S, (lv[0] + 3) * S, S, P.roof || '#28242b');
+          cy -= (lv[1] + 1) * S;
+        });
+        for (let i = 0; i < 10; i++) {
+          const left = i < 5, x = left ? R() * W * 0.24 : W * 0.75 + R() * W * 0.25;
+          const r = (1.8 + R() * 2.8) * S, y = hz - (3 + R() * 8) * S;
+          for (let dy = -r; dy <= r; dy++) {
+            const half = Math.sqrt(Math.max(0, r * r - dy * dy));
+            fill(x - half, y + dy, half * 2, 1, R() < 0.4 ? (P.mapleLit || '#ef7b2d') : (P.maple || '#d63824'));
+          }
+        }
+        break;
+      }
+
+      case 'rotenburo': {
+        // 冷藍雪杉當底，右側只留一塊暖色紙窗；明度對比就是識別。
+        for (let i = 0; i < 13; i++) {
+          const x = R() * W, hgt = (4 + R() * 8) * S, ww = hgt * 0.42;
+          for (let k = 0; k < hgt; k++) {
+            const w2 = Math.max(1, ww * k / hgt);
+            fill(x - w2 / 2, hz - hgt + k, w2, 1, i % 2 ? P.midTree : P.nearTree);
+            if (k % Math.max(3, Math.round(4 * S)) === 1 && k < hgt * 0.7) fill(x - w2 / 2, hz - hgt + k, w2 * 0.6, 1, P.snow || '#d9e8f4');
+          }
+        }
+        fill(W * 0.58, hz - 10 * S, W * 0.34, 10 * S, P.bath || '#3c2d29');
+        fill(W * 0.55, hz - 12 * S, W * 0.4, 2 * S, FG.shade(P.bath || '#3c2d29', -0.2));
+        fill(W * 0.56, hz - 13 * S, W * 0.38, S, P.snow || '#d9e8f4');
+        for (let i = 0; i < 3; i++) fill(W * 0.65 + i * 7 * S, hz - 7 * S, 5 * S, 5 * S, P.window || '#f0b56a');
+        break;
+      }
+
       default:
         for (let i = 0; i < 40; i++) {
           const x = Math.floor(R() * W), hgt = 4 + R() * 8;
@@ -4914,6 +5110,53 @@ window.FG = window.FG || {};
       }
       g.globalAlpha = 1;
       rect(bx - 1 + dir * 6, 13, 3, 3, '#fff4d0');               // 燈絲的亮點跟著轉
+    }
+    if (deco.maplebyobu) {
+      // 楓景金屏風：放在魚缸下方的地板留白。三片必須有明暗折面，
+      // 不然只會讀成一張大海報；楓枝跨過折線，讓三片看起來是同一幅畫。
+      const px0 = 64, py0 = floorY - 38, pw = 14, ph = 38;
+      ['#d6af50', '#b98c38', '#e0bd62'].forEach(function (c, i) {
+        const x = px0 + i * pw;
+        rect(x, py0, pw, ph, c);
+        rect(x, py0, 1, ph, '#6b4628');
+        rect(x + pw - 1, py0, 1, ph, '#6b4628');
+        rect(x, py0, pw, 2, '#7a512b');
+        rect(x, py0 + ph - 2, pw, 2, '#7a512b');
+      });
+      // 天守剪影
+      rect(px0 + 14, py0 + 19, 15, 12, '#4a3028');
+      rect(px0 + 11, py0 + 17, 21, 3, '#2b2426');
+      rect(px0 + 17, py0 + 11, 9, 7, '#4a3028');
+      rect(px0 + 14, py0 + 9, 15, 3, '#2b2426');
+      // 跨三片的楓枝與葉塊
+      for (let k = 0; k < 36; k++) rect(px0 + 2 + k, py0 + 28 - k * 0.48, 1, 1, '#5a3025');
+      [[5, 26], [11, 22], [22, 17], [31, 12], [37, 9]].forEach(function (p, i) {
+        const c = i % 2 ? '#d64429' : '#b52e24';
+        rect(px0 + p[0] - 2, py0 + p[1], 5, 2, c);
+        rect(px0 + p[0], py0 + p[1] - 2, 1, 6, c);
+      });
+    }
+    if (deco.foxlantern) {
+      // 雪狐石燈籠：地板右中的窄空位。燈腳的盤尾把它與普通石燈分開，
+      // 蒸氣會左右漂；這是「暖燈」而不是另一尊灰色家具的必要識別。
+      const lx = 112, ly = floorY - 28;
+      rect(lx + 5, ly + 19, 5, 9, '#666a70');                  // 燈腳
+      rect(lx + 1, ly + 17, 13, 3, '#858b91');                 // 下座
+      rect(lx + 2, ly + 7, 11, 11, '#565c63');                 // 燈室
+      rect(lx + 4, ly + 9, 7, 7, '#f0b56a');
+      rect(lx + 7, ly + 9, 1, 7, '#8d5a3d');
+      rect(lx, ly + 5, 15, 3, '#858b91');
+      rect(lx + 2, ly + 3, 11, 2, '#dce8ef');                 // 積雪燈蓋
+      rect(lx + 4, ly + 1, 7, 2, '#dce8ef');
+      // 盤在底座旁的狐尾
+      rect(lx - 1, ly + 24, 7, 3, '#777c82');
+      rect(lx - 3, ly + 22, 3, 5, '#777c82');
+      rect(lx - 2, ly + 21, 2, 2, '#dce8ef');
+      for (let k = 0; k < 13; k++) {
+        g.globalAlpha = 0.12 * (1 - k / 13);
+        rect(lx + 4 + Math.sin(k * 0.48 + time * 0.0017) * 3, ly - k, 7, 1, '#eef6fa');
+      }
+      g.globalAlpha = 1;
     }
     if (deco.cat) {
       const wave = Math.sin(time * 0.005) > 0 ? 0 : 1;
