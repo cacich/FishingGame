@@ -16,6 +16,16 @@
 
 ---
 
+## 2026-08-19 · 重切兩張和風地圖的 47 張精靈
+
+**改了什麼**：重新檢查朱楓天守與雪見狐湯全部 47 張 96×56 RGBA 精靈，從原始 3×4 母版做 soft-matte 去背與 despill，再以完整母版的連通元件重心分格，修復魚身／魚鰭被格線截斷，以及上、下、左右相鄰格碎片滲入的問題。`tools/split-sprite-sheet.py` 新增 `--component-cells` 模式；Service Worker 升為 v21，確保已安裝版本重抓替換後的 cache-first 圖片。
+**為什麼**：等分格線只描述預期構圖，不能保證生成主體完全不越界；先裁格再挑最大元件會永久丟失越界像素，也可能保留鄰格殘片。改為在完整母版上分配連通主體，才能同時保住跨格輪廓並隔離相鄰內容。
+**動到的檔案**：`assets/sprites/maple-keep/*.png`、`assets/sprites/fox-springs/*.png`、`tools/split-sprite-sheet.py › split_by_component_centroid()`、`tools/generate-image-prompts.js › buildDocument()`、`sw.js › VERSION`。
+**已更新的 wiki**：[像素引擎](06-pixel-engine.md)、[不變式與地雷](11-invariants-and-gotchas.md)、[PWA 與部署](13-pwa-and-deploy.md)、[全圖鑑產圖描述](15-image-prompts.md)、[_map](_map.md)。
+**注意事項**：之後批量精靈必須驗收正式 96×56 成品的深色底 contact sheet；檔案尺寸、alpha 或單一連通元件都不能證明輪廓未被格線截斷。
+
+---
+
 ## 2026-08-19 · 補齊兩張中國風釣場的 46 張正式精靈
 
 **改了什麼**：以內建 ImageGen 依資料表順序產出四張 3×4 規格表，切成劍影寒潭與敦煌月泉各 23 張、合計 46 張 96×56 RGBA 正式魚／雜物精靈；所有魚統一魚頭朝右，兩站完整列入 Service Worker 預快取並升為 v20。`tools/split-sprite-sheet.py` 新增縮放前後各一次最大 8 鄰接主體保留，清除跨格殘點。新增釣點規則改為必須同時交付場景、全部魚／雜物精靈、釣竿配色、裝備與裝飾圖示；程序化圖只算備援。
