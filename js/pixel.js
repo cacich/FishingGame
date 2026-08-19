@@ -234,7 +234,13 @@ window.FG = window.FG || {};
     // 橢圓的長寬幾乎相等——也就是一個圓。這是全檔唯一刻意畫成圓的輪廓，也是
     // 「圓圓的太陽升起」這個名字的來源。尾鰭與各鰭全部壓到接近零（頭足類沒有鰭），
     // 身體後方留給 `arms` 的八條腕；沒有 arms 的話它只是一顆球
-    octopus:  { bodyLen: .42, bodyH: .74, gamma: 1.00, e: .50, tailLen: .05, tailH: .08, fork: .00, dorsal: .04, dorsalAt: [.34, .52], anal: .04, analAt: [.34, .52] }
+    octopus:  { bodyLen: .42, bodyH: .74, gamma: 1.00, e: .50, tailLen: .05, tailH: .08, fork: .00, dorsal: .04, dorsalAt: [.34, .52], anal: .04, analAt: [.34, .52] },
+    // 劍骨青龍：極細的劍身型軀幹＋高而深叉的尾，長度再由 rostrum 補足。
+    // 跟 tuna 的厚紡錘、dragon 的帶狀大尾都不同，正式精靈缺檔時仍能靠輪廓認出「無鞘」。
+    jianlong: { bodyLen: .61, bodyH: .27, gamma: .92, e: .68, tailLen: .24, tailH: 1.16, fork: .68, dorsal: .62, dorsalAt: [.24, .50], anal: .30, analAt: [.10, .30] },
+    // 月輪天鯉：短而高的身體接一面近乎滿月的巨型深叉尾。koi 是長紗尾、tuna 是速度型月牙，
+    // 這裡刻意把 bodyH 與 tailH 同時拉高，讀成「身後張開一輪缺月」。
+    moon_koi: { bodyLen: .43, bodyH: .72, gamma: 1.18, e: .40, tailLen: .30, tailH: 1.36, fork: .62, dorsal: .54, dorsalAt: [.18, .62], anal: .46, analAt: [.14, .50] }
   };
 
   const SPR_W = 96, SPR_H = 56, MARGIN = 4;
@@ -1443,6 +1449,24 @@ window.FG = window.FG || {};
     ] },
     fs_geta: { pal: { X: '#332922', w: '#9a754e', l: '#c5a477', s: '#dce8ee', d: '#4a4140' }, map: [
       '..XXXXXXXX..', '.XllllllllX.', 'XlwwwwwwwwlX', 'XlwddwwddwlX', '.XlwwwwwwlX.', '..XXXXXXXX..', '...XwX.XwX..', '...XwX.XwX..', '..XssX.XssX.'
+    ] },
+    sp_brokenblade: { pal: { X: '#25333a', s: '#8faeb7', l: '#d5e6e8', g: '#b79252', w: '#674632' }, map: [
+      '..........XX', '........XXlX', '......XXlsX.', '....XXlssX..', '..XXlsssX...', 'XXlssssX....', '.XggggX.....', '..XwwX......', '...XX.......'
+    ] },
+    sp_bambutag: { pal: { X: '#24353a', b: '#77905b', l: '#b7c783', r: '#9f4a40' }, map: [
+      '....XrrX....', '...XrrrrX...', '...XXrrXX...', '..XllllllX..', '.XlbbbbbbX..', '.XlbXbXbbX..', '.XlbbXbbbX..', '..XlllllX...', '...XXXXX....'
+    ] },
+    sp_gourd: { pal: { X: '#2f2922', b: '#9a6b37', l: '#c89952', r: '#87463e' }, map: [
+      '.....XX.....', '....XrrX....', '....XbbX....', '...XlbbX....', '..XllllbX...', '.XllllllllX..', '.XllllllbX...', '..XbbbbX....', '...XXXX.....'
+    ] },
+    dh_silkfrag: { pal: { X: '#352532', p: '#8f4f72', r: '#b95f55', g: '#d3a755', l: '#e0bd76' }, map: [
+      'XX..........', 'XppXX.......', '.XppprXX.....', '..XprrrgXX...', '...XrrgglXX..', '....XgglllX..', '.....XlllX...', '......XXX....'
+    ] },
+    dh_lampcup: { pal: { X: '#33211d', c: '#9b5b36', l: '#d48b46', f: '#f3c661', k: '#17131a' }, map: [
+      '....XffX....', '...XffffX...', '..XlfffflX..', '.XllllllllX.', 'XlcccccccclX', 'XlcckkcccclX', '.XccccccccX.', '..XXXXXXXX..'
+    ] },
+    dh_pipapeg: { pal: { X: '#2c2026', w: '#774352', l: '#b06f72', g: '#d5aa55' }, map: [
+      '.....XX.....', '....XllX....', '...XllllX...', '...XlgglX...', '....XllX....', '....XwwX....', '...XwwwwX...', '..XwwwwwwX..', '...XXXXXX...'
     ] }
   });
 
@@ -4029,6 +4053,153 @@ window.FG = window.FG || {};
     }
   };
 
+  /* ------------------------------------------------------------
+     wuxia · 劍影寒潭
+
+     辨識軸是「兩側削直山壁上的水平棧道」：cliff 也以兩側岩壁夾水，
+     但那裡只有自然節理；這裡用一條明確的人造水平線切過左壁，再以單瀑、竹影與
+     右上孤亭說明武俠山門。水面只留少量斜向劍光，不阻塞中央釣魚動線。
+     ------------------------------------------------------------ */
+  TERRAIN.wuxia = {
+    above: function (T) {
+      const { P, R, W, horizon, rect } = T;
+      function cliff(side, reach, peak, color) {
+        for (let x = 0; x < reach; x++) {
+          const px = side < 0 ? x : W - 1 - x;
+          const d = x / reach;
+          const h = peak * Math.pow(1 - d, 1.35) + Math.sin(x * 0.21) * 3;
+          if (h < 2) continue;
+          rect(px, horizon - h, 1, h, color);
+          if (x % 9 === 0) rect(px, horizon - h * 0.82, 1, h * 0.82, P.cliffLit || FG.shade(color, 0.18));
+        }
+      }
+      cliff(-1, 82, 118, P.nearTree);
+      cliff(1, 67, 105, P.cliff || P.nearTree);
+
+      // 遠山只留在中央缺口，讓兩側近壁仍是主角。
+      for (let x = 58; x < 150; x++) {
+        const d = Math.abs(x - 104) / 46;
+        const h = Math.max(0, (1 - d) * 42 + Math.sin(x * 0.13) * 5);
+        rect(x, horizon - h, 1, h, P.farTree);
+      }
+
+      // 左壁單瀑：寬度略有起伏，避免變成白色水管。
+      const fx = 56;
+      for (let y = horizon - 88; y < horizon; y++) {
+        const t = (y - (horizon - 88)) / 88;
+        const w = 3 + t * 6 + Math.sin(y * 0.23) * 1.2;
+        rect(fx - w / 2, y, w, 1, y % 7 ? (P.falls || '#b9dfe4') : FG.shade(P.falls || '#b9dfe4', -0.16));
+      }
+
+      // 懸崖棧道：水平人造線是這一站跟自然峽灣分開的關鍵。
+      const wy = horizon - 26;
+      rect(0, wy, 70, 3, P.walkway || '#49372d');
+      rect(0, wy, 70, 1, FG.shade(P.walkway || '#49372d', 0.28));
+      for (let x = 4; x < 68; x += 8) {
+        rect(x, wy - 6, 1, 7, FG.shade(P.walkway || '#49372d', -0.12));
+        rect(x, wy + 3, 2, horizon - wy - 3, FG.shade(P.walkway || '#49372d', -0.3));
+      }
+
+      // 右上孤亭：唯一暖色窗，縮圖也能保留焦點。
+      const px0 = 139, py = horizon - 47;
+      rect(px0, py, 30, 18, P.pavilion || '#18272d');
+      rect(px0 + 11, py + 7, 7, 7, P.window || '#e4a85b');
+      rect(px0 - 5, py - 4, 40, 4, FG.shade(P.pavilion || '#18272d', -0.22));
+      rect(px0, py - 8, 30, 4, P.pavilion || '#18272d');
+      rect(px0 + 14, py - 12, 2, 4, P.pavilion || '#18272d');
+
+      // 稀疏竹竿只放兩側，中央霧谷必須留白。
+      for (let i = 0; i < 10; i++) {
+        const left = i < 6, x = left ? 8 + R() * 42 : 168 + R() * 27;
+        const h = 20 + R() * 36, lean = (R() - 0.5) * 8;
+        for (let k = 0; k < h; k++) rect(x + lean * k / h, horizon - k, 1, 1, P.bamboo || '#214d49');
+        for (let k = 0; k < 4; k++) rect(x + lean * 0.45 - 4 + k * 3, horizon - h * (0.35 + k * 0.12), 6, 2, P.bamboo || '#214d49');
+      }
+    },
+    below: function (T) {
+      const { P, R, W, H, horizon, rect } = T;
+      const g = T.g;
+      // 劍痕不畫成完整直線；三到五段斜向碎光才像被氣勁切開的水面。
+      for (let i = 0; i < 7; i++) {
+        const y = horizon + 18 + R() * (H - horizon - 35);
+        const x = R() * (W - 44), len = 16 + R() * 30;
+        g.globalAlpha = 0.28 + R() * 0.22;
+        for (let k = 0; k < len; k++) if ((k + i) % 7 < 5) rect(x + k, y - k * 0.20, 1, 1, P.swordLight || '#8ddbe6');
+      }
+      g.globalAlpha = 1;
+    }
+  };
+
+  /* ------------------------------------------------------------
+     dunhuang · 敦煌月泉
+
+     辨識軸是「窟龕蜂巢＋天空長綾」。desert 已佔用金字塔／方尖碑與平坦沙帶，
+     這裡改用一整面規則拱龕和跨越天空的長曲線；沙丘只是承載物，不是主角。
+     ------------------------------------------------------------ */
+  TERRAIN.dunhuang = {
+    above: function (T) {
+      const { P, R, W, horizon, rect } = T;
+      const g = T.g;
+      // 後方沙丘：非對稱稜線，先鋪保底沙帶避免波谷漏天。
+      rect(0, horizon - 18, W, 20, P.midTree);
+      for (let x = 0; x < W; x++) {
+        const h = 17 + Math.sin(x * 0.032 + 0.6) * 12 + Math.sin(x * 0.081) * 4;
+        rect(x, horizon - h, 1, h, P.sand || '#c97838');
+        rect(x, horizon - h, 1, 1, P.sandLit || '#efad58');
+      }
+
+      // 左側石窟牆：三排錯位拱龕，拱頂用逐列縮窄而不是方洞。
+      rect(0, horizon - 57, 72, 57, P.grotto || '#6c382a');
+      for (let row = 0; row < 3; row++) {
+        const count = row === 1 ? 5 : 4;
+        for (let c = 0; c < count; c++) {
+          const cx = 8 + c * 15 + (row === 1 ? -4 : 2), by = horizon - 8 - row * 16;
+          rect(cx - 4, by - 7, 9, 8, P.cave || '#201b28');
+          for (let dy = 0; dy < 4; dy++) rect(cx - (3 - dy), by - 11 + dy, (3 - dy) * 2 + 1, 1, P.cave || '#201b28');
+          rect(cx - 1, by - 6, 3, 4, P.lamp || '#ffd06a');
+        }
+      }
+
+      // 中央偏右的中國式窟寺，避免和左側龕洞糊成一塊。
+      const tx = 105, ty = horizon - 31;
+      rect(tx, ty, 37, 22, P.temple || '#35222a');
+      rect(tx - 6, ty - 4, 49, 4, FG.shade(P.temple || '#35222a', -0.2));
+      rect(tx, ty - 9, 37, 5, P.temple || '#35222a');
+      rect(tx - 4, ty - 11, 45, 2, FG.shade(P.temple || '#35222a', -0.25));
+      for (let c = 0; c < 4; c++) rect(tx + 5 + c * 8, ty + 8, 4, 6, P.lamp || '#ffd06a');
+
+      // 飛天長綾：三條高度錯開、彼此不重疊的曲線，避免高飽和色糊成一團。
+      const ribbons = P.ribbon || ['#f0a14e', '#bb5f8f', '#3a9a8a'];
+      ribbons.forEach(function (color, b) {
+        g.globalAlpha = 0.55 - b * 0.09;
+        for (let x = -10; x < W + 10; x++) {
+          const y = 14 + b * 19 + Math.sin(x * 0.026 + b * 2.1) * (9 + b * 2);
+          rect(x, y, 2, 2, color);
+          if (x % 11 < 6) rect(x, y + 3, 1, 1, FG.shade(color, 0.2));
+        }
+      });
+      g.globalAlpha = 1;
+
+      // 右側風蝕柱只用寬頂輪廓，不做尖塔，避免和既有金字塔混淆。
+      for (let i = 0; i < 3; i++) {
+        const x = 158 + i * 15, h = 13 + i * 8;
+        rect(x, horizon - h, 8 + i * 2, h, P.yardang || '#6a3d32');
+        rect(x + 1, horizon - h, 6 + i * 2, 2, FG.shade(P.yardang || '#6a3d32', 0.18));
+      }
+    },
+    below: function (T) {
+      const { P, R, W, horizon, rect } = T;
+      const g = T.g;
+      // 洞窟燈影只留在靠岸的前 48px，中央與下半部保持乾淨。
+      for (let i = 0; i < 16; i++) {
+        const x = 4 + R() * (W - 8), y = horizon + 4 + R() * 44;
+        g.globalAlpha = 0.12 + R() * 0.18;
+        rect(x, y, 1 + R() * 3, 1, P.lamp || '#ffd06a');
+      }
+      g.globalAlpha = 1;
+    }
+  };
+
   function buildBackground(loc) {
     const P = loc.scene;
     const W = SCENE_W, H = SCENE_H;
@@ -4667,6 +4838,37 @@ window.FG = window.FG || {};
         break;
       }
 
+      case 'wuxia': {
+        // 兩側直壁＋左側棧道＋右上孤亭；水平棧道是跟自然峽灣分開的主軸。
+        for (let x = 0; x < W; x++) {
+          const dl = x / (W * 0.42), dr = (W - 1 - x) / (W * 0.34);
+          if (dl <= 1) fill(x, hz - 20 * S * Math.pow(1 - dl, 1.3), 1, hz, P.nearTree);
+          if (dr <= 1) fill(x, hz - 18 * S * Math.pow(1 - dr, 1.3), 1, hz, P.cliff || P.nearTree);
+        }
+        fill(0, hz - 7 * S, W * 0.34, S, P.walkway || '#49372d');
+        for (let x = 3 * S; x < W * 0.34; x += 6 * S) fill(x, hz - 10 * S, S, 4 * S, P.walkway || '#49372d');
+        fill(W * 0.68, hz - 11 * S, 13 * S, 7 * S, P.pavilion || '#18272d');
+        fill(W * 0.65, hz - 13 * S, 19 * S, 2 * S, FG.shade(P.pavilion || '#18272d', -0.2));
+        fill(W * 0.73, hz - 8 * S, 3 * S, 3 * S, P.window || '#e4a85b');
+        fill(W * 0.28, hz - 18 * S, 2 * S, 18 * S, P.falls || '#b9dfe4');
+        break;
+      }
+
+      case 'dunhuang': {
+        // 三排窟龕＋中央窟寺＋天空長綾；縮圖不靠一般沙丘辨識。
+        fill(0, hz - 14 * S, W * 0.35, 14 * S, P.grotto || '#6c382a');
+        for (let row = 0; row < 3; row++) for (let c = 0; c < 4; c++) {
+          const x = (3 + c * 6 + (row & 1) * 3) * S, y = hz - (4 + row * 4) * S;
+          fill(x, y, 4 * S, 3 * S, P.cave || '#201b28');
+          fill(x + S, y + S, S, S, P.lamp || '#ffd06a');
+        }
+        fill(W * 0.47, hz - 9 * S, 16 * S, 8 * S, P.temple || '#35222a');
+        fill(W * 0.44, hz - 11 * S, 22 * S, 2 * S, FG.shade(P.temple || '#35222a', -0.2));
+        const rc = (P.ribbon && P.ribbon[0]) || '#f0a14e';
+        for (let x = 0; x < W; x++) fill(x, 4 * S + Math.sin(x * 0.09) * 3 * S, 1, 1, rc);
+        break;
+      }
+
       default:
         for (let i = 0; i < 40; i++) {
           const x = Math.floor(R() * W), hgt = 4 + R() * 8;
@@ -5157,6 +5359,33 @@ window.FG = window.FG || {};
         rect(lx + 4 + Math.sin(k * 0.48 + time * 0.0017) * 3, ly - k, 7, 1, '#eef6fa');
       }
       g.globalAlpha = 1;
+    }
+    if (deco.swordscreen) {
+      // 寒潭劍架：三柄木劍長短、斜度都不同；排成等長直線會像柵欄。
+      const sx = 42, sy = floorY - 34;
+      rect(sx, sy + 25, 39, 4, '#31504a');
+      rect(sx + 4, sy + 29, 4, 5, '#203a36');
+      rect(sx + 31, sy + 29, 4, 5, '#203a36');
+      [[4, 1, 28, '#8ca9ae'], [9, 3, 32, '#b7c8c8'], [14, 0, 25, '#6f8e94']].forEach(function (s, i) {
+        for (let k = 0; k < s[2]; k++) rect(sx + s[0] + k, sy + 22 - Math.round(k * (0.28 + i * 0.04)), 1, 2, s[3]);
+        rect(sx + s[0] - 2, sy + 21, 5, 2, '#b18a4c');
+        rect(sx + s[0] - 1, sy + 23, 2, 5, '#60412f');
+      });
+    }
+    if (deco.apsarabanner) {
+      // 飛天藻井幡：掛在右上牆面避開魚缸。長幡必須隨時間擺動，
+      // 靜態直條只會被讀成窗簾，飄動才說得出「沒有風也在飛」。
+      const ax = 151, ay = 7;
+      rect(ax, ay, 36, 4, '#6e3b50');
+      for (let i = 0; i < 3; i++) {
+        const color = ['#8e476f', '#c16c55', '#d5a94f'][i];
+        for (let k = 0; k < 34; k++) {
+          const sway = Math.round(Math.sin(time * 0.0015 + k * 0.16 + i) * (1 + k / 14));
+          rect(ax + 6 + i * 10 + sway, ay + 4 + k, 5, 1, k % 7 === 0 ? FG.shade(color, 0.18) : color);
+        }
+      }
+      rect(ax + 3, ay - 2, 30, 2, '#d1a956');
+      rect(ax + 16, ay - 5, 4, 3, '#6b8f84');
     }
     if (deco.cat) {
       const wave = Math.sin(time * 0.005) > 0 ? 0 : 1;

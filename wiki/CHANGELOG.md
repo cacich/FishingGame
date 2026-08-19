@@ -16,6 +16,26 @@
 
 ---
 
+## 2026-08-19 · 補齊兩張中國風釣場的 46 張正式精靈
+
+**改了什麼**：以內建 ImageGen 依資料表順序產出四張 3×4 規格表，切成劍影寒潭與敦煌月泉各 23 張、合計 46 張 96×56 RGBA 正式魚／雜物精靈；所有魚統一魚頭朝右，兩站完整列入 Service Worker 預快取並升為 v20。`tools/split-sprite-sheet.py` 新增縮放前後各一次最大 8 鄰接主體保留，清除跨格殘點。新增釣點規則改為必須同時交付場景、全部魚／雜物精靈、釣竿配色、裝備與裝飾圖示；程序化圖只算備援。
+**為什麼**：程序化 fallback 會讓缺少正式圖片時仍能遊玩，也因此掩蓋美術未完成；把完整資產設為可驗收的硬門檻，才能讓新地圖的品質與離線體驗一致。敦煌高階批次的第一版有輪廓外光暈污染鍵色背景，已用「禁止外光暈、發光限輪廓內實色像素」的修正版提示重產。
+**動到的檔案**：`assets/sprites/sword-pool/*.png`、`assets/sprites/dunhuang-spring/*.png`、`tools/split-sprite-sheet.py › keep_largest_component()`、`tools/generate-image-prompts.js › buildDocument()`、`sw.js › VERSION / ASSETS`、`README.md`。
+**已更新的 wiki**：[wiki README](README.md)、[像素引擎](06-pixel-engine.md)、[資料規格](07-data-schema.md)、[操作手冊](09-recipes.md)、[不變式與地雷](11-invariants-and-gotchas.md)、[名詞表](12-glossary.md)、[PWA 與部署](13-pwa-and-deploy.md)、[全圖鑑產圖描述](15-image-prompts.md)、[_map](_map.md)、[專案 README](../README.md)。
+**注意事項**：規格表背景必須是精確 `#FF00FF` 且不得有輪廓外半透明 glow；切圖後仍要驗檔案數、96×56 RGBA、alpha、單一連通主體與魚頭朝右，不能只看產圖母版。
+
+---
+
+## 2026-08-19 · 新增劍影寒潭與敦煌月泉兩套中國風釣場
+
+**改了什麼**：新增武俠主題 `sword_pool`（劍影寒潭）與敦煌絲路主題 `dunhuang_spring`（敦煌月泉），包含 46 個可釣項目、兩位魚王與專屬 cut-in、兩組正式背景／縮圖、兩套程序化地形與六件雜物備援、2 支釣竿、2 種餌料、2 件專屬裝備、2 件家園裝飾；下注階梯擴至 21 檔、最高 12,000，全遊戲成為 20 站、463 個可釣項目。依 20 站曲線重算全部 `mult`，Service Worker 升為 v19。
+**為什麼**：以峭壁棧道與孤瀑建立武俠寒潭，以石窟龕、飛天長綾與月泉建立另一條明確不同的中國文化辨識軸；兩站仍遵守「每站一整套內容、正式圖片失敗仍可玩、固定 98% RTP」的既有契約。
+**動到的檔案**：`js/data.js › FG.BETS / FG.LOCATIONS / FG.RODS / FG.BAITS / FG.EQUIPS / FG.DECOS`、`js/pixel.js › SHAPES / JUNK_MAPS / TERRAIN / locThumb() / drawRoom()`、`js/cutin.js › KING`、`js/screen-shop.js › rodIcon() / EQUIP_ART`、`js/screen-home.js › DECO_ART`、`tools/generate-image-prompts.js`、`assets/scenes/sword-pool-*`、`assets/scenes/dunhuang-spring-*`、`sw.js › VERSION / ASSETS`、`README.md`。
+**已更新的 wiki**：[wiki README](README.md)、[狀態與存檔](02-state-and-save.md)、[經濟與抽獎](03-economy.md)、[釣魚循環](04-fishing-loop.md)、[像素引擎](06-pixel-engine.md)、[資料規格](07-data-schema.md)、[介面與畫面](08-ui-and-screens.md)、[操作手冊](09-recipes.md)、[平衡調參](10-balance-tuning.md)、[不變式與地雷](11-invariants-and-gotchas.md)、[名詞表](12-glossary.md)、[PWA 與部署](13-pwa-and-deploy.md)、[全圖鑑產圖描述](15-image-prompts.md)、[_map](_map.md)、[專案 README](../README.md)。
+**注意事項**：這筆變更完成當下，新兩站的 46 個魚／雜物仍走程序化精靈備援；同日後續變更已補齊正式 PNG、列入 `sw.js › ASSETS` 並升至 v20。全 431,250 組 RTP 配置的最大誤差為 1.11e-16。
+
+---
+
 ## 2026-08-19 · 釣點選擇改為全螢幕地圖庫
 
 **改了什麼**：`main.js › FG.locationPicker()` 由一次約顯示三張卡的 `44dvh` 彈窗改為全螢幕釣點地圖庫，新增名稱／景觀／最低下注搜尋、全部／入門／進階／深釣篩選、大型釣點預覽、最低下注／圖鑑／可釣項目資訊，以及 320px 兩欄、420px 以上三欄的卡片網格；點卡片只預覽，需再按「前往」才切換。`screen-daily.js` 移除重複的十八張釣點清單，改為目前釣點摘要並共用地圖庫。`ui.modal()` 新增 `fullscreen` 模式，仍沿用既有 modal 堆疊。

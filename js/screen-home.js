@@ -238,7 +238,9 @@ window.FG = window.FG || {};
     driplamp:  { pal: { a: '#7a705c', b: '#57503f', c: '#e0c88f', d: '#cfeef8' }, map: ['...aaaaaa.......','....abba........','....acca........','.....ac.........','.....ac.........','.....cc.........','................','.....d..........'] },
     beacon:    { pal: { a: '#5a5a66', b: '#2a2a34', c: '#dff0f4', d: '#a8c8d0', e: '#ffe9b8' }, map: ['.......bb.......','..aaaaaaaaaaaa..','..bcdcdcdcdcdb..','..bdcdcdcdcdcb..','..bcdcdcdcdcdb..','..aaaaaaaaaaaa..','.....bbbbbb.....','....eeeeeeee....'] },
     maplebyobu:{ pal: { a: '#b28a3d', b: '#e0bf68', c: '#b73528', d: '#5b3024' }, map: ['aaaaaaaaaaaaaa..','abbbbbbbbbbbba..','abccbbccbbbcca..','abcccbbccbccca..','abddccbbccddda..','abdddcbbccddda..','abbbbbbbbbbbba..','aaaaaaaaaaaaaa..'] },
-    foxlantern:{ pal: { a: '#6a6f76', b: '#dce8ef', c: '#f0b56a', d: '#a43b35' }, map: ['......aa........','.....aaaa.......','....abbbba......','...abccccba.....','...abcbccba.....','....abbbba......','.....aaaa.......','....ad..da......'] }
+    foxlantern:{ pal: { a: '#6a6f76', b: '#dce8ef', c: '#f0b56a', d: '#a43b35' }, map: ['......aa........','.....aaaa.......','....abbbba......','...abccccba.....','...abcbccba.....','....abbbba......','.....aaaa.......','....ad..da......'] },
+    swordscreen:{ pal: { a: '#31504a', b: '#8ca9ae', c: '#b7c8c8', d: '#b18a4c' }, map: ['................','.............bb.','..........bbbbb.','.......ccccbbb..','....bbcccc......','..ddbbbb........','aaaaaaaaaaaaaa..','..aa........aa..'] },
+    apsarabanner:{ pal: { a: '#6e3b50', b: '#8e476f', c: '#c16c55', d: '#d5a94f' }, map: ['..aaaaaaaaaaaa..','...bb..cc..dd...','...bbb.ccc.ddd..','....bb..cc..dd..','....bbb.ccc.ddd.','.....bb..cc..dd.','.....bbb.ccc.ddd','......b...c...d.'] }
   };
   function decoIcon(d) {
     const def = DECO_ART[d.id];

@@ -30,8 +30,45 @@ def remove_key_color(image: Image.Image, hex_color: str, tolerance: int) -> Imag
     return result
 
 
+def keep_largest_component(image: Image.Image) -> Image.Image:
+    """移除跨格殘點；每格的單一主體以 8 鄰域最大連通區為準。"""
+    rgba = image.convert("RGBA")
+    alpha = rgba.getchannel("A")
+    visible = {(x, y) for y in range(alpha.height) for x in range(alpha.width)
+               if alpha.getpixel((x, y)) > 0}
+    if not visible:
+        return rgba
+
+    largest: set[tuple[int, int]] = set()
+    while visible:
+        seed = visible.pop()
+        component = {seed}
+        stack = [seed]
+        while stack:
+            x, y = stack.pop()
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    if dx == 0 and dy == 0:
+                        continue
+                    point = (x + dx, y + dy)
+                    if point in visible:
+                        visible.remove(point)
+                        component.add(point)
+                        stack.append(point)
+        if len(component) > len(largest):
+            largest = component
+
+    pixels = rgba.load()
+    for y in range(rgba.height):
+        for x in range(rgba.width):
+            if (x, y) not in largest:
+                pixels[x, y] = (0, 0, 0, 0)
+    return rgba
+
+
 def prepare_sprite(cell: Image.Image) -> Image.Image:
     """裁掉透明邊，保留安全留白後置中到遊戲精靈畫布。"""
+    cell = keep_largest_component(cell)
     box = cell.getchannel("A").getbbox()
     if box is None:
         raise ValueError("素材格沒有可見主體")
@@ -45,6 +82,8 @@ def prepare_sprite(cell: Image.Image) -> Image.Image:
     )
     sprite = cell.crop(box)
     sprite.thumbnail(MAX_SUBJECT_SIZE, Image.Resampling.NEAREST)
+    # NEAREST 縮小偶爾會把一像素連橋捨掉；縮放後再清一次才不會留下孤立殘點。
+    sprite = keep_largest_component(sprite)
 
     final = Image.new("RGBA", CANVAS_SIZE)
     x = (CANVAS_SIZE[0] - sprite.width) // 2
