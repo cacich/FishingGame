@@ -701,6 +701,18 @@ console.log(shapeCount, patternCount);
 
 ---
 
+### 54. GitHub Pages 圖片已更新，舊 Service Worker 仍可能回舊圖
+
+**症狀**：直接下載 GitHub Pages 上的 PNG 已是修正版，`sw.js` 也顯示新 `VERSION`，但已開啟或已安裝的遊戲仍顯示上一版圖片；重新整理後甚至會先看到「新版本」再繼續拿到舊魚圖。
+
+**原因**：圖片走 cache-first，舊 SW 在新 SW 完成安裝與接管前仍控制目前頁面；固定圖片網址會先命中舊版 cache，根本不向伺服器詢問。只提高 SW cache 名稱能保證新 SW 接管後正確，不能穿透這段過渡期。
+
+**對策**：`pixel.js › loadImage()` 對 `assets/` 網址附加與 SW 同步的 `IMAGE_REVISION`。舊 SW 視為新網址、直接向網路取回新版；新 SW 的圖片分支以 `caches.match(req, { ignoreSearch: true })` 對應到 install 時預快取的無 query 路徑，保持離線能力且不複製 463 份檔案。替換任何圖片時必須同時提升 `IMAGE_REVISION` 與 `sw.js › VERSION`。
+
+**一般化**：cache-first 資產的版本不只要識別「快取世代」，也要進入請求 URL，才能處理舊控制器仍存活的更新過渡期；驗證部署時要同時比對遠端檔案雜湊與實際頁面請求網址。
+
+---
+
 ## 必須維持的不變式
 
 ### 資料

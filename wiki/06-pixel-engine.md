@@ -331,7 +331,7 @@ px.sprite(f)   // fishCache[f.id]，第一次生成後永久快取
 
 不用手寫數百筆路徑，是為了讓資料表新增釣點或魚種時自然遵循同一個命名契約。索引延後至第一次 `requestExternalSprite()` 才建立，因為 `pixel.js` 的載入順序早於 `data.js`；這避免啟動時讀取未定義的 `FG.LOCATIONS` 而中斷整個畫面。`requestExternalSprite()` 仍會先建立程序化版本，外部圖缺檔或載入失敗時便維持備援畫面，離線與 `file://` 不會出現空白精靈。
 
-`px.sprite()` 第一次被呼叫時仍會先同步建立程序化精靈；若該 id 在覆寫表中，則非同步載入 PNG，成功後以同一個 `fishCache[f.id]` 取代。這是刻意的**漸進式覆寫**：首幀、離線、`file://` 或缺圖時不會白掉，圖片到位後的後續繪製才改用正式美術。`px.spriteEl()` 也會訂閱同一張圖片的載入完成事件，直接重畫已插入 DOM 的 canvas；因此首次開啟圖鑑、結果卡或家園清單不需要切頁重建才能看到正式圖。新增下一批時，檔案、覆寫表與 `sw.js › ASSETS` 必須一起補；圖片是 cache-first，因此也必須提升 SW `VERSION`。
+`px.sprite()` 第一次被呼叫時仍會先同步建立程序化精靈；若該 id 在覆寫表中，則非同步載入 PNG，成功後以同一個 `fishCache[f.id]` 取代。這是刻意的**漸進式覆寫**：首幀、離線、`file://` 或缺圖時不會白掉，圖片到位後的後續繪製才改用正式美術。`px.spriteEl()` 也會訂閱同一張圖片的載入完成事件，直接重畫已插入 DOM 的 canvas；因此首次開啟圖鑑、結果卡或家園清單不需要切頁重建才能看到正式圖。`pixel.js › loadImage()` 會為 `assets/` 圖片附加 `IMAGE_REVISION` 查詢參數，讓仍由舊 Service Worker 控制的頁面也會把改版圖片當成新請求；新版 `sw.js` 以 `ignoreSearch` 命中無 query 的預快取檔，離線時仍只需要同一份資產。每次替換圖片時，`IMAGE_REVISION` 與 SW `VERSION` 必須一起提升；新增下一批時，檔案、覆寫表與 `sw.js › ASSETS` 也必須一起補。
 
 > **朝向契約**：所有魚類 PNG 的原始朝向必須是**魚頭朝右**，才能和 `buildFish()`、`px.drawSprite()` 的 `flip` 語意一致；雜物不套用這條規則。若只需修正已完成的產圖朝向，使用 `tools/flip-sprites.py` 對資料表中非 `junkArt` 的魚類路徑做水平鏡像，切勿重新產圖或翻轉晨霧湖已正確的檔案。
 

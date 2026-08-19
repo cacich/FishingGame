@@ -7,7 +7,7 @@
      重新安裝並清掉舊快取。不改的話舊快取會一直留著。
    ============================================================ */
 
-const VERSION = 'v23';
+const VERSION = 'v24';
 const CACHE = 'fishing-' + VERSION;
 
 // 程式碼類資產走 network-first 時，等網路的上限（毫秒）。超時就回快取，
@@ -643,7 +643,9 @@ self.addEventListener('fetch', function (e) {
 
   // 圖片等靜態資產：cache-first
   e.respondWith(
-    caches.match(req).then(function (cached) {
+    // 圖片網址會帶資產版本以穿透仍在控制頁面的舊 SW；新 SW 則忽略 query，
+    // 直接命中 install 階段以無 query 路徑預快取的同一份最新版檔案。
+    caches.match(req, { ignoreSearch: true }).then(function (cached) {
       if (cached) return cached;
       return fetch(req).then(function (res) { return putInCache(req, res); });
     })

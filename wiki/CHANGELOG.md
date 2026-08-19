@@ -16,6 +16,16 @@
 
 ---
 
+## 2026-08-19 · 圖片請求加入版本參數以穿透舊 Service Worker
+
+**改了什麼**：`pixel.js › loadImage()` 對所有 `assets/` 圖片附加 `asset=v24`，`sw.js` 升至 v24 並在圖片 cache-first 查找時使用 `ignoreSearch`。舊 SW 仍控制頁面時，帶新 query 的魚圖會直接向 GitHub Pages 抓修正版；v24 接管後則命中 install 階段預快取的無 query 檔案，離線能力不變。
+**為什麼**：GitHub Pages 線上 `sw.js` 已是 v23，三張回報魚圖的 SHA-256 也與本機修正版完全一致，但固定圖片網址仍會被尚未退場的舊 SW 從舊 cache 回傳；只換 cache 名稱不能解決接管前的過渡期。
+**動到的檔案**：`js/pixel.js › loadImage()`、`sw.js › VERSION / fetch`。
+**已更新的 wiki**：[像素引擎](06-pixel-engine.md)、[不變式與地雷](11-invariants-and-gotchas.md)、[PWA 與部署](13-pwa-and-deploy.md)、[CHANGELOG](CHANGELOG.md)。
+**注意事項**：之後只要替換任何 `assets/` 圖片，`IMAGE_REVISION` 與 SW `VERSION` 必須同步提升，避免再次出現線上檔案正確但遊戲仍顯示舊圖。
+
+---
+
 ## 2026-08-19 · 完整重切中國風 46 張精靈並清除全色相外光
 
 **改了什麼**：從原始四張 3×4 母版重新輸出劍影寒潭與敦煌月泉全 46 張正式精靈，改用完整母版的連通元件重心分格，修復跨格頭尾、魚鰭與吻端被固定格線截斷。`tools/split-sprite-sheet.py` 新增 `clean_colored_outer_glow()` 與 `normalize_outer_outline()`：前者在縮小前清除任何色相的 3～6px 模型外光，後者把 96×56 成品的高彩度外圈統一成內側色衍生的暗描邊，兩者都保留 alpha。Service Worker 升為 v23。

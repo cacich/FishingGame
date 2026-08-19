@@ -1629,6 +1629,9 @@ window.FG = window.FG || {};
   const bgCache = {};
   const bgImageRequested = {};
   const imageCache = {};
+  // 圖片網址帶版本可穿透仍在控制頁面的舊 SW 圖片快取；新 SW 會忽略查詢參數
+  // 對應到同一份預快取檔案，因此更新期間可立即換圖，離線也不會多存一套。
+  const IMAGE_REVISION = 'v24';
   const FISHING_IDLE = {
     src: 'assets/characters/fishing-idle.png',
     frameW: 112,
@@ -1680,7 +1683,10 @@ window.FG = window.FG || {};
       entry.waiters.length = 0;
       console.warn('[pixel] 外部圖片載入失敗，使用程序化備援：', src);
     };
-    img.src = src;
+    const separator = src.indexOf('?') >= 0 ? '&' : '?';
+    img.src = src.indexOf('assets/') === 0
+      ? src + separator + 'asset=' + IMAGE_REVISION
+      : src;
   }
 
   function requestFishingIdle() {
